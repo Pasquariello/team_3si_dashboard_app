@@ -1,6 +1,5 @@
 import type { Route } from "./+types/annualProviderData";
-import DownloadIcon from '@mui/icons-material/Download';
-import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
+
 import OutlinedFlagIcon from '@mui/icons-material/OutlinedFlag';
 import FlagIcon from '@mui/icons-material/Flag';
 
@@ -16,33 +15,24 @@ export function meta({}: Route.MetaArgs) {
 
 //   START 
 
-
 import * as React from 'react';
 import { alpha } from '@mui/material/styles';
-import Box from '@mui/material/Box';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableHead from '@mui/material/TableHead';
-import TablePagination from '@mui/material/TablePagination';
-import TableRow from '@mui/material/TableRow';
-import TableSortLabel from '@mui/material/TableSortLabel';
-import Toolbar from '@mui/material/Toolbar';
-import Typography from '@mui/material/Typography';
-import Paper from '@mui/material/Paper';
-import Checkbox from '@mui/material/Checkbox';
-import IconButton from '@mui/material/IconButton';
-import Tooltip from '@mui/material/Tooltip';
-import FormControlLabel from '@mui/material/FormControlLabel';
-import Switch from '@mui/material/Switch';
-// import DeleteIcon from '@mui/icons-material/Delete';
-import FilterListIcon from '@mui/icons-material/FilterList';
-import { visuallyHidden } from '@mui/utils';
-import TextField from "@mui/material/TextField";
-import Button from "@mui/material/Button";
-import Divider from "@mui/material/Divider";
-import InputAdornment from "@mui/material/InputAdornment";
+import {
+  Box,
+  Checkbox,
+  Paper,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableRow,
+} from '@mui/material';
+
+import EnhancedTableToolbar from "~/components/table/EnhancedTableToolbar";
+import EnhancedTableHead from "~/components/table/EnhancedTableHead";
+import { getVisibleRows } from "~/utils/table";
+import type { Data, HeadCell, Order } from "~/types";
+import YearOrRangeSelector from "~/components/YearOrRangeSelector";
 
 
     // id: 'id',
@@ -53,17 +43,6 @@ import InputAdornment from "@mui/material/InputAdornment";
     // id: 'distanceTraveled',
     // id: 'providersWithSameAddress',
  
-interface Data {
-  id: number;
-  providerName: string;
-  overallRiskScore: number;
-  childrenBilledOver: number;
-  childrenPlacedOverCapacity: number;
-  distanceTraveled: number;
-  providersWithSameAddress: number;
-
-}
-
 function createData(
   id: number,
   providerName: string,
@@ -87,57 +66,19 @@ function createData(
 const rows = [
   createData(1, 'Little Stars Childcare', 100, 12, 12, 12, 12),
   createData(2, 'Bright Futures Academy', 89, 12, 11, 10, 12),
-  createData(3, 'Happy Hearts Daycare', 75, 6, 6, 6, 6),
-  createData(4, 'Sunshine Learning Center', 60, 4, 11, 1, 5),
+  createData(3, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
+  createData(4, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
   createData(5, 'Kiddie Cove', 50, 1, 1, 1, 1),
   createData(6, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
 
 ];
 
-function descendingComparator<T>(a: T, b: T, orderBy: keyof T) {
-  if (b[orderBy] < a[orderBy]) {
-    return -1;
-  }
-  if (b[orderBy] > a[orderBy]) {
-    return 1;
-  }
-  return 0;
-}
-
-type Order = 'asc' | 'desc';
-
-function getComparator<Key extends keyof any>(
-  order: Order,
-  orderBy: Key,
-): (
-  a: { [key in Key]: number | string },
-  b: { [key in Key]: number | string },
-) => number {
-  return order === 'desc'
-    ? (a, b) => descendingComparator(a, b, orderBy)
-    : (a, b) => -descendingComparator(a, b, orderBy);
-}
-
-interface HeadCell {
-  disablePadding: boolean;
-  id: keyof Data;
-  label: string;
-  numeric: boolean;
-}
-
-
     // Provider ID
-
     // Provider Name
-
     // Overall Risk Score (sum of the next four annualized columns)
-
     // Children Billed Over Capacity (integer: number of months with value 1, range: 0–12)
-
     // Children Placed Over Capacity (integer: number of months with value 1, range: 0–12)
-
     // Distance Traveled (integer: number of months with value 1, range: 0–12)
-
     // Providers with Same Address (integer: number of months with value 1, range: 0–12)
 
 const headCells: readonly HeadCell[] = [
@@ -186,110 +127,17 @@ const headCells: readonly HeadCell[] = [
 
 ];
 
-interface EnhancedTableProps {
-  numSelected: number;
-  onRequestSort: (event: React.MouseEvent<unknown>, property: keyof Data) => void;
-  onSelectAllClick: (event: React.ChangeEvent<HTMLInputElement>) => void;
-  order: Order;
-  orderBy: string;
-  rowCount: number;
-}
 
-function EnhancedTableHead(props: EnhancedTableProps) {
-  const { onSelectAllClick, order, orderBy, numSelected, rowCount, onRequestSort } =
-    props;
-  const createSortHandler =
-    (property: keyof Data) => (event: React.MouseEvent<unknown>) => {
-      onRequestSort(event, property);
-    };
-
-  return (
-    <TableHead>
-      <TableRow>
-        <TableCell padding="checkbox">
-          <Checkbox
-            color="primary"
-            indeterminate={numSelected > 0 && numSelected < rowCount}
-            checked={rowCount > 0 && numSelected === rowCount}
-            onChange={onSelectAllClick}
-            inputProps={{
-              'aria-label': 'select all',
-            }}
-          />
-        </TableCell>
-        {headCells.map((headCell) => (
-          <TableCell
-            key={headCell.id}
-            align={headCell.numeric ? 'right' : 'left'}
-            padding={headCell.disablePadding ? 'none' : 'normal'}
-            sortDirection={orderBy === headCell.id ? order : false}
-          >
-            <TableSortLabel
-              active={orderBy === headCell.id}
-              direction={orderBy === headCell.id ? order : 'asc'}
-              onClick={createSortHandler(headCell.id)}
-            >
-              {headCell.label}
-              {orderBy === headCell.id ? (
-                <Box component="span" sx={visuallyHidden}>
-                  {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
-                </Box>
-              ) : null}
-            </TableSortLabel>
-          </TableCell>
-        ))}
-      </TableRow>
-    </TableHead>
-  );
-}
-
-function EnhancedTableToolbar() {
-  return (
-    <Box
-      sx={{
-        display: 'flex',
-        gap: 1,
-        alignItems: 'stretch', // 👈 ensures all items match height
-        my: 4,
-      }}
-    >
-      <TextField
-        placeholder="Search by provider name or ID..."
-        variant="outlined"
-        size="small"
-        fullWidth
-        sx={{flexGrow: 1 }}
-      />
-
-      <Button
-        variant="outlined"
-        size="small"      
-            sx={{ alignSelf: 'stretch' }} // 👈 grow to match sibling height
-        startIcon={<FilterAltOutlinedIcon />}
-      >
-        Filter
-      </Button>
-
-      <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
-
-      <Button
-        variant="outlined"
-        size="small"
-        sx={{ alignSelf: 'stretch' }} // 👈 grow to match sibling height
-        startIcon={<DownloadIcon />}
-      >
-        Export
-      </Button>
-    </Box>
-  );
-}
 export default function AnnualProviderData() {
   const [order, setOrder] = React.useState<Order>('desc');
   const [orderBy, setOrderBy] = React.useState<keyof Data>('overallRiskScore');
   const [selected, setSelected] = React.useState<readonly number[]>([]);
-  const [page, setPage] = React.useState(0);
-  const [dense, setDense] = React.useState(false);
-  const [rowsPerPage, setRowsPerPage] = React.useState(10);
+  const [selectedPeriod, setSelectedPeriod] = React.useState<string>('last12');
+
+  const handlePeriodChange = (event: any) => {
+    setSelectedPeriod(event.target.value);
+    // You could also trigger a data reload here
+  };
 
   const handleRequestSort = (
     event: React.MouseEvent<unknown>,
@@ -328,42 +176,38 @@ export default function AnnualProviderData() {
     setSelected(newSelected);
   };
 
-  const handleChangePage = (event: unknown, newPage: number) => {
-    setPage(newPage);
-  };
+  const riskThresholds = [
+    { max: 100, min: 90, color: 'red' },
+    { max: 90, min: 80, color: 'orange' },
+    { max: 80, min: 0, color: 'green' },
+  ];
 
-  const handleChangeRowsPerPage = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setRowsPerPage(parseInt(event.target.value, 10));
-    setPage(0);
-  };
+  function getColor(value: number) {
+    const match = riskThresholds.find(
+      (threshold) => value <= threshold.max && value >= threshold.min
+    );
+    return match ? match.color : 'defaultColor';
+  }
 
-  const handleChangeDense = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setDense(event.target.checked);
-  };
+  const visibleRows = getVisibleRows(rows, order, orderBy);
 
-  // Avoid a layout jump when reaching the last page with empty rows.
-  const emptyRows =
-    page > 0 ? Math.max(0, (1 + page) * rowsPerPage - rows.length) : 0;
-
-  const visibleRows = React.useMemo(
-    () =>
-      [...rows]
-        .sort(getComparator(order, orderBy))
-        .slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage),
-    [order, orderBy, page, rowsPerPage],
-  );
+  const renderTableCellContent = (value: string | number) => value === null ? '--' : value;
 
   return (
     <Box sx={{ width: '100%' }}>
+      <Box sx={{my: 4, display: 'flex', alignItems: 'center', gap: 2}}>
+        <YearOrRangeSelector
+          value={selectedPeriod}
+          onChange={handlePeriodChange}
+        />
+        <EnhancedTableToolbar />
+      </Box>
+
       <Paper sx={{ width: '100%', mb: 2 }}>
-        <EnhancedTableToolbar 
-        // numSelected={selected?.length  }
-         />
         <TableContainer>
           <Table
             sx={{ minWidth: 750 }}
             aria-labelledby="tableTitle"
-            size={dense ? 'small' : 'medium'}
           >
             <EnhancedTableHead
               numSelected={selected.length}
@@ -372,6 +216,7 @@ export default function AnnualProviderData() {
               onSelectAllClick={handleSelectAllClick}
               onRequestSort={handleRequestSort}
               rowCount={rows.length}
+              headCells={headCells}
             />
             <TableBody>
               {visibleRows.map((row, index) => {
@@ -396,8 +241,8 @@ export default function AnnualProviderData() {
                         inputProps={{
                           'aria-labelledby': labelId,
                         }}
-                         icon={<OutlinedFlagIcon />}      // unchecked state
-                          checkedIcon={<FlagIcon />}       // checked state
+                        icon={<OutlinedFlagIcon />}      // unchecked state
+                        checkedIcon={<FlagIcon />}       // checked state
                       />
                     </TableCell>
                     <TableCell
@@ -417,43 +262,23 @@ export default function AnnualProviderData() {
     // id: 'distanceTraveled',
     // id: 'providersWithSameAddress', */}
                     <TableCell align="left">{row.providerName}</TableCell>
-                    <TableCell align="center">{row.overallRiskScore}</TableCell>
-                    <TableCell align="center">{row.childrenBilledOver}</TableCell>
-                    <TableCell align="center">{row.childrenPlacedOverCapacity}</TableCell>
-                    <TableCell  align="center">{row.distanceTraveled}</TableCell>
-                    <TableCell align="center">{row.providersWithSameAddress}</TableCell>
-
-
-
+                    {/* foo */}
+                    <TableCell align="center" sx={{
+                      color: getColor(row.overallRiskScore)
+                    }}>
+                      {row.overallRiskScore}
+                    </TableCell>
+                    <TableCell align="center">{renderTableCellContent(row.childrenBilledOver)}</TableCell>
+                    <TableCell align="center">{renderTableCellContent(row.childrenPlacedOverCapacity)}</TableCell>
+                    <TableCell  align="center">{renderTableCellContent(row.distanceTraveled)}</TableCell>
+                    <TableCell align="center">{renderTableCellContent(row.providersWithSameAddress)}</TableCell>
                   </TableRow>
                 );
               })}
-              {emptyRows > 0 && (
-                <TableRow
-                  style={{
-                    height: (dense ? 33 : 53) * emptyRows,
-                  }}
-                >
-                  <TableCell colSpan={6} />
-                </TableRow>
-              )}
             </TableBody>
           </Table>
         </TableContainer>
-        <TablePagination
-          rowsPerPageOptions={[5, 10, 25]}
-          component="div"
-          count={rows.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
       </Paper>
-      <FormControlLabel
-        control={<Switch checked={dense} onChange={handleChangeDense} />}
-        label="Dense padding"
-      />
     </Box>
   );
 }
