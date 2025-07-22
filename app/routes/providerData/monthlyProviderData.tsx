@@ -1,7 +1,26 @@
-import type { Route } from "./+types/monthlyProviderData";
+import * as React from 'react';
+
+import type { Route } from './+types/monthlyProviderData';
+import type { Data, HeadCell, Order } from '~/types';
+
+import { alpha } from '@mui/material/styles';
+import {
+  Box,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableRow,
+  Checkbox,
+} from '@mui/material';
 
 import OutlinedFlagIcon from '@mui/icons-material/OutlinedFlag';
 import FlagIcon from '@mui/icons-material/Flag';
+
+import EnhancedTableToolbar from '~/components/table/EnhancedTableToolbar';
+import EnhancedTableHead from '~/components/table/EnhancedTableHead';
+import { getVisibleRows } from '~/utils/table';
+import DatePickerViews from '~/components/DatePickerViews';
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -9,28 +28,6 @@ export function meta({}: Route.MetaArgs) {
     { name: "description", content: "Annual Provider Data" },
   ];
 }
-
-//   START 
-
-
-import * as React from 'react';
-import { alpha } from '@mui/material/styles';
-import Box from '@mui/material/Box';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableContainer from '@mui/material/TableContainer';
-import TableRow from '@mui/material/TableRow';
-import Paper from '@mui/material/Paper';
-import Checkbox from '@mui/material/Checkbox';
-
-
-import EnhancedTableToolbar from "~/components/table/EnhancedTableToolbar";
-import EnhancedTableHead from "~/components/table/EnhancedTableHead";
-import { getVisibleRows } from "~/utils/table";
-import type { Data, HeadCell, Order } from "~/types";
-import DatePickerViews from "~/components/MonthAndYearSelector";
-
 
     // id: 'id',
     // id: 'providerName',

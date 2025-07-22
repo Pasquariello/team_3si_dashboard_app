@@ -1,21 +1,8 @@
-import type { Route } from "./+types/annualProviderData";
-
-import OutlinedFlagIcon from '@mui/icons-material/OutlinedFlag';
-import FlagIcon from '@mui/icons-material/Flag';
-
-
-
-
-export function meta({}: Route.MetaArgs) {
-  return [
-    { title: "Annual Provider Data" },
-    { name: "description", content: "Annual Provider Data" },
-  ];
-}
-
-//   START 
-
 import * as React from 'react';
+
+import type { Route } from './+types/annualProviderData';
+import type { Data, HeadCell, Order } from '~/types';
+
 import { alpha } from '@mui/material/styles';
 import {
   Box,
@@ -28,12 +15,22 @@ import {
   TableRow,
 } from '@mui/material';
 
-import EnhancedTableToolbar from "~/components/table/EnhancedTableToolbar";
-import EnhancedTableHead from "~/components/table/EnhancedTableHead";
-import { getVisibleRows } from "~/utils/table";
-import type { Data, HeadCell, Order } from "~/types";
-import YearOrRangeSelector from "~/components/YearOrRangeSelector";
+import FlagIcon from '@mui/icons-material/Flag';
+import OutlinedFlagIcon from '@mui/icons-material/OutlinedFlag';
 
+import EnhancedTableHead from '~/components/table/EnhancedTableHead';
+import EnhancedTableToolbar from '~/components/table/EnhancedTableToolbar';
+import YearOrRangeSelector from '~/components/YearOrRangeSelector';
+
+import { getVisibleRows } from '~/utils/table';
+
+
+export function meta({}: Route.MetaArgs) {
+  return [
+    { title: "Annual Provider Data" },
+    { name: "description", content: "Annual Provider Data" },
+  ];
+}
 
     // id: 'id',
     // id: 'providerName',
