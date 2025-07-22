@@ -1,7 +1,7 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import type { Route } from "./+types/settings";
 import { queryClient } from "~/queryClient";
-import { objectLogger } from "~/utils/ObjectLogger";
+import { objectLogger } from "~/utils/objectLogger";
 
 export function meta({}: Route.MetaArgs) {
   return [{ title: "Details" }, { name: "description", content: "Settings" }];
@@ -40,7 +40,7 @@ export async function loader({ request }: Route.LoaderArgs) {
 
 export default function Settings({ params }: Route.ComponentProps) {
   const res = useQuery(messageQueryOptions(params.id));
-  // objectLogger(res?.data || {});
+  objectLogger(res?.data || {});
   return (
     <table style={{ borderCollapse: "collapse", width: "100%" }}>
       <thead>
