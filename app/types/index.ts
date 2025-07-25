@@ -16,5 +16,6 @@ export interface Data {
   childrenPlacedOverCapacity: number;
   distanceTraveled: number;
   providersWithSameAddress: number;
+  flagged?: boolean;
 
 }

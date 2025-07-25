@@ -23,7 +23,7 @@ function EnhancedTableHead(props: EnhancedTableProps) {
   return (
     <TableHead>
       <TableRow>
-        <TableCell padding="checkbox">
+        {/* <TableCell padding="checkbox">
           <Checkbox
             color="primary"
             indeterminate={numSelected > 0 && numSelected < rowCount}
@@ -33,7 +33,23 @@ function EnhancedTableHead(props: EnhancedTableProps) {
               'aria-label': 'select all',
             }}
           />
-        </TableCell>
+        </TableCell> */}
+          {/* <TableCell
+            padding="checkbox"
+          >
+            <TableSortLabel
+              active={orderBy === 'flagged'}
+              direction={orderBy === 'flagged' ? order : 'asc'}
+              onClick={createSortHandler('flagged')}
+            >
+              {orderBy === 'flagged' ? (
+                <Box component="span" sx={visuallyHidden}>
+                  {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
+                </Box>
+              ) : null}
+          </TableSortLabel>
+          </TableCell> */}
+          
         {headCells.map((headCell) => (
           <TableCell
             key={headCell.id}
