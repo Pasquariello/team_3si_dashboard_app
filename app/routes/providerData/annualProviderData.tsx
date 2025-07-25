@@ -23,7 +23,7 @@ import EnhancedTableToolbar from '~/components/table/EnhancedTableToolbar';
 import YearOrRangeSelector from '~/components/YearOrRangeSelector';
 
 import { getVisibleRows } from '~/utils/table';
-import FlagModal from '~/components/modals/flagModal';
+import FlagModal from '~/components/modals/FlagModal';
 
 
 export function meta({}: Route.MetaArgs) {
@@ -201,10 +201,10 @@ export default function AnnualProviderData() {
   const renderTableCellContent = (value: string | number) => value === null ? '--' : value;
 
   const handleCloseModal = () => {
-    setFlagModalOpenId(null);
+    setFlagModalOpenId(0);
   }
 
-  const [flagModalOpenId, setFlagModalOpenId] = React.useState(null);
+  const [flagModalOpenId, setFlagModalOpenId] = React.useState(0);
 
   return (
     <>
