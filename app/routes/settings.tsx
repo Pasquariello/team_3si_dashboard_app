@@ -1,6 +1,7 @@
 import { queryOptions, useQuery } from "@tanstack/react-query";
 import type { Route } from "./+types/settings";
 import { queryClient } from "~/queryClient";
+import { objectLogger } from "~/utils/objectLogger";
 
 export function meta({}: Route.MetaArgs) {
   return [{ title: "Details" }, { name: "description", content: "Settings" }];
@@ -11,16 +12,17 @@ export interface MessageResponse {
 }
 
 export const getMessage = async (id: string): Promise<MessageResponse> => {
-  const res = await fetch("");
-  res.json = async () => {
-    return { message: `hello ${id}` };
-  };
-  if (!res.ok) {
-    throw new Error(`Failed to fetch message: ${res.status}`);
-  }
-  const message = await res.json();
+  const res = await fetch("https://127.0.0.1:3000/api/v1/databricks/live", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id }),
+  });
 
-  return message;
+  if (!res.ok) {
+    throw new Error("Failed to fetch message");
+  }
+
+  return res.json();
 };
 
 const messageQueryOptions = (id: string) =>
@@ -37,6 +39,28 @@ export async function loader({ request }: Route.LoaderArgs) {
 }
 
 export default function Settings({ params }: Route.ComponentProps) {
-  const { data } = useQuery(messageQueryOptions(params.id));
-  return <div>{data?.message ?? "Loading..."}</div>;
+  const res = useQuery(messageQueryOptions(params.id));
+  objectLogger(res?.data || {});
+  return (
+    <table style={{ borderCollapse: "collapse", width: "100%" }}>
+      <thead>
+        <tr>
+          <th style={{ border: "1px solid #ddd", padding: "8px" }}>Key</th>
+          <th style={{ border: "1px solid #ddd", padding: "8px" }}>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        {Object.entries(res?.data || {}).map(([key, value]) => (
+          <tr key={key}>
+            <td style={{ border: "1px solid #ddd", padding: "8px" }}>{key}</td>
+            <td style={{ border: "1px solid #ddd", padding: "8px" }}>
+              {typeof value === "object" && value !== null
+                ? JSON.stringify(value)
+                : String(value)}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
 }
