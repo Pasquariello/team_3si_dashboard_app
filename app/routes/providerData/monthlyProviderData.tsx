@@ -3,7 +3,7 @@ import * as React from 'react';
 import type { Route } from './+types/monthlyProviderData';
 import type { Data, HeadCell, Order } from '~/types';
 
-import { alpha } from '@mui/material/styles';
+import { alpha, useTheme } from '@mui/material/styles';
 import {
   Box,
   Table,
@@ -128,6 +128,7 @@ const headCells: readonly HeadCell[] = [
 ];
 
 export default function MonthlyProviderData() {
+  const theme = useTheme();
   const [order, setOrder] = React.useState<Order>('desc');
   const [orderBy, setOrderBy] = React.useState<keyof Data>('overallRiskScore');
   const [selected, setSelected] = React.useState<readonly number[]>([]);
@@ -176,7 +177,7 @@ export default function MonthlyProviderData() {
     <Box sx={{ width: '100%' }}>
 
         <Box sx={{my: 4, display: 'flex', alignItems: 'center', gap: 2}}>
-          <DatePickerViews label={'"month" and "year"'} views={['year']}/>
+          <DatePickerViews label={'"month" and "year"'} views={['month', 'year']}/>
           <EnhancedTableToolbar />
         </Box>
         <TableContainer>
@@ -216,8 +217,8 @@ export default function MonthlyProviderData() {
                         inputProps={{
                           'aria-labelledby': labelId,
                         }}
-                        icon={<OutlinedFlagIcon />}      // unchecked state
-                        checkedIcon={<FlagIcon />}       // checked state
+                        icon={<OutlinedFlagIcon sx={{ color: theme.palette.cusp_iron.main }}/>}      // unchecked state
+                        checkedIcon={<FlagIcon sx={{ color: theme.palette.cusp_orange.main }} />}       // checked state
                       />
                     </TableCell>
                     <TableCell

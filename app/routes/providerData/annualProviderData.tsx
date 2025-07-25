@@ -3,7 +3,7 @@ import * as React from 'react';
 import type { Route } from './+types/annualProviderData';
 import type { Data, HeadCell, Order } from '~/types';
 
-import { alpha } from '@mui/material/styles';
+import { alpha, useTheme } from '@mui/material/styles';
 import {
   Box,
   Checkbox,
@@ -23,6 +23,7 @@ import EnhancedTableToolbar from '~/components/table/EnhancedTableToolbar';
 import YearOrRangeSelector from '~/components/YearOrRangeSelector';
 
 import { getVisibleRows } from '~/utils/table';
+import FlagModal from '~/components/modals/FlagModal';
 
 
 export function meta({}: Route.MetaArgs) {
@@ -42,6 +43,7 @@ export function meta({}: Route.MetaArgs) {
  
 function createData(
   id: number,
+  flagged: boolean,
   providerName: string,
   overallRiskScore: number,
   childrenBilledOver: number,
@@ -51,6 +53,7 @@ function createData(
 ): Data {
   return {
     id,
+    flagged,
     providerName,
     overallRiskScore,
     childrenBilledOver,
@@ -61,12 +64,12 @@ function createData(
 }
 
 const rows = [
-  createData(1, 'Little Stars Childcare', 100, 12, 12, 12, 12),
-  createData(2, 'Bright Futures Academy', 89, 12, 11, 10, 12),
-  createData(3, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
-  createData(4, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
-  createData(5, 'Kiddie Cove', 50, 1, 1, 1, 1),
-  createData(6, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
+  createData(1, true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
+  createData(2, false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
+  createData(3, false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
+  createData(4, false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
+  createData(5, true, 'Kiddie Cove', 50, 1, 1, 1, 1),
+  createData(6, false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
 
 ];
 
@@ -79,6 +82,12 @@ const rows = [
     // Providers with Same Address (integer: number of months with value 1, range: 0–12)
 
 const headCells: readonly HeadCell[] = [
+  {
+    id: 'flagged',
+    numeric: false,
+    disablePadding: true,
+    label: 'Flagged',
+  },
   {
     id: 'id',
     numeric: false,
@@ -115,7 +124,7 @@ const headCells: readonly HeadCell[] = [
     disablePadding: false,
     label: 'Distance Traveled',
   },
-   {
+  {
     id: 'providersWithSameAddress',
     numeric: true,
     disablePadding: false,
@@ -126,6 +135,7 @@ const headCells: readonly HeadCell[] = [
 
 
 export default function AnnualProviderData() {
+  const theme = useTheme();
   const [order, setOrder] = React.useState<Order>('desc');
   const [orderBy, setOrderBy] = React.useState<keyof Data>('overallRiskScore');
   const [selected, setSelected] = React.useState<readonly number[]>([]);
@@ -190,7 +200,15 @@ export default function AnnualProviderData() {
 
   const renderTableCellContent = (value: string | number) => value === null ? '--' : value;
 
+  const handleCloseModal = () => {
+    setFlagModalOpenId(0);
+  }
+
+  const [flagModalOpenId, setFlagModalOpenId] = React.useState(0);
+
   return (
+    <>
+    <FlagModal id={flagModalOpenId} open={!!flagModalOpenId} onClose={handleCloseModal} />
     <Box sx={{ width: '100%' }}>
       <Box sx={{my: 4, display: 'flex', alignItems: 'center', gap: 2}}>
         <YearOrRangeSelector
@@ -234,12 +252,14 @@ export default function AnnualProviderData() {
                     <TableCell padding="checkbox">
                       <Checkbox
                         color="primary"
-                        checked={isItemSelected}
+                        // checked={isItemSelected}
+                        onClick={() => setFlagModalOpenId(row.id)}
+                        checked={row.flagged}
                         inputProps={{
                           'aria-labelledby': labelId,
                         }}
-                        icon={<OutlinedFlagIcon />}      // unchecked state
-                        checkedIcon={<FlagIcon />}       // checked state
+                        icon={<OutlinedFlagIcon sx={{ color: theme.palette.cusp_iron.main }} />}      // unchecked state
+                        checkedIcon={<FlagIcon sx={{ color: theme.palette.cusp_orange.main }}/>}       // checked state
                       />
                     </TableCell>
                     <TableCell
@@ -277,5 +297,6 @@ export default function AnnualProviderData() {
         </TableContainer>
       </Paper>
     </Box>
+    </>
   );
 }
