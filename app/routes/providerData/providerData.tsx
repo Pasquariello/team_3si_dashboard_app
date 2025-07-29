@@ -1,7 +1,6 @@
 import type { Route } from "./+types/providerData";
 import { Outlet } from "react-router";
 
-
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "Provider Data" },
@@ -9,84 +8,104 @@ export function meta({}: Route.MetaArgs) {
   ];
 }
 
+import * as React from "react";
+import Tabs from "@mui/material/Tabs";
+import Tab from "@mui/material/Tab";
+import Box from "@mui/material/Box";
 
+import Card from "@mui/material/Card";
 
-import * as React from 'react';
-import Tabs from '@mui/material/Tabs';
-import Tab from '@mui/material/Tab';
-import Box from '@mui/material/Box'
-
-import Card from '@mui/material/Card';;
-
-import { useNavigate, useLocation } from 'react-router';
+import { useNavigate } from "react-router";
 import Typography from "@mui/material/Typography";
+import { getCurrentDate } from "~/utils/dates";
+// TODO: use a user set filter if the user changes the filter value
+const currentDate = getCurrentDate();
 
 const tabRoutes = [
-  { label: "Annual Provider Data", path: "providerData/annual" },
-  { label: "Monthly Provider Data", path: "providerData/monthly" },
-  { label: "Provider Trend Analysis", path: "providerData" },
-
+  { id: 0, label: "Annual Provider Data", path: "providerData/annual" },
+  {
+    id: 1,
+    label: "Monthly Provider Data",
+    path: `providerData/monthly/${currentDate}`,
+  },
+  {
+    id: 2,
+    label: "Provider Trend Analysis",
+    path: "providerData",
+  },
 ];
 
 export default function ProviderData() {
-  const location = useLocation();
   const navigate = useNavigate();
+  const [activeTab, setActiveTab] = React.useState(0);
 
-  // Get active tab index by matching current path with tabRoutes paths
-  const currentTabIndex = tabRoutes.findIndex(tab =>
-    location.pathname.endsWith(tab.path)
-  );
-  
+  React.useEffect(() => {
+    navigate(tabRoutes[activeTab].path, { relative: "path" });
+  }, [activeTab]);
 
   const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
-    // navigate(tabRoutes[newValue].path);
-        navigate(tabRoutes[newValue].path, { relative: "path" });
+    setActiveTab(() => newValue);
   };
 
   return (
-    <Box sx={{py: 3, px: 4}}>
-          <Box
-            sx={{
-              display: 'flex',
-              gap: 1,
-              justifyContent: 'space-between',
-              mb: 2,
-            }}
-          >
-            <Card sx={{ display: 'flex', flexDirection: 'column', flex: 1, p: 6 }} variant="outlined">
-              <Typography variant="h6">Total Providers</Typography>
-              <Typography variant="h4" >
-                500
-              </Typography>
-              <Typography  variant="body1" color="#71717A">Active in [state name]</Typography>
-            </Card>
-            <Card  sx={{ display: 'flex', flexDirection: 'column', flex: 1, p: 6 }} variant="outlined">
-              <Typography variant="h6">High Risk Providers</Typography>
-              <Typography variant="h4" color="error" >
-                114
-              </Typography>
-              <Typography  variant="body1" color="#71717A">22.8% of 500</Typography>
-            </Card>
-            <Card sx={{ display: 'flex', flexDirection: 'column', flex: 1, p: 6 }} variant="outlined">
-                  <Typography variant="h6">Flagged for Review</Typography>
-              <Typography variant="h4"  color="warning" >
-                250
-              </Typography>
-              <Typography  variant="body1" color="#71717A">50% require immediate attention</Typography>
-            </Card>
-            <Card  sx={{ display: 'flex', flexDirection: 'column', flex: 1, p: 6 }} variant="outlined">
-                  <Typography variant="h6">Top Risk Factor</Typography>
-              <Typography variant="h4" >
-                Risk Factor Name
-              </Typography>
-              <Typography  variant="body1" color="#71717A">Same as last month</Typography>
-            </Card>
+    <Box sx={{ py: 3, px: 4 }}>
+      <Box
+        sx={{
+          display: "flex",
+          gap: 1,
+          justifyContent: "space-between",
+          mb: 2,
+        }}
+      >
+        <Card
+          sx={{ display: "flex", flexDirection: "column", flex: 1, p: 6 }}
+          variant="outlined"
+        >
+          <Typography variant="h6">Total Providers</Typography>
+          <Typography variant="h4">500</Typography>
+          <Typography variant="body1" color="#71717A">
+            Active in [state name]
+          </Typography>
+        </Card>
+        <Card
+          sx={{ display: "flex", flexDirection: "column", flex: 1, p: 6 }}
+          variant="outlined"
+        >
+          <Typography variant="h6">High Risk Providers</Typography>
+          <Typography variant="h4" color="error">
+            114
+          </Typography>
+          <Typography variant="body1" color="#71717A">
+            22.8% of 500
+          </Typography>
+        </Card>
+        <Card
+          sx={{ display: "flex", flexDirection: "column", flex: 1, p: 6 }}
+          variant="outlined"
+        >
+          <Typography variant="h6">Flagged for Review</Typography>
+          <Typography variant="h4" color="warning">
+            250
+          </Typography>
+          <Typography variant="body1" color="#71717A">
+            50% require immediate attention
+          </Typography>
+        </Card>
+        <Card
+          sx={{ display: "flex", flexDirection: "column", flex: 1, p: 6 }}
+          variant="outlined"
+        >
+          <Typography variant="h6">Top Risk Factor</Typography>
+          <Typography variant="h4">Risk Factor Name</Typography>
+          <Typography variant="body1" color="#71717A">
+            Same as last month
+          </Typography>
+        </Card>
+      </Box>
 
-          </Box>
-
-      <Tabs value={currentTabIndex === -1 ? 0 : currentTabIndex} onChange={handleChange}>
-        {tabRoutes.map(({ label }) => (
-          <Tab key={label} label={label} />
+      <Tabs value={activeTab} onChange={handleChange}>
+        {tabRoutes.map(({ label, id }) => (
+          <Tab key={label} label={label} value={id} />
         ))}
       </Tabs>
 
