@@ -16,7 +16,7 @@ import Tabs from '@mui/material/Tabs';
 import Tab from '@mui/material/Tab';
 import Box from '@mui/material/Box'
 
-import {Card, Grid } from '@mui/material';;
+import {Card, Grid, useTheme } from '@mui/material';;
 
 import { useNavigate, useLocation } from 'react-router';
 import Typography from "@mui/material/Typography";
@@ -32,6 +32,8 @@ export default function ProviderData() {
   const location = useLocation();
   const navigate = useNavigate();
 
+  const theme = useTheme();
+
   // Get active tab index by matching current path with tabRoutes paths
   const currentTabIndex = tabRoutes.findIndex(tab =>
     location.pathname.endsWith(tab.path)
@@ -44,7 +46,7 @@ export default function ProviderData() {
   };
 
   return (
-    <Box sx={{py: 3, px: 4}}>
+    <Box sx={{py: 3, px: 4, display: 'flex', flexDirection: 'column',     minHeight: '100vh', }}>
       <Grid container spacing={2} mb={2} columns={{xs: 12}}>
         <Grid style={{display: 'flex', flexGrow: 1,}} size={{ xs: 12, sm: 12, md: 6, lg: 3 }}>
           <Card sx={{ flex: 1, justifyContent: 'center', display: 'flex', flexDirection: 'column', p: 6, }} variant="outlined">
@@ -52,7 +54,7 @@ export default function ProviderData() {
             <Typography variant="h4" >
               500
             </Typography>
-            <Typography  variant="body1" color="#71717A">Active in [state name]</Typography>
+            <Typography  variant="body1" color={theme.palette.cusp_iron.contrastText}>Active in [state name]</Typography>
           </Card>
         </Grid>
         <Grid style={{display: 'flex', flexGrow: 1,}} size={{ xs: 12, sm: 12, md: 6, lg: 3 }}>
@@ -62,7 +64,7 @@ export default function ProviderData() {
             <Typography variant="h4" color="error" >
               114
             </Typography>
-            <Typography  variant="body1" color="#71717A">22.8% of 500</Typography>
+            <Typography  variant="body1" color={theme.palette.cusp_iron.contrastText}>22.8% of 500</Typography>
           </Card>
         </Grid>
         <Grid style={{display: 'flex', flexGrow: 1,}} size={{ xs: 12, sm: 12, md: 6, lg: 3 }}>
@@ -72,7 +74,7 @@ export default function ProviderData() {
             <Typography variant="h4"  color="warning" >
               250
             </Typography>
-            <Typography  variant="body1" color="#71717A">50% require immediate attention</Typography>
+            <Typography  variant="body1" color={theme.palette.cusp_iron.contrastText}>50% require immediate attention</Typography>
           </Card>
         </Grid>
         <Grid style={{display: 'flex', flexGrow: 1,}} size={{ xs: 12, sm: 12, md: 6, lg: 3 }}>
@@ -81,7 +83,7 @@ export default function ProviderData() {
             <Typography variant="h4" >
               Risk Factor Name
             </Typography>
-            <Typography  variant="body1" color="#71717A">Same as last month</Typography>
+            <Typography  variant="body1" color={theme.palette.cusp_iron.contrastText}>Same as last month</Typography>
           </Card>
         </Grid>
 
@@ -92,7 +94,7 @@ export default function ProviderData() {
           <Tab key={label} label={label} />
         ))}
       </Tabs>
-
+      {/* <Box sx={{width: 100, background: 'blue', height: 100, display: 'flex', flexGrow: 1}}></Box> */}
       <Outlet />
     </Box>
   );

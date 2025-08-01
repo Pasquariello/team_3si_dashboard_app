@@ -45,7 +45,7 @@ export default function FlagModal ({id, open, onClose }: {id: number; open: bool
                     Provider Flag {id}
                 </Typography>
             </Box>
-            <Typography sx={{color: '#71717A', fontWeight: 400, mb: 4, mt: 1}}>
+            <Typography sx={{color: theme.palette.cusp_iron.contrastText, fontWeight: 400, mb: 4, mt: 1}}>
             Add optional notes about the reasons for flagging this provider.
             </Typography>
             <Typography>

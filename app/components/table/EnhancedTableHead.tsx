@@ -1,4 +1,4 @@
-import { Box, Checkbox, TableCell, TableHead, TableRow, TableSortLabel } from "@mui/material";
+import { Box, Checkbox, TableCell, TableHead, TableRow, TableSortLabel, useTheme } from "@mui/material";
 import { visuallyHidden } from '@mui/utils';
 import type { Data, HeadCell, Order } from "~/types";
 
@@ -13,6 +13,8 @@ interface EnhancedTableProps {
 }
 
 function EnhancedTableHead(props: EnhancedTableProps) {
+    const theme = useTheme();
+  
   const { headCells, onSelectAllClick, order, orderBy, numSelected, rowCount, onRequestSort } =
     props;
   const createSortHandler =
@@ -21,7 +23,8 @@ function EnhancedTableHead(props: EnhancedTableProps) {
     };
 
   return (
-    <TableHead>
+    <TableHead
+    >
       <TableRow>
         {/* <TableCell padding="checkbox">
           <Checkbox
@@ -54,8 +57,8 @@ function EnhancedTableHead(props: EnhancedTableProps) {
           <TableCell
             key={headCell.id}
             align={headCell.numeric ? 'right' : 'left'}
-            padding={headCell.disablePadding ? 'none' : 'normal'}
-            sortDirection={orderBy === headCell.id ? order : false}
+            padding={'normal'}
+            sortDirection={orderBy === headCell.id ? order : false}  
           >
             <TableSortLabel
               active={orderBy === headCell.id}
