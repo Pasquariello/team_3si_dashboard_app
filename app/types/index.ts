@@ -12,7 +12,7 @@ export interface Data {
   id: number;
   providerName: string;
   overallRiskScore: number;
-  childrenBilledOver: number;
+  childrenBilledOverCapacity: number;
   childrenPlacedOverCapacity: number;
   distanceTraveled: number;
   providersWithSameAddress: number;
