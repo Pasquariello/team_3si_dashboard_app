@@ -10,6 +10,7 @@ import {
   TableCell,
   TableContainer,
   TableRow,
+  useTheme,
 } from "@mui/material";
 import OutlinedFlagIcon from "@mui/icons-material/OutlinedFlag";
 import FlagIcon from "@mui/icons-material/Flag";
@@ -22,6 +23,7 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { getCurrentDate } from "~/utils/dates";
 import { queryClient } from "~/queryClient";
 import type { Route } from "./+types/monthlyProviderData";
+import FlagModal from "~/components/modals/FlagModal";
 
 interface CustomTableScroller extends React.HTMLAttributes<HTMLDivElement> {}
 // Scroller must be outside the instance that renders the rest of the table
@@ -95,6 +97,12 @@ const getColor = (value: number) => {
 
 const headCells: readonly HeadCell[] = [
   {
+    id: "flagged",
+    numeric: false,
+    disablePadding: true,
+    label: "Flagged",
+  },
+  {
     id: "id",
     numeric: false,
     disablePadding: true,
@@ -158,7 +166,7 @@ const fixedHeaderContent = () => {
 
 const renderCellContent = (
   row: MonthlyProviderData,
-  columnId: keyof any,
+  columnId: HeadCell["id"],
   isItemSelected: boolean,
   labelId: string,
   key: string
@@ -232,6 +240,7 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
   const [orderBy, setOrderBy] = useState<keyof any>("");
   const [searchParams, setSearchParams] = useSearchParams();
   const offset = searchParams.get("offset") || "0";
+  const theme = useTheme();
 
   const { data, fetchNextPage, isFetching, isLoading } = useInfiniteQuery({
     queryKey: ["monthlyProviderData", params.date],
@@ -265,7 +274,9 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
     return (
       <Fragment>
         {headCells.map((column, index) => {
-          const key = `${index}-${column.id}-${row[column.id]}`;
+          const key = `${index}-${column.id}-${
+            row[column.id as keyof MonthlyProviderData]
+          }`;
           return renderCellContent(
             row,
             column.id,
@@ -318,13 +329,20 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
           <td>
             <Checkbox
               color="primary"
-              checked={isItemSelected}
+              // checked={isItemSelected}
+              onClick={() => setFlagModalOpenId(item.id)}
+              checked={item.flagged}
               inputProps={{
-                id: item.id,
                 "aria-labelledby": labelId,
               }}
-              icon={<OutlinedFlagIcon />}
-              checkedIcon={<FlagIcon />}
+              icon={
+                <OutlinedFlagIcon
+                  sx={{ color: theme.palette.cusp_iron.main }}
+                />
+              } // unchecked state
+              checkedIcon={
+                <FlagIcon sx={{ color: theme.palette.cusp_orange.main }} />
+              } // checked state
             />
           </td>
           {rest.children}
@@ -386,8 +404,19 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
     fetchNextPage();
   };
 
+  const handleCloseModal = () => {
+    setFlagModalOpenId(0);
+  };
+
+  const [flagModalOpenId, setFlagModalOpenId] = useState(0);
+
   return (
     <>
+      <FlagModal
+        id={flagModalOpenId}
+        open={!!flagModalOpenId}
+        onClose={handleCloseModal}
+      />
       <Box sx={{ my: 4, display: "flex", alignItems: "center", gap: 2 }}>
         <DatePickerViews
           label={'"month" and "year"'}

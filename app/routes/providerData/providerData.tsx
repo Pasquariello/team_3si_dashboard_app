@@ -13,7 +13,7 @@ import Tabs from "@mui/material/Tabs";
 import Tab from "@mui/material/Tab";
 import Box from "@mui/material/Box";
 
-import Card from "@mui/material/Card";
+import { Card } from "@mui/material";
 
 import { useNavigate } from "react-router";
 import Typography from "@mui/material/Typography";
