@@ -1,4 +1,10 @@
-import { type RouteConfig, index, route, prefix, layout } from "@react-router/dev/routes";
+import {
+  type RouteConfig,
+  index,
+  route,
+  prefix,
+  layout,
+} from "@react-router/dev/routes";
 
 export default [
   index("routes/home.tsx"),
@@ -12,8 +18,7 @@ export default [
     ...prefix("providerData", [
       index("routes/providerData/redirect.tsx"), // 👈 redirect from /providerData
       route("annual", "./routes/providerData/annualProviderData.tsx"),
-      route("monthly", "./routes/providerData/monthlyProviderData.tsx"),
+      route("monthly/:date", "./routes/providerData/monthlyProviderData.tsx"),
     ]),
   ]),
-
 ] satisfies RouteConfig;
