@@ -1,4 +1,3 @@
-
 export type Order = 'asc' | 'desc';
 
 export interface HeadCell {
@@ -9,7 +8,7 @@ export interface HeadCell {
 }
 
 export interface Data {
-  id: number;
+  id: string;
   providerName: string;
   overallRiskScore: number;
   childrenBilledOverCapacity: number;
@@ -17,5 +16,4 @@ export interface Data {
   distanceTraveled: number;
   providersWithSameAddress: number;
   flagged?: boolean;
-
 }

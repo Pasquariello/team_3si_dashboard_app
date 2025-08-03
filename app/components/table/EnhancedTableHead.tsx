@@ -1,6 +1,14 @@
-import { Box, Checkbox, TableCell, TableHead, TableRow, TableSortLabel, useTheme } from "@mui/material";
+import {
+  Box,
+  Checkbox,
+  TableCell,
+  TableHead,
+  TableRow,
+  TableSortLabel,
+  useTheme,
+} from '@mui/material';
 import { visuallyHidden } from '@mui/utils';
-import type { Data, HeadCell, Order } from "~/types";
+import type { Data, HeadCell, Order } from '~/types';
 
 interface EnhancedTableProps {
   numSelected: number;
@@ -10,21 +18,20 @@ interface EnhancedTableProps {
   orderBy: string;
   rowCount: number;
   headCells: readonly HeadCell[];
+  ref?: React.ForwardedRef<HTMLTableSectionElement>;
 }
 
 function EnhancedTableHead(props: EnhancedTableProps) {
-    const theme = useTheme();
-  
+  const theme = useTheme();
+
   const { headCells, onSelectAllClick, order, orderBy, numSelected, rowCount, onRequestSort } =
     props;
-  const createSortHandler =
-    (property: keyof Data) => (event: React.MouseEvent<unknown>) => {
-      onRequestSort(event, property);
-    };
+  const createSortHandler = (property: keyof Data) => (event: React.MouseEvent<unknown>) => {
+    onRequestSort(event, property);
+  };
 
   return (
-    <TableHead
-    >
+    <TableHead ref={props.ref ? props.ref : undefined}>
       <TableRow>
         {/* <TableCell padding="checkbox">
           <Checkbox
@@ -37,7 +44,7 @@ function EnhancedTableHead(props: EnhancedTableProps) {
             }}
           />
         </TableCell> */}
-          {/* <TableCell
+        {/* <TableCell
             padding="checkbox"
           >
             <TableSortLabel
@@ -52,13 +59,13 @@ function EnhancedTableHead(props: EnhancedTableProps) {
               ) : null}
           </TableSortLabel>
           </TableCell> */}
-          
-        {headCells.map((headCell) => (
+
+        {headCells.map(headCell => (
           <TableCell
             key={headCell.id}
             align={headCell.numeric ? 'right' : 'left'}
             padding={'normal'}
-            sortDirection={orderBy === headCell.id ? order : false}  
+            sortDirection={orderBy === headCell.id ? order : false}
           >
             <TableSortLabel
               active={orderBy === headCell.id}
@@ -67,7 +74,7 @@ function EnhancedTableHead(props: EnhancedTableProps) {
             >
               {headCell.label}
               {orderBy === headCell.id ? (
-                <Box component="span" sx={visuallyHidden}>
+                <Box component='span' sx={visuallyHidden}>
                   {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
                 </Box>
               ) : null}
