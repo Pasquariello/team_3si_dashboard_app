@@ -1,5 +1,5 @@
 import { TableVirtuoso, type TableComponents } from 'react-virtuoso';
-import { useState, forwardRef, Fragment, useMemo } from 'react';
+import { useState, forwardRef, Fragment, useMemo, useRef, useEffect } from 'react';
 import EnhancedTableHead from '~/components/table/EnhancedTableHead';
 import {
   Box,
@@ -165,14 +165,12 @@ const renderCellContent = (
           {row.id}
         </TableCell>
       );
-
     case 'providerName':
       return (
         <TableCell key={key} align='left'>
           {row.providerName}
         </TableCell>
       );
-
     case 'overallRiskScore':
       return (
         <TableCell
@@ -185,39 +183,71 @@ const renderCellContent = (
           {row.overallRiskScore}
         </TableCell>
       );
-
     case 'childrenBilledOverCapacity':
       return (
         <TableCell key={key} align='center'>
           {row.childrenBilledOverCapacity}
         </TableCell>
       );
-
     case 'distanceTraveled':
       return (
         <TableCell key={key} align='center'>
           {row.distanceTraveled}
         </TableCell>
       );
-
     case 'childrenPlacedOverCapacity':
       return (
         <TableCell key={key} align='center'>
           {row.childrenPlacedOverCapacity}
         </TableCell>
       );
-
     case 'providersWithSameAddress':
       return (
         <TableCell key={key} align='center'>
           {row.providersWithSameAddress}
         </TableCell>
       );
-
     default:
       return null;
   }
 };
+
+export function useWhyDidYouUpdate(componentName: string, propsOrState: Record<string, any>) {
+  const previousRef = useRef<Record<string, any>>({});
+
+  useEffect(() => {
+    const changedKeys: string[] = [];
+
+    const prev = previousRef.current;
+    const current = propsOrState;
+
+    Object.keys(current).forEach(key => {
+      if (!Object.is(prev[key], current[key])) {
+        changedKeys.push(key);
+      }
+    });
+
+    if (changedKeys.length > 0) {
+      console.log(
+        `[${componentName}] changed:`,
+        changedKeys.reduce((acc, key) => {
+          acc[key] = {
+            from: prev[key],
+            to: current[key],
+          };
+          return acc;
+        }, {} as Record<string, { from: any; to: any }>)
+      );
+    }
+
+    previousRef.current = current;
+  }, [propsOrState, componentName]);
+}
+
+// const [count, setCount] = useState(0);
+// const [name, setName] = useState('John');
+
+// useWhyDidYouUpdate('MyComponent', { count, name });
 
 export default function MonthlyProviderData({ params }: Route.ComponentProps) {
   const [selected, setSelected] = useState<readonly string[]>([]);
@@ -226,6 +256,7 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
   const [searchParams, setSearchParams] = useSearchParams();
   const offset = searchParams.get('offset') || '0';
   const theme = useTheme();
+  useWhyDidYouUpdate('monthly', { selected, order, orderBy, searchParams });
 
   const { data, fetchNextPage, isFetching, isLoading } = useInfiniteQuery({
     queryKey: ['monthlyProviderData', params.date],
@@ -244,13 +275,10 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
     refetchOnWindowFocus: false,
   });
 
-  const items = data?.pages.flat() || [];
   const visibleRows = useMemo(() => {
-    if (Array.isArray(items)) {
-      return items && getVisibleRows(items, order, orderBy);
-    }
-    return [];
-  }, [items, order, orderBy]);
+    const items = data?.pages.flat() || [];
+    return getVisibleRows(items, order, orderBy);
+  }, [order, orderBy, data]);
 
   const rowContent = (index: number, row: Data) => {
     const isItemSelected = selected.includes(row.id);
@@ -318,7 +346,6 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
       </TableRow>
     );
   });
-
   //   // will eventually requery
   const handleRequestSort = (event: React.MouseEvent<unknown>, property: keyof Data) => {
     const isAsc = orderBy === property && order === 'asc';
@@ -328,7 +355,7 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
 
   const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
-      const newSelected = items.map(n => n.id);
+      const newSelected = visibleRows.map(n => n.id);
       setSelected(newSelected);
       return;
     }
@@ -346,7 +373,7 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
         orderBy={orderBy}
         onSelectAllClick={handleSelectAllClick}
         onRequestSort={handleRequestSort}
-        rowCount={items?.length || 0}
+        rowCount={visibleRows?.length || 0}
         headCells={headCells}
         ref={ref}
       />
@@ -365,15 +392,22 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
     const offset = searchParams.get('offset');
 
     const nextOffset = Number(offset) + FETCH_ROW_COUNT;
-    setSearchParams(() => ({ offset: String(nextOffset) }));
-    fetchNextPage();
+    const scrollY = window.scrollY;
+
+    // update the URL without using react router this should prevent page jump
+    setSearchParams(() => {
+      requestAnimationFrame(() => window.scrollTo(0, scrollY));
+      return { offset: String(nextOffset) };
+    });
+
+    fetchNextPage().then(() => requestAnimationFrame(() => window.scrollTo(0, scrollY)));
   };
 
   const handleCloseModal = () => {
-    setFlagModalOpenId('0');
+    setFlagModalOpenId(null);
   };
 
-  const [flagModalOpenId, setFlagModalOpenId] = useState('0');
+  const [flagModalOpenId, setFlagModalOpenId] = useState(null);
 
   return (
     <>
@@ -392,7 +426,7 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
           <EnhancedTableToolbar />
         </Box>
         {visibleRows.length ? (
-          <Box height='97vh'>
+          <Box height={'97vh'}>
             <TableVirtuoso
               data={visibleRows}
               endReached={loadMore}
