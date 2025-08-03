@@ -1,5 +1,10 @@
+import * as React from "react";
 import type { Route } from "./+types/providerData";
 import { Outlet } from "react-router";
+import { Card, Tabs, Tab, Box, Grid, useTheme } from "@mui/material";
+import { useNavigate } from "react-router";
+import Typography from "@mui/material/Typography";
+import { getCurrentDate } from "~/utils/dates";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -7,17 +12,6 @@ export function meta({}: Route.MetaArgs) {
     { name: "description", content: "providerData" },
   ];
 }
-
-import * as React from "react";
-import Tabs from "@mui/material/Tabs";
-import Tab from "@mui/material/Tab";
-import Box from "@mui/material/Box";
-
-import { Card } from "@mui/material";
-
-import { useNavigate } from "react-router";
-import Typography from "@mui/material/Typography";
-import { getCurrentDate } from "~/utils/dates";
 // TODO: use a user set filter if the user changes the filter value
 const currentDate = getCurrentDate();
 
@@ -43,72 +37,130 @@ export default function ProviderData() {
     navigate(tabRoutes[activeTab].path, { relative: "path" });
   }, [activeTab]);
 
+  const theme = useTheme();
   const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(() => newValue);
   };
 
   return (
-    <Box sx={{ py: 3, px: 4 }}>
-      <Box
-        sx={{
-          display: "flex",
-          gap: 1,
-          justifyContent: "space-between",
-          mb: 2,
-        }}
-      >
-        <Card
-          sx={{ display: "flex", flexDirection: "column", flex: 1, p: 6 }}
-          variant="outlined"
+    <Box
+      sx={{
+        py: 3,
+        px: 4,
+        display: "flex",
+        flexDirection: "column",
+        minHeight: "100vh",
+      }}
+    >
+      <Grid container spacing={2} mb={2} columns={{ xs: 12 }}>
+        <Grid
+          style={{ display: "flex", flexGrow: 1 }}
+          size={{ xs: 12, sm: 12, md: 6, lg: 3 }}
         >
-          <Typography variant="h6">Total Providers</Typography>
-          <Typography variant="h4">500</Typography>
-          <Typography variant="body1" color="#71717A">
-            Active in [state name]
-          </Typography>
-        </Card>
-        <Card
-          sx={{ display: "flex", flexDirection: "column", flex: 1, p: 6 }}
-          variant="outlined"
+          <Card
+            sx={{
+              flex: 1,
+              justifyContent: "center",
+              display: "flex",
+              flexDirection: "column",
+              p: 6,
+            }}
+            variant="outlined"
+          >
+            <Typography variant="h6">Total Providers</Typography>
+            <Typography variant="h4">500</Typography>
+            <Typography
+              variant="body1"
+              color={theme.palette.cusp_iron.contrastText}
+            >
+              Active in [state name]
+            </Typography>
+          </Card>
+        </Grid>
+        <Grid
+          style={{ display: "flex", flexGrow: 1 }}
+          size={{ xs: 12, sm: 12, md: 6, lg: 3 }}
         >
-          <Typography variant="h6">High Risk Providers</Typography>
-          <Typography variant="h4" color="error">
-            114
-          </Typography>
-          <Typography variant="body1" color="#71717A">
-            22.8% of 500
-          </Typography>
-        </Card>
-        <Card
-          sx={{ display: "flex", flexDirection: "column", flex: 1, p: 6 }}
-          variant="outlined"
+          <Card
+            sx={{
+              flex: 1,
+              justifyContent: "center",
+              display: "flex",
+              flexDirection: "column",
+              p: 6,
+            }}
+            variant="outlined"
+          >
+            <Typography variant="h6">High Risk Providers</Typography>
+            <Typography variant="h4" color="error">
+              114
+            </Typography>
+            <Typography
+              variant="body1"
+              color={theme.palette.cusp_iron.contrastText}
+            >
+              22.8% of 500
+            </Typography>
+          </Card>
+        </Grid>
+        <Grid
+          style={{ display: "flex", flexGrow: 1 }}
+          size={{ xs: 12, sm: 12, md: 6, lg: 3 }}
         >
-          <Typography variant="h6">Flagged for Review</Typography>
-          <Typography variant="h4" color="warning">
-            250
-          </Typography>
-          <Typography variant="body1" color="#71717A">
-            50% require immediate attention
-          </Typography>
-        </Card>
-        <Card
-          sx={{ display: "flex", flexDirection: "column", flex: 1, p: 6 }}
-          variant="outlined"
+          <Card
+            sx={{
+              flex: 1,
+              justifyContent: "center",
+              display: "flex",
+              flexDirection: "column",
+              p: 6,
+            }}
+            variant="outlined"
+          >
+            <Typography variant="h6">Flagged for Review</Typography>
+            <Typography variant="h4" color="warning">
+              250
+            </Typography>
+            <Typography
+              variant="body1"
+              color={theme.palette.cusp_iron.contrastText}
+            >
+              50% require immediate attention
+            </Typography>
+          </Card>
+        </Grid>
+        <Grid
+          style={{ display: "flex", flexGrow: 1 }}
+          size={{ xs: 12, sm: 12, md: 6, lg: 3 }}
         >
-          <Typography variant="h6">Top Risk Factor</Typography>
-          <Typography variant="h4">Risk Factor Name</Typography>
-          <Typography variant="body1" color="#71717A">
-            Same as last month
-          </Typography>
-        </Card>
-      </Box>
+          <Card
+            sx={{
+              flex: 1,
+              justifyContent: "center",
+              display: "flex",
+              flexDirection: "column",
+              p: 6,
+            }}
+            variant="outlined"
+          >
+            <Typography variant="h6">Top Risk Factor</Typography>
+            <Typography variant="h4">Risk Factor Name</Typography>
+            <Typography
+              variant="body1"
+              color={theme.palette.cusp_iron.contrastText}
+            >
+              Same as last month
+            </Typography>
+          </Card>
+        </Grid>
+      </Grid>
 
       <Tabs value={activeTab} onChange={handleChange}>
         {tabRoutes.map(({ label, id }) => (
           <Tab key={label} label={label} value={id} />
         ))}
       </Tabs>
-
+      {/* <Box sx={{width: 100, background: 'blue', height: 100, display: 'flex', flexGrow: 1}}></Box> */}
       <Outlet />
     </Box>
   );

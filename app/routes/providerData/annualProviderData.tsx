@@ -24,6 +24,7 @@ import YearOrRangeSelector from '~/components/YearOrRangeSelector';
 
 import { getVisibleRows } from '~/utils/table';
 import FlagModal from '~/components/modals/FlagModal';
+import NoData from '~/components/NoData';
 
 
 export function meta({}: Route.MetaArgs) {
@@ -70,6 +71,55 @@ const rows = [
   createData(4, false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
   createData(5, true, 'Kiddie Cove', 50, 1, 1, 1, 1),
   createData(6, false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
+
+    createData(1, true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
+  createData(2, false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
+  createData(3, false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
+  createData(4, false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
+  createData(5, true, 'Kiddie Cove', 50, 1, 1, 1, 1),
+  createData(6, false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
+    createData(1, true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
+  createData(2, false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
+  createData(3, false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
+  createData(4, false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
+  createData(5, true, 'Kiddie Cove', 50, 1, 1, 1, 1),
+  createData(6, false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
+    createData(1, true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
+  createData(2, false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
+  createData(3, false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
+  createData(4, false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
+  createData(5, true, 'Kiddie Cove', 50, 1, 1, 1, 1),
+  createData(6, false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
+    createData(1, true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
+  createData(2, false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
+  createData(3, false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
+  createData(4, false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
+  createData(5, true, 'Kiddie Cove', 50, 1, 1, 1, 1),
+  createData(6, false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
+      createData(1, true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
+  createData(2, false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
+  createData(3, false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
+  createData(4, false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
+  createData(5, true, 'Kiddie Cove', 50, 1, 1, 1, 1),
+  createData(6, false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
+    createData(1, true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
+  createData(2, false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
+  createData(3, false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
+  createData(4, false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
+  createData(5, true, 'Kiddie Cove', 50, 1, 1, 1, 1),
+  createData(6, false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
+    createData(1, true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
+  createData(2, false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
+  createData(3, false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
+  createData(4, false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
+  createData(5, true, 'Kiddie Cove', 50, 1, 1, 1, 1),
+  createData(6, false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
+    createData(1, true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
+  createData(2, false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
+  createData(3, false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
+  createData(4, false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
+  createData(5, true, 'Kiddie Cove', 50, 1, 1, 1, 1),
+ 
 
 ];
 
@@ -196,7 +246,8 @@ export default function AnnualProviderData() {
     return match ? match.color : 'defaultColor';
   }
 
-  const visibleRows = getVisibleRows(rows, order, orderBy);
+  const visibleRows =  getVisibleRows(rows, order, orderBy);
+  // const visibleRows =  [];
 
   const renderTableCellContent = (value: string | number) => value === null ? '--' : value;
 
@@ -206,10 +257,78 @@ export default function AnnualProviderData() {
 
   const [flagModalOpenId, setFlagModalOpenId] = React.useState(0);
 
+  const renderTable = () => (
+    <TableContainer component={Paper}  sx={{ height: '97vh', flexGrow: 1, overflow: 'auto'}}>   
+      <Table stickyHeader aria-label="sticky table">
+        <EnhancedTableHead
+          numSelected={selected.length}
+          order={order}
+          orderBy={orderBy}
+          onSelectAllClick={handleSelectAllClick}
+          onRequestSort={handleRequestSort}
+          rowCount={rows.length}
+          headCells={headCells}
+        />
+        <TableBody>
+          {visibleRows.map((row, index) => {
+            const isItemSelected = selected.includes(row.id);
+            const labelId = `enhanced-table-checkbox-${index}`;
+
+            return (
+              <TableRow
+                hover
+                onClick={(event) => handleClick(event, row.id)}
+                role="checkbox"
+                aria-checked={isItemSelected}
+                tabIndex={-1}
+                key={row.id}
+                selected={isItemSelected}
+                sx={{ cursor: 'pointer' }}
+              >
+                <TableCell padding="checkbox">
+                  <Checkbox
+                    color="primary"
+                    // checked={isItemSelected}
+                    onClick={() => setFlagModalOpenId(row.id)}
+                    checked={row.flagged}
+                    inputProps={{
+                      'aria-labelledby': labelId,
+                    }}
+                    icon={<OutlinedFlagIcon sx={{ color: theme.palette.cusp_iron.main }} />}      // unchecked state
+                    checkedIcon={<FlagIcon sx={{ color: theme.palette.cusp_orange.main }}/>}       // checked state
+                  />
+                </TableCell>
+                <TableCell
+                  // component="th"
+                  id={labelId}
+                  scope="row"
+                  padding="none"
+                >
+                  {row.id}
+                </TableCell>
+                <TableCell align="left">{row.providerName}</TableCell>
+                <TableCell align="center" sx={{
+                  color: getColor(row.overallRiskScore)
+                }}>
+                  {row.overallRiskScore}
+                </TableCell>
+                <TableCell align="center">{renderTableCellContent(row.childrenBilledOver)}</TableCell>
+                <TableCell align="center">{renderTableCellContent(row.childrenPlacedOverCapacity)}</TableCell>
+                <TableCell  align="center">{renderTableCellContent(row.distanceTraveled)}</TableCell>
+                <TableCell align="center">{renderTableCellContent(row.providersWithSameAddress)}</TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
+    </TableContainer> 
+  );
+
   return (
     <>
     <FlagModal id={flagModalOpenId} open={!!flagModalOpenId} onClose={handleCloseModal} />
-    <Box sx={{ width: '100%' }}>
+    <Box sx={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', flexGrow: 1}}>  
+      {/* ^ that line added  height: '100vh', display: 'flex', flexDirection: 'column' */}
       <Box sx={{my: 4, display: 'flex', alignItems: 'center', gap: 2}}>
         <YearOrRangeSelector
           value={selectedPeriod}
@@ -217,85 +336,7 @@ export default function AnnualProviderData() {
         />
         <EnhancedTableToolbar />
       </Box>
-
-      <Paper sx={{ width: '100%', mb: 2 }}>
-        <TableContainer>
-          <Table
-            sx={{ minWidth: 750 }}
-            aria-labelledby="tableTitle"
-          >
-            <EnhancedTableHead
-              numSelected={selected.length}
-              order={order}
-              orderBy={orderBy}
-              onSelectAllClick={handleSelectAllClick}
-              onRequestSort={handleRequestSort}
-              rowCount={rows.length}
-              headCells={headCells}
-            />
-            <TableBody>
-              {visibleRows.map((row, index) => {
-                const isItemSelected = selected.includes(row.id);
-                const labelId = `enhanced-table-checkbox-${index}`;
-
-                return (
-                  <TableRow
-                    hover
-                    onClick={(event) => handleClick(event, row.id)}
-                    role="checkbox"
-                    aria-checked={isItemSelected}
-                    tabIndex={-1}
-                    key={row.id}
-                    selected={isItemSelected}
-                    sx={{ cursor: 'pointer' }}
-                  >
-                    <TableCell padding="checkbox">
-                      <Checkbox
-                        color="primary"
-                        // checked={isItemSelected}
-                        onClick={() => setFlagModalOpenId(row.id)}
-                        checked={row.flagged}
-                        inputProps={{
-                          'aria-labelledby': labelId,
-                        }}
-                        icon={<OutlinedFlagIcon sx={{ color: theme.palette.cusp_iron.main }} />}      // unchecked state
-                        checkedIcon={<FlagIcon sx={{ color: theme.palette.cusp_orange.main }}/>}       // checked state
-                      />
-                    </TableCell>
-                    <TableCell
-                      // component="th"
-                      id={labelId}
-                      scope="row"
-                      padding="none"
-                    >
-                      {row.id}
-                    </TableCell>
-
-                      {/* // id: 'id',
-    // id: 'providerName',
-    // id: 'overallRiskScore',
-    // id: 'childrenBilledOver',
-    // id: 'childrenPlacedOverCapacity',
-    // id: 'distanceTraveled',
-    // id: 'providersWithSameAddress', */}
-                    <TableCell align="left">{row.providerName}</TableCell>
-                    {/* foo */}
-                    <TableCell align="center" sx={{
-                      color: getColor(row.overallRiskScore)
-                    }}>
-                      {row.overallRiskScore}
-                    </TableCell>
-                    <TableCell align="center">{renderTableCellContent(row.childrenBilledOver)}</TableCell>
-                    <TableCell align="center">{renderTableCellContent(row.childrenPlacedOverCapacity)}</TableCell>
-                    <TableCell  align="center">{renderTableCellContent(row.distanceTraveled)}</TableCell>
-                    <TableCell align="center">{renderTableCellContent(row.providersWithSameAddress)}</TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </TableContainer>
-      </Paper>
+          {visibleRows.length ? renderTable() :<NoData />}
     </Box>
     </>
   );

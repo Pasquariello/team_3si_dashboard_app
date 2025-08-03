@@ -24,6 +24,7 @@ import { getCurrentDate } from "~/utils/dates";
 import { queryClient } from "~/queryClient";
 import type { Route } from "./+types/monthlyProviderData";
 import FlagModal from "~/components/modals/FlagModal";
+import NoData from "~/components/NoData";
 
 interface CustomTableScroller extends React.HTMLAttributes<HTMLDivElement> {}
 // Scroller must be outside the instance that renders the rest of the table
@@ -31,7 +32,10 @@ const Scroller = forwardRef<HTMLDivElement, CustomTableScroller>(
   ({ style, ...props }, ref) => (
     <TableContainer
       component={Paper}
-      style={{ ...style }}
+      style={{
+        ...style,
+        ...{ maxHeight: "97vh", flexGrow: 1, overflow: "auto" },
+      }}
       {...props}
       ref={ref}
     />
@@ -372,7 +376,9 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
 
   const VirtuosoTableComponents: TableComponents<any> = {
     Scroller,
-    Table: (props) => <Table {...props} />,
+    Table: (props) => (
+      <Table stickyHeader aria-label="sticky table" {...props} />
+    ),
     TableHead: forwardRef<HTMLTableSectionElement>((props: any, ref) => (
       <EnhancedTableHead
         {...props}
@@ -417,23 +423,37 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
         open={!!flagModalOpenId}
         onClose={handleCloseModal}
       />
-      <Box sx={{ my: 4, display: "flex", alignItems: "center", gap: 2 }}>
-        <DatePickerViews
-          label={'"month" and "year"'}
-          views={["year", "month"]}
-        />
-        <EnhancedTableToolbar />
+      <Box
+        sx={{
+          width: "100%",
+          height: "100%",
+          display: "flex",
+          flexDirection: "column",
+          flexGrow: 1,
+        }}
+      >
+        <Box sx={{ my: 4, display: "flex", alignItems: "center", gap: 2 }}>
+          <DatePickerViews
+            label={'"month" and "year"'}
+            views={["year", "month"]}
+          />
+          <EnhancedTableToolbar />
+        </Box>
+        {visibleRows.length ? (
+          <Box height="97vh">
+            <TableVirtuoso
+              data={visibleRows}
+              endReached={loadMore}
+              fixedHeaderContent={fixedHeaderContent}
+              increaseViewportBy={FETCH_ROW_COUNT}
+              itemContent={rowContent}
+              components={VirtuosoTableComponents}
+            />
+          </Box>
+        ) : (
+          <NoData />
+        )}
       </Box>
-
-      <TableVirtuoso
-        style={{ height: "400px" }}
-        data={visibleRows}
-        endReached={loadMore}
-        fixedHeaderContent={fixedHeaderContent}
-        increaseViewportBy={FETCH_ROW_COUNT}
-        itemContent={rowContent}
-        components={VirtuosoTableComponents}
-      />
     </>
   );
 }

@@ -12,7 +12,7 @@ interface DatePickerViewsProps {
 
 export default function DatePickerViews({
   label,
-  views
+  views,
 }: DatePickerViewsProps) {
   const { date } = useParams();
   const navigate = useNavigate();
@@ -49,6 +49,7 @@ export default function DatePickerViews({
   return (
     <LocalizationProvider dateAdapter={AdapterDateFns}>
       <DatePicker
+        disableFuture
         label={label}
         views={views}
         value={value}

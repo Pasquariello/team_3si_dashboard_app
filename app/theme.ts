@@ -20,7 +20,8 @@ const theme = createTheme({
         main: '#F59E0B'
     },
     cusp_iron: {
-        main: '#E4E4E7'
+        main: '#E4E4E7',
+        contrastText: '#71717A'
     }
   },
 
