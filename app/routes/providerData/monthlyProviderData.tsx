@@ -1,7 +1,14 @@
 import { TableVirtuoso, type TableComponents } from 'react-virtuoso';
 import { useState, forwardRef, Fragment, useMemo, useEffect } from 'react';
 import EnhancedTableHead from '~/components/table/EnhancedTableHead';
-import { Box, Table, TableBody, TableCell, TableRow } from '@mui/material';
+import {
+  Box,
+  CircularProgress,
+  Table,
+  TableBody,
+  TableCell,
+  TableRow,
+} from '@mui/material';
 
 import type { Data, HeadCell, Order } from '~/types';
 import DatePickerViews from '~/components/DatePickerViews';
@@ -307,7 +314,32 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
               increaseViewportBy={FETCH_ROW_COUNT}
               itemContent={rowContent}
               components={VirtuosoTableComponents}
+              fixedFooterContent={() =>
+                isFetching || isLoading ? (
+                  <TableRow sx={{ backgroundColor: 'lightgray' }}>
+                    <TableCell
+                      colSpan={headCells.length}
+                      sx={{ textAlign: 'center' }}
+                      align='center'
+                    >
+                      <Box
+                        sx={{
+                          width: '100%',
+                          textAlign: 'center',
+                          display: 'block',
+                        }}
+                      >
+                        <CircularProgress size={24} />
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                ) : null
+              }
             />
+          </Box>
+        ) : isFetching || isLoading ? (
+          <Box display={'flex'} justifyContent={'center'} alignItems={'center'}>
+            <CircularProgress size={24} />
           </Box>
         ) : (
           <NoData />
