@@ -5,6 +5,7 @@ export interface HeadCell {
   id: keyof Data;
   label: string;
   numeric: boolean;
+  width?: string;
 }
 
 export interface Data {

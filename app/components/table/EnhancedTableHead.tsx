@@ -62,6 +62,9 @@ function EnhancedTableHead(props: EnhancedTableProps) {
 
         {headCells.map(headCell => (
           <TableCell
+            sx={{
+              width: headCell?.width ?? 'auto',
+            }}
             key={headCell.id}
             align={headCell.numeric ? 'right' : 'left'}
             padding={'normal'}

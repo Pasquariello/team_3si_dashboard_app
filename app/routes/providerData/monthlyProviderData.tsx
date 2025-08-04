@@ -84,12 +84,14 @@ const headCells: readonly HeadCell[] = [
     numeric: false,
     disablePadding: true,
     label: 'Flagged',
+    width: '70px',
   },
   {
     id: 'id',
     numeric: false,
     disablePadding: true,
     label: 'ID',
+    width: '260px',
   },
   {
     id: 'providerName',
