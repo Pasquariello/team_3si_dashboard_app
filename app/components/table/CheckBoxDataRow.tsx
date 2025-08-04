@@ -37,6 +37,7 @@ export const CheckboxDataRow = forwardRef<HTMLTableRowElement, CheckboxDataRowPr
       >
         <td>
           <Checkbox
+            sx={{ display: 'flex', justifySelf: 'center' }}
             color='primary'
             onClick={e => {
               e.stopPropagation();
@@ -44,7 +45,7 @@ export const CheckboxDataRow = forwardRef<HTMLTableRowElement, CheckboxDataRowPr
             }}
             checked={item.flagged}
             inputProps={{
-              'aria-labelledby': labelId
+              'aria-labelledby': labelId,
             }}
             icon={<OutlinedFlag sx={{ color: theme.palette.cusp_iron.main }} />}
             checkedIcon={<Flag sx={{ color: theme.palette.cusp_orange.main }} />}
