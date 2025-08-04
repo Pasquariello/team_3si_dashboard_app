@@ -1,71 +1,21 @@
 import { TableVirtuoso, type TableComponents } from 'react-virtuoso';
-import { useState, forwardRef, Fragment, useMemo, useRef, useEffect } from 'react';
+import { useState, forwardRef, Fragment, useMemo, useEffect } from 'react';
 import EnhancedTableHead from '~/components/table/EnhancedTableHead';
-import {
-  Box,
-  Checkbox,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableRow,
-  useTheme,
-} from '@mui/material';
-import OutlinedFlagIcon from '@mui/icons-material/OutlinedFlag';
-import FlagIcon from '@mui/icons-material/Flag';
+import { Box, Table, TableBody, TableCell, TableRow } from '@mui/material';
+
 import type { Data, HeadCell, Order } from '~/types';
 import DatePickerViews from '~/components/DatePickerViews';
 import EnhancedTableToolbar from '~/components/table/EnhancedTableToolbar';
-import { useSearchParams } from 'react-router';
 import { getVisibleRows } from '~/utils/table';
-import { useInfiniteQuery } from '@tanstack/react-query';
-import { getCurrentDate } from '~/utils/dates';
-import { queryClient } from '~/queryClient';
 import type { Route } from './+types/monthlyProviderData';
 import FlagModal from '~/components/modals/FlagModal';
 import NoData from '~/components/NoData';
-
-interface CustomTableScroller extends React.HTMLAttributes<HTMLDivElement> {}
-// Scroller must be outside the instance that renders the rest of the table
-const Scroller = forwardRef<HTMLDivElement, CustomTableScroller>(({ style, ...props }, ref) => (
-  <TableContainer
-    component={Paper}
-    style={{
-      ...style,
-      ...{ maxHeight: '97vh', flexGrow: 1, overflow: 'auto' },
-    }}
-    {...props}
-    ref={ref}
-  />
-));
-
-const FETCH_ROW_COUNT = 200;
-
-export const getMonthlyData = async (date: string, offset: string): Promise<any> => {
-  console.log(`http://localhost:3000/api/v1/month/${date}?offset=${offset}`);
-  const res = await fetch(`http://localhost:3000/api/v1/month/${date}?offset=${offset}`, {
-    method: 'GET',
-  });
-  if (!res.ok) {
-    throw new Error('Failed to fetch message');
-  }
-  return res.json();
-};
-// Since we are populating the cache we don't need to block the UI with async/await
-export function loader({ request }: Route.LoaderArgs) {
-  const url = new URL(request.url);
-  const date = url.searchParams.get('date') ?? getCurrentDate();
-  const offset = url.searchParams.get('offset') ?? '0';
-
-  queryClient.prefetchInfiniteQuery({
-    initialPageParam: 0,
-    queryKey: ['monthlyProviderData', date],
-    queryFn: () => getMonthlyData(date, offset),
-  });
-
-  return null;
-}
+import { useQueryParamsState } from '~/hooks/useQueryParamState';
+import { FETCH_ROW_COUNT } from '~/data-loaders/providerMonthlyData';
+import { useProviderMonthlyData } from '~/hooks/useProviderMonthlyData';
+import { CheckboxDataRow, type VirtuosoDataRowProps } from '~/components/table/CheckBoxDataRow';
+import { Scroller } from '~/components/table/VirutalTableScroller';
+import { TooltipTableCell } from '~/components/table/TooltipTableCell';
 
 const riskThresholds = [
   { max: 4, min: 3, color: 'red' },
@@ -109,7 +59,7 @@ const headCells: readonly HeadCell[] = [
     id: 'childrenBilledOverCapacity',
     numeric: true,
     disablePadding: false,
-    label: 'Children Billed Over',
+    label: 'Children Billed Over Capacity',
   },
   {
     id: 'childrenPlacedOverCapacity',
@@ -163,119 +113,70 @@ const renderCellContent = (
       return null;
     case 'id':
       return (
-        <TableCell key={key} id={labelId} scope='row' padding='none'>
+        <TooltipTableCell tooltipTitle={row.id} key={key} id={labelId} scope='row' padding='none'>
           {row.id}
-        </TableCell>
+        </TooltipTableCell>
       );
     case 'providerName':
       return (
-        <TableCell key={key} align='left'>
+        <TooltipTableCell tooltipTitle={row.providerName} key={key} align='left'>
           {row.providerName}
-        </TableCell>
+        </TooltipTableCell>
       );
     case 'overallRiskScore':
       return (
-        <TableCell
+        <TooltipTableCell
           key={key}
+          tooltipTitle={row.overallRiskScore}
           align='center'
           sx={{
             color: getColor(row.overallRiskScore),
           }}
         >
           {row.overallRiskScore}
-        </TableCell>
+        </TooltipTableCell>
       );
     case 'childrenBilledOverCapacity':
       return (
-        <TableCell key={key} align='center'>
+        <TooltipTableCell tooltipTitle={row.childrenBilledOverCapacity} key={key} align='center'>
           {row.childrenBilledOverCapacity}
-        </TableCell>
+        </TooltipTableCell>
       );
     case 'distanceTraveled':
       return (
-        <TableCell key={key} align='center'>
+        <TooltipTableCell tooltipTitle={row.distanceTraveled} key={key} align='center'>
           {row.distanceTraveled}
-        </TableCell>
+        </TooltipTableCell>
       );
     case 'childrenPlacedOverCapacity':
       return (
-        <TableCell key={key} align='center'>
+        <TooltipTableCell tooltipTitle={row.childrenPlacedOverCapacity} key={key} align='center'>
           {row.childrenPlacedOverCapacity}
-        </TableCell>
+        </TooltipTableCell>
       );
     case 'providersWithSameAddress':
       return (
-        <TableCell key={key} align='center'>
+        <TooltipTableCell tooltipTitle={row.providersWithSameAddress} key={key} align='center'>
           {row.providersWithSameAddress}
-        </TableCell>
+        </TooltipTableCell>
       );
     default:
       return null;
   }
 };
 
-export function useWhyDidYouUpdate(componentName: string, propsOrState: Record<string, any>) {
-  const previousRef = useRef<Record<string, any>>({});
-
-  useEffect(() => {
-    const changedKeys: string[] = [];
-
-    const prev = previousRef.current;
-    const current = propsOrState;
-
-    Object.keys(current).forEach(key => {
-      if (!Object.is(prev[key], current[key])) {
-        changedKeys.push(key);
-      }
-    });
-
-    if (changedKeys.length > 0) {
-      console.log(
-        `[${componentName}] changed:`,
-        changedKeys.reduce((acc, key) => {
-          acc[key] = {
-            from: prev[key],
-            to: current[key],
-          };
-          return acc;
-        }, {} as Record<string, { from: any; to: any }>)
-      );
-    }
-
-    previousRef.current = current;
-  }, [propsOrState, componentName]);
-}
-
-// const [count, setCount] = useState(0);
-// const [name, setName] = useState('John');
-
-// useWhyDidYouUpdate('MyComponent', { count, name });
-
 export default function MonthlyProviderData({ params }: Route.ComponentProps) {
   const [selected, setSelected] = useState<readonly string[]>([]);
   const [order, setOrder] = useState<Order>('desc');
   const [orderBy, setOrderBy] = useState<keyof Data>('overallRiskScore');
-  const [searchParams, setSearchParams] = useSearchParams();
-  const offset = searchParams.get('offset') || '0';
-  const theme = useTheme();
-  useWhyDidYouUpdate('monthly', { selected, order, orderBy, searchParams });
+  const [flagModalOpenId, setFlagModalOpenId] = useState<string | null>(null);
+  const [queryParams, updateQuery] = useQueryParamsState();
+  const offset = queryParams.get('offset') || '0';
 
-  const { data, fetchNextPage, isFetching, isLoading } = useInfiniteQuery({
-    queryKey: ['monthlyProviderData', params.date],
-    queryFn: async () => getMonthlyData(params.date, offset),
-    initialPageParam: 0,
-    getNextPageParam: (lastPage, pages) => {
-      if (!lastPage || typeof lastPage !== 'object') return undefined;
-
-      if (!Array.isArray(lastPage) || lastPage.length < FETCH_ROW_COUNT) return undefined;
-
-      return pages.length * FETCH_ROW_COUNT;
-    },
-    staleTime: 1000 * 60 * 10, // 10-Min
-    refetchOnMount: false,
-    refetchOnReconnect: false,
-    refetchOnWindowFocus: false,
-  });
+  const { data, fetchNextPage, isFetching, isLoading } = useProviderMonthlyData(
+    params.date,
+    offset
+  );
 
   const visibleRows = useMemo(() => {
     const items = data?.pages.flat() || [];
@@ -314,41 +215,7 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
     setSelected(newSelected);
   };
 
-  const VirtualTableRow = forwardRef<HTMLTableRowElement, any>(({ style, item, ...rest }, ref) => {
-    // Check boxes and such need handled by a context @_@
-    const isItemSelected = selected.includes(item.id);
-    const labelId = `enhanced-table-checkbox-${rest['data-index']}`;
-    return (
-      <TableRow
-        hover
-        onClick={event => handleClick(event, item.id)}
-        role='checkbox'
-        aria-checked={isItemSelected}
-        tabIndex={-1}
-        key={item.id}
-        sx={{ cursor: 'pointer', ...style }}
-        selected={isItemSelected}
-        ref={ref}
-        {...rest}
-      >
-        <td>
-          <Checkbox
-            color='primary'
-            // checked={isItemSelected}
-            onClick={() => setFlagModalOpenId(item.id)}
-            checked={item.flagged}
-            inputProps={{
-              'aria-labelledby': labelId,
-            }}
-            icon={<OutlinedFlagIcon sx={{ color: theme.palette.cusp_iron.main }} />} // unchecked state
-            checkedIcon={<FlagIcon sx={{ color: theme.palette.cusp_orange.main }} />} // checked state
-          />
-        </td>
-        {rest.children}
-      </TableRow>
-    );
-  });
-  //   // will eventually requery
+  // will eventually requery
   const handleRequestSort = (event: React.MouseEvent<unknown>, property: keyof Data) => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
@@ -366,7 +233,9 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
 
   const VirtuosoTableComponents: TableComponents<Data> = {
     Scroller,
-    Table: props => <Table stickyHeader aria-label='sticky table' {...props} />,
+    Table: props => (
+      <Table stickyHeader aria-label='sticky table' sx={{ tableLayout: 'fixed' }} {...props} />
+    ),
     TableHead: forwardRef<HTMLTableSectionElement>((props, ref) => (
       <EnhancedTableHead
         {...props}
@@ -380,36 +249,38 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
         ref={ref}
       />
     )),
-    TableRow: VirtualTableRow,
+    TableRow: forwardRef<HTMLTableRowElement, VirtuosoDataRowProps>((props, ref) => (
+      <CheckboxDataRow
+        ref={ref}
+        {...props}
+        handleClickRow={handleClick}
+        handleCheckBox={setFlagModalOpenId}
+        isSelected={(id: string) => selected.includes(id)}
+      />
+    )),
     TableBody: forwardRef<HTMLTableSectionElement>((props, ref) => (
       <TableBody {...props} ref={ref} />
     )),
   };
 
-  const loadMore = () => {
+  const updateOffset = () => {
     if (isFetching || isLoading) {
       return;
     }
-    console.log('load-more');
-    const offset = searchParams.get('offset');
-
+    const offset = queryParams.get('offset');
     const nextOffset = Number(offset) + FETCH_ROW_COUNT;
-    const scrollY = window.scrollY;
 
-    // update the URL without using react router this should prevent page jump
-    setSearchParams(() => {
-      requestAnimationFrame(() => window.scrollTo(0, scrollY));
-      return { offset: String(nextOffset) };
-    });
-
-    fetchNextPage().then(() => requestAnimationFrame(() => window.scrollTo(0, scrollY)));
+    updateQuery('offset', String(nextOffset));
   };
+
+  useEffect(() => {
+    console.log('load-more');
+    fetchNextPage();
+  }, [offset]);
 
   const handleCloseModal = () => {
     setFlagModalOpenId(null);
   };
-
-  const [flagModalOpenId, setFlagModalOpenId] = useState(null);
 
   return (
     <>
@@ -431,7 +302,7 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
           <Box height={'97vh'}>
             <TableVirtuoso
               data={visibleRows}
-              endReached={loadMore}
+              endReached={updateOffset}
               fixedHeaderContent={fixedHeaderContent}
               increaseViewportBy={FETCH_ROW_COUNT}
               itemContent={rowContent}
