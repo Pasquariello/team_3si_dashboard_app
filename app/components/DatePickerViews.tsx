@@ -14,7 +14,8 @@ export default function DatePickerViews({ label, views }: DatePickerViewsProps) 
     return (
         <LocalizationProvider dateAdapter={AdapterDateFns}>
             <DatePicker  
-            slotProps={{ textField: { size: 'small' } }} // 👈 this makes it smaller like TextField
+                disableFuture
+                slotProps={{ textField: { size: 'small' } }} // 👈 this makes it smaller like TextField
                 label={label} views={views}
             />
         </LocalizationProvider>

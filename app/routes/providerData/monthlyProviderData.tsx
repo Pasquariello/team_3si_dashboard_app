@@ -12,6 +12,7 @@ import {
   TableContainer,
   TableRow,
   Checkbox,
+  Paper,
 } from '@mui/material';
 
 import OutlinedFlagIcon from '@mui/icons-material/OutlinedFlag';
@@ -180,9 +181,9 @@ export default function MonthlyProviderData() {
           <DatePickerViews label={'"month" and "year"'} views={['month', 'year']}/>
           <EnhancedTableToolbar />
         </Box>
-        <TableContainer>
+        <TableContainer component={Paper}  sx={{maxHeight: '95vh', overflow: 'auto'}}>
           <Table
-            sx={{ minWidth: 750 }}
+            stickyHeader
             aria-labelledby="tableTitle"
           >
             <EnhancedTableHead
