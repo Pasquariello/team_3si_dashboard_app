@@ -23,7 +23,11 @@ export default function FlagModal ({id, row_data, open, onClose, onSave }: {id: 
     }
 
     const handleOnSave = () => {
-        onSave({id, provider_licensing_id: row_data.provider_licensing_id , comment})
+        onSave({id, provider_licensing_id: row_data.provider_licensing_id , comment, is_flagged: true})
+    }
+
+    const handleRemoveFlag = () => {
+        onSave({id, provider_licensing_id: row_data.provider_licensing_id , is_flagged: false })
     }
 
 
@@ -75,7 +79,7 @@ export default function FlagModal ({id, row_data, open, onClose, onSave }: {id: 
             <DialogActions sx={{px: 3, pb: 3, justifyContent: 'space-between'}}>
                 <Button 
                     variant="outlined" 
-                    onClick={onClose}
+                    onClick={handleRemoveFlag}
                     sx={{
                         color: theme.palette.error.main, // Sets the text color to white
                         borderColor: theme.palette.cusp_iron.main, // Sets the background color to blue

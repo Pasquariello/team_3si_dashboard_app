@@ -336,7 +336,7 @@ export default function AnnualProviderData() {
     setFlagModalOpenId(0);
   }
 
-  const handleOnSave = async (row_data: { id: number; comment?: string; provider_licensing_id: number; }) => {
+  const handleOnSave = async (row_data: { id: number; comment?: string; provider_licensing_id: number; is_flagged: boolean }) => {
 
     const res = await onSave(row_data);
   
