@@ -13,6 +13,7 @@ import {
   TableCell,
   TableContainer,
   TableRow,
+  type AlertColor,
 } from '@mui/material';
 
 import FlagIcon from '@mui/icons-material/Flag';
@@ -25,6 +26,8 @@ import YearOrRangeSelector from '~/components/YearOrRangeSelector';
 import { getVisibleRows } from '~/utils/table';
 import FlagModal from '~/components/modals/FlagModal';
 import NoData from '~/components/NoData';
+import { onSave } from '~/components/services/providerDataServices';
+import DescriptionAlerts from '~/components/DescriptionAlerts';
 
 
 export function meta({}: Route.MetaArgs) {
@@ -64,6 +67,82 @@ function createData(
   };
 }
 
+// Temporary sample data
+const foo_data = [
+
+    {
+      id: 1,
+      is_flagged: true,
+      provider_name: 'Little Stars Childcare',
+      overall_risk: 100,
+      children_billed_over: 12,
+      children_over_capacity: 12,
+      distance_traveled: 12,
+      providers_with_same_address: 12,
+      provider_licensing_id: 483729  // (random 6-digit number)
+    },
+    {
+      id: 2,
+      is_flagged: false,
+      provider_name: 'Bright Futures Academy',
+      overall_risk: 89,
+      children_billed_over: 12,
+      children_over_capacity: 11,
+      distance_traveled: 10,
+      providers_with_same_address: 12,
+      provider_licensing_id: 752194
+    },
+
+    {
+      id: 3,
+      is_flagged: false,
+      provider_name: 'Happy Hearts Daycare',
+      overall_risk: 90,
+      children_billed_over: 6,
+      children_over_capacity: 6,
+      distance_traveled: 6,
+      providers_with_same_address: 6,
+      provider_licensing_id: 319845
+    },
+
+    {
+      id: 4,
+      is_flagged: false,
+      provider_name: 'Sunshine Learning Center',
+      overall_risk: 80,
+      children_billed_over: 4,
+      children_over_capacity: 11,
+      distance_traveled: 1,
+      providers_with_same_address: 5,
+      provider_licensing_id: 460271
+    },
+
+    {
+      id: 5,
+      is_flagged: true,
+      provider_name: 'Kiddie Cove',
+      overall_risk: 50,
+      children_billed_over: 1,
+      children_over_capacity: 1,
+      distance_traveled: 1,
+      providers_with_same_address: 1,
+      provider_licensing_id: 935027
+    },
+
+    {
+      id: 6,
+      is_flagged: false,
+      provider_name: 'Tiny Tots Academy',
+      overall_risk: 10,
+      children_billed_over: 0,
+      children_over_capacity: 0,
+      distance_traveled: 1,
+      providers_with_same_address: 0,
+      provider_licensing_id: 608173
+    },
+
+]
+
 const rows = [
   createData(1, true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
   createData(2, false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
@@ -72,53 +151,53 @@ const rows = [
   createData(5, true, 'Kiddie Cove', 50, 1, 1, 1, 1),
   createData(6, false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
 
-    createData(1, true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
-  createData(2, false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
-  createData(3, false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
-  createData(4, false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
-  createData(5, true, 'Kiddie Cove', 50, 1, 1, 1, 1),
-  createData(6, false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
-    createData(1, true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
-  createData(2, false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
-  createData(3, false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
-  createData(4, false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
-  createData(5, true, 'Kiddie Cove', 50, 1, 1, 1, 1),
-  createData(6, false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
-    createData(1, true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
-  createData(2, false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
-  createData(3, false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
-  createData(4, false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
-  createData(5, true, 'Kiddie Cove', 50, 1, 1, 1, 1),
-  createData(6, false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
-    createData(1, true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
-  createData(2, false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
-  createData(3, false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
-  createData(4, false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
-  createData(5, true, 'Kiddie Cove', 50, 1, 1, 1, 1),
-  createData(6, false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
-      createData(1, true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
-  createData(2, false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
-  createData(3, false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
-  createData(4, false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
-  createData(5, true, 'Kiddie Cove', 50, 1, 1, 1, 1),
-  createData(6, false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
-    createData(1, true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
-  createData(2, false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
-  createData(3, false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
-  createData(4, false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
-  createData(5, true, 'Kiddie Cove', 50, 1, 1, 1, 1),
-  createData(6, false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
-    createData(1, true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
-  createData(2, false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
-  createData(3, false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
-  createData(4, false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
-  createData(5, true, 'Kiddie Cove', 50, 1, 1, 1, 1),
-  createData(6, false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
-    createData(1, true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
-  createData(2, false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
-  createData(3, false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
-  createData(4, false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
-  createData(5, true, 'Kiddie Cove', 50, 1, 1, 1, 1),
+  //   createData(1, true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
+  // createData(2, false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
+  // createData(3, false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
+  // createData(4, false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
+  // createData(5, true, 'Kiddie Cove', 50, 1, 1, 1, 1),
+  // createData(6, false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
+  //   createData(1, true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
+  // createData(2, false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
+  // createData(3, false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
+  // createData(4, false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
+  // createData(5, true, 'Kiddie Cove', 50, 1, 1, 1, 1),
+  // createData(6, false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
+  //   createData(1, true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
+  // createData(2, false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
+  // createData(3, false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
+  // createData(4, false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
+  // createData(5, true, 'Kiddie Cove', 50, 1, 1, 1, 1),
+  // createData(6, false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
+  //   createData(1, true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
+  // createData(2, false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
+  // createData(3, false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
+  // createData(4, false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
+  // createData(5, true, 'Kiddie Cove', 50, 1, 1, 1, 1),
+  // createData(6, false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
+  //     createData(1, true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
+  // createData(2, false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
+  // createData(3, false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
+  // createData(4, false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
+  // createData(5, true, 'Kiddie Cove', 50, 1, 1, 1, 1),
+  // createData(6, false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
+  //   createData(1, true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
+  // createData(2, false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
+  // createData(3, false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
+  // createData(4, false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
+  // createData(5, true, 'Kiddie Cove', 50, 1, 1, 1, 1),
+  // createData(6, false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
+  //   createData(1, true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
+  // createData(2, false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
+  // createData(3, false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
+  // createData(4, false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
+  // createData(5, true, 'Kiddie Cove', 50, 1, 1, 1, 1),
+  // createData(6, false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
+  //   createData(1, true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
+  // createData(2, false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
+  // createData(3, false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
+  // createData(4, false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
+  // createData(5, true, 'Kiddie Cove', 50, 1, 1, 1, 1),
  
 
 ];
@@ -183,10 +262,12 @@ const headCells: readonly HeadCell[] = [
 
 ];
 
-
 export default function AnnualProviderData() {
   const theme = useTheme();
   const [order, setOrder] = React.useState<Order>('desc');
+  const [alert, setAlert] = React.useState<{success: string, message: string} | null>();
+  const [flagModalOpenId, setFlagModalOpenId] = React.useState(0);
+
   const [orderBy, setOrderBy] = React.useState<keyof Data>('overallRiskScore');
   const [selected, setSelected] = React.useState<readonly number[]>([]);
   const [selectedPeriod, setSelectedPeriod] = React.useState<string>('last12');
@@ -255,7 +336,24 @@ export default function AnnualProviderData() {
     setFlagModalOpenId(0);
   }
 
-  const [flagModalOpenId, setFlagModalOpenId] = React.useState(0);
+  const handleOnSave = async (row_data: { id: number; comment?: string; provider_licensing_id: number; }) => {
+
+    const res = await onSave(row_data);
+  
+    if (res.ok) {
+      setAlert({
+        success: 'success',
+        message: 'Successfully updated record!'
+      });
+      handleCloseModal()
+    } else {
+      setAlert({
+        success: 'error',
+        message: 'An Error Occured'
+      });
+    }
+  }
+
 
   const renderTable = () => (
     <TableContainer component={Paper}  sx={{ height: '97vh', flexGrow: 1, overflow: 'auto'}}>   
@@ -326,7 +424,18 @@ export default function AnnualProviderData() {
 
   return (
     <>
-    <FlagModal id={flagModalOpenId} open={!!flagModalOpenId} onClose={handleCloseModal} />
+    {/* TODO: Probably should refactor so checking a flag just sets the entire dataset we need not just an id, that way we can reduce the props being passed and remove a .find() */}
+    <FlagModal 
+      id={flagModalOpenId} 
+      open={!!flagModalOpenId} 
+      onClose={handleCloseModal}
+      onSave={(data: any) => handleOnSave(data)} 
+      row_data={foo_data.find(data => data.id === flagModalOpenId)} 
+
+    />
+
+  
+    <DescriptionAlerts severity={alert?.success} message={alert?.message} open={alert !== null } handleClose={() => setAlert(null)} />
     <Box sx={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column', flexGrow: 1}}>  
       {/* ^ that line added  height: '100vh', display: 'flex', flexDirection: 'column' */}
       <Box sx={{my: 4, display: 'flex', alignItems: 'center', gap: 2}}>
