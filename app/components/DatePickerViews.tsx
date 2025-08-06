@@ -1,19 +1,16 @@
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { AdapterDateFns } from "@mui/x-date-pickers/AdapterDateFns";
-import { useParams, useNavigate } from "react-router";
-import { useState, useEffect } from "react";
-import { parseISO, isValid } from "date-fns";
+import { DatePicker } from '@mui/x-date-pickers/DatePicker';
+import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
+import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
+import { useParams, useNavigate } from 'react-router';
+import { useState, useEffect } from 'react';
+import { parseISO, isValid } from 'date-fns';
 
 interface DatePickerViewsProps {
   label: string;
-  views: Array<"year" | "month">;
+  views: Array<'year' | 'month'>;
 }
 
-export default function DatePickerViews({
-  label,
-  views,
-}: DatePickerViewsProps) {
+export default function DatePickerViews({ label, views }: DatePickerViewsProps) {
   const { date } = useParams();
   const navigate = useNavigate();
 
@@ -34,13 +31,13 @@ export default function DatePickerViews({
     setValue(newDate);
     if (newDate) {
       const year = newDate.getFullYear();
-      const month = String(newDate.getMonth() + 1).padStart(2, "0");
+      const month = String(newDate.getMonth() + 1).padStart(2, '0');
 
       const pathname = location.pathname;
       const updatedPath = pathname
-        .split("/")
-        .map((segment) => (segment === date ? `${year}-${month}` : segment))
-        .join("/");
+        .split('/')
+        .map(segment => (segment === date ? `${year}-${month}` : segment))
+        .join('/');
 
       navigate(updatedPath);
     }
@@ -54,7 +51,7 @@ export default function DatePickerViews({
         views={views}
         value={value}
         onChange={handleChange}
-        slotProps={{ textField: { size: "small" } }}
+        slotProps={{ textField: { size: 'small' } }}
       />
     </LocalizationProvider>
   );

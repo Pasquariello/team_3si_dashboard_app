@@ -1,10 +1,7 @@
-import type { Route } from "./+types/details";
+import type { Route } from './+types/details';
 
 export function meta({}: Route.MetaArgs) {
-  return [
-    { title: "Details" },
-    { name: "description", content: "Details" },
-  ];
+  return [{ title: 'Details' }, { name: 'description', content: 'Details' }];
 }
 
 export default function Details() {
