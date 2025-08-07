@@ -13,6 +13,7 @@ import {
   TableCell,
   TableContainer,
   TableRow,
+  type AlertColor,
 } from '@mui/material';
 
 import FlagIcon from '@mui/icons-material/Flag';
@@ -343,7 +344,7 @@ export default function AnnualProviderData() {
     } else {
       setAlert({
         success: 'error',
-        message: 'An Error Occured',
+        message: 'An Error Occurred',
       });
     }
   };
