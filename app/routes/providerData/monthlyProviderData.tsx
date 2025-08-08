@@ -1,93 +1,54 @@
-import * as React from 'react';
-
-import type { Route } from './+types/monthlyProviderData';
-import type { Data, HeadCell, Order } from '~/types';
-
-import { alpha, useTheme } from '@mui/material/styles';
+import { TableVirtuoso, type TableComponents } from 'react-virtuoso';
+import { useState, forwardRef, Fragment, useMemo, useEffect } from 'react';
+import EnhancedTableHead from '~/components/table/EnhancedTableHead';
 import {
   Box,
+  CircularProgress,
   Table,
   TableBody,
   TableCell,
-  TableContainer,
   TableRow,
-  Checkbox,
-  Paper,
 } from '@mui/material';
 
-import OutlinedFlagIcon from '@mui/icons-material/OutlinedFlag';
-import FlagIcon from '@mui/icons-material/Flag';
-
-import EnhancedTableToolbar from '~/components/table/EnhancedTableToolbar';
-import EnhancedTableHead from '~/components/table/EnhancedTableHead';
-import { getVisibleRows } from '~/utils/table';
+import type { Data, HeadCell, Order } from '~/types';
 import DatePickerViews from '~/components/DatePickerViews';
+import EnhancedTableToolbar from '~/components/table/EnhancedTableToolbar';
+import { getVisibleRows } from '~/utils/table';
+import type { Route } from './+types/monthlyProviderData';
+import FlagModal from '~/components/modals/FlagModal';
+import NoData from '~/components/NoData';
+import { useQueryParamsState } from '~/hooks/useQueryParamState';
+import { FETCH_ROW_COUNT } from '~/data-loaders/providerMonthlyData';
+import { useProviderMonthlyData } from '~/hooks/useProviderMonthlyData';
+import { CheckboxDataRow, type VirtuosoDataRowProps } from '~/components/table/CheckBoxDataRow';
+import { Scroller } from '~/components/table/VirutalTableScroller';
+import { TooltipTableCell } from '~/components/table/TooltipTableCell';
 
-export function meta({}: Route.MetaArgs) {
-  return [
-    { title: "Annual Provider Data" },
-    { name: "description", content: "Annual Provider Data" },
-  ];
-}
-
-    // id: 'id',
-    // id: 'providerName',
-    // id: 'overallRiskScore',
-    // id: 'childrenBilledOver',
-    // id: 'childrenPlacedOverCapacity',
-    // id: 'distanceTraveled',
-    // id: 'providersWithSameAddress',
- 
-function createData(
-  id: number,
-  providerName: string,
-  overallRiskScore: number,
-  childrenBilledOver: number,
-  childrenPlacedOverCapacity: number,
-  distanceTraveled: number,
-  providersWithSameAddress: number,
-): Data {
-  return {
-    id,
-    providerName,
-    overallRiskScore,
-    childrenBilledOver,
-    childrenPlacedOverCapacity,
-    distanceTraveled,
-    providersWithSameAddress,
-  };
-}
-
-const rows = [
-  createData(1, 'Little Stars Childcare', 4, 12, 12, 12, 12),
-  createData(2, 'Bright Futures Academy', 3, 12, 11, 10, 12),
-  createData(3, 'Happy Hearts Daycare', 3, 6, 6, 6, 6),
-  createData(4, 'Sunshine Learning Center', 3, 4, 11, 1, 5),
-  createData(5, 'Kiddie Cove', 2, 1, 1, 1, 1),
-  createData(6, 'Tiny Tots Academy', 0, 0, 0, 1, 0),
-
+const riskThresholds = [
+  { max: 4, min: 3, color: 'red' },
+  { max: 2, min: 2, color: 'orange' },
+  { max: 1, min: 0, color: 'green' },
 ];
 
-    // Provider ID
-
-    // Provider Name
-
-    // Overall Risk Score (sum of the next four annualized columns)
-
-    // Children Billed Over Capacity (integer: number of months with value 1, range: 0–12)
-
-    // Children Placed Over Capacity (integer: number of months with value 1, range: 0–12)
-
-    // Distance Traveled (integer: number of months with value 1, range: 0–12)
-
-    // Providers with Same Address (integer: number of months with value 1, range: 0–12)
+const getColor = (value: number) => {
+  const match = riskThresholds.find(threshold => value <= threshold.max && value >= threshold.min);
+  return match ? match.color : 'defaultColor';
+};
 
 const headCells: readonly HeadCell[] = [
+  {
+    id: 'flagged',
+    numeric: false,
+    disablePadding: true,
+    label: 'Flagged',
+    width: '90px',
+  },
   {
     id: 'id',
     numeric: false,
     disablePadding: true,
     label: 'ID',
+    width: '260px',
   },
   {
     id: 'providerName',
@@ -102,10 +63,10 @@ const headCells: readonly HeadCell[] = [
     label: 'Overall Risk Score',
   },
   {
-    id: 'childrenBilledOver',
+    id: 'childrenBilledOverCapacity',
     numeric: true,
     disablePadding: false,
-    label: 'Children Billed Over',
+    label: 'Children Billed Over Capacity',
   },
   {
     id: 'childrenPlacedOverCapacity',
@@ -113,48 +74,138 @@ const headCells: readonly HeadCell[] = [
     disablePadding: false,
     label: 'Children Placed Over Capacity',
   },
-   {
+  {
     id: 'distanceTraveled',
     numeric: true,
     disablePadding: false,
     label: 'Distance Traveled',
   },
-   {
+  {
     id: 'providersWithSameAddress',
     numeric: true,
     disablePadding: false,
     label: 'Providers with Same Address',
   },
-
 ];
 
-export default function MonthlyProviderData() {
-  const theme = useTheme();
-  const [order, setOrder] = React.useState<Order>('desc');
-  const [orderBy, setOrderBy] = React.useState<keyof Data>('overallRiskScore');
-  const [selected, setSelected] = React.useState<readonly number[]>([]);
+const fixedHeaderContent = () => {
+  return (
+    <TableRow>
+      {headCells.map((column, index) => (
+        <TableCell
+          key={`${column.id}+${index}`}
+          variant='head'
+          align={column.numeric || false ? 'right' : 'left'}
+          style={{}}
+          sx={{ backgroundColor: 'background.paper' }}
+        >
+          {column.label}
+        </TableCell>
+      ))}
+    </TableRow>
+  );
+};
 
-  const handleRequestSort = (
-    event: React.MouseEvent<unknown>,
-    property: keyof Data,
-  ) => {
-    const isAsc = orderBy === property && order === 'asc';
-    setOrder(isAsc ? 'desc' : 'asc');
-    setOrderBy(property);
+const renderCellContent = (
+  row: Data,
+  columnId: HeadCell['id'],
+  isItemSelected: boolean,
+  labelId: string,
+  key: string
+): React.ReactNode => {
+  // console.log(columnId, row);
+  switch (columnId) {
+    case 'flagged':
+      // Flagged is handled at the Table Row to more easily pass handlers to it
+      return null;
+    case 'id':
+      return (
+        <TooltipTableCell tooltipTitle={row.id} key={key} id={labelId} scope='row' padding='none'>
+          {row.id}
+        </TooltipTableCell>
+      );
+    case 'providerName':
+      return (
+        <TooltipTableCell tooltipTitle={row.providerName} key={key} align='left'>
+          {row.providerName}
+        </TooltipTableCell>
+      );
+    case 'overallRiskScore':
+      return (
+        <TooltipTableCell
+          key={key}
+          tooltipTitle={row.overallRiskScore}
+          align='center'
+          sx={{
+            color: getColor(row.overallRiskScore),
+          }}
+        >
+          {row.overallRiskScore}
+        </TooltipTableCell>
+      );
+    case 'childrenBilledOverCapacity':
+      return (
+        <TooltipTableCell tooltipTitle={row.childrenBilledOverCapacity} key={key} align='center'>
+          {row.childrenBilledOverCapacity}
+        </TooltipTableCell>
+      );
+    case 'distanceTraveled':
+      return (
+        <TooltipTableCell tooltipTitle={row.distanceTraveled} key={key} align='center'>
+          {row.distanceTraveled}
+        </TooltipTableCell>
+      );
+    case 'childrenPlacedOverCapacity':
+      return (
+        <TooltipTableCell tooltipTitle={row.childrenPlacedOverCapacity} key={key} align='center'>
+          {row.childrenPlacedOverCapacity}
+        </TooltipTableCell>
+      );
+    case 'providersWithSameAddress':
+      return (
+        <TooltipTableCell tooltipTitle={row.providersWithSameAddress} key={key} align='center'>
+          {row.providersWithSameAddress}
+        </TooltipTableCell>
+      );
+    default:
+      return null;
+  }
+};
+
+export default function MonthlyProviderData({ params }: Route.ComponentProps) {
+  const [selected, setSelected] = useState<readonly string[]>([]);
+  const [order, setOrder] = useState<Order>('desc');
+  const [orderBy, setOrderBy] = useState<keyof Data>('overallRiskScore');
+  const [flagModalOpenId, setFlagModalOpenId] = useState<string | null>(null);
+  const [queryParams, updateQuery] = useQueryParamsState();
+  const offset = queryParams.get('offset') || '0';
+
+  const { data, fetchNextPage, isFetching, isLoading } = useProviderMonthlyData(
+    params.date,
+    offset
+  );
+
+  const visibleRows = useMemo(() => {
+    const items = data?.pages.flat() || [];
+    return getVisibleRows(items, order, orderBy);
+  }, [order, orderBy, data]);
+
+  const rowContent = (index: number, row: Data) => {
+    const isItemSelected = selected.includes(row.id);
+    const labelId = `enhanced-table-checkbox-${index}`;
+    return (
+      <Fragment>
+        {headCells.map((column, index) => {
+          const key = `${index}-${column.id}-${row[column.id as keyof Data]}`;
+          return renderCellContent(row, column.id, isItemSelected, labelId, key);
+        })}
+      </Fragment>
+    );
   };
 
-  const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.checked) {
-      const newSelected = rows.map((n) => n.id);
-      setSelected(newSelected);
-      return;
-    }
-    setSelected([]);
-  };
-
-  const handleClick = (event: React.MouseEvent<unknown>, id: number) => {
+  const handleClick = (event: React.MouseEvent<unknown>, id: string) => {
     const selectedIndex = selected.indexOf(id);
-    let newSelected: readonly number[] = [];
+    let newSelected: readonly string[] = [];
 
     if (selectedIndex === -1) {
       newSelected = newSelected.concat(selected, id);
@@ -165,93 +216,135 @@ export default function MonthlyProviderData() {
     } else if (selectedIndex > 0) {
       newSelected = newSelected.concat(
         selected.slice(0, selectedIndex),
-        selected.slice(selectedIndex + 1),
+        selected.slice(selectedIndex + 1)
       );
     }
     setSelected(newSelected);
   };
 
-  const visibleRows = getVisibleRows(rows, order, orderBy);
+  // will eventually requery
+  const handleRequestSort = (event: React.MouseEvent<unknown>, property: keyof Data) => {
+    const isAsc = orderBy === property && order === 'asc';
+    setOrder(isAsc ? 'desc' : 'asc');
+    setOrderBy(property);
+  };
 
+  const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.checked) {
+      const newSelected = visibleRows.map(n => n.id);
+      setSelected(newSelected);
+      return;
+    }
+    setSelected([]);
+  };
+
+  const VirtuosoTableComponents: TableComponents<Data> = {
+    Scroller,
+    Table: props => (
+      <Table stickyHeader aria-label='sticky table' sx={{ tableLayout: 'fixed' }} {...props} />
+    ),
+    TableHead: forwardRef<HTMLTableSectionElement>((props, ref) => (
+      <EnhancedTableHead
+        {...props}
+        numSelected={selected.length}
+        order={order}
+        orderBy={orderBy}
+        onSelectAllClick={handleSelectAllClick}
+        onRequestSort={handleRequestSort}
+        rowCount={visibleRows?.length || 0}
+        headCells={headCells}
+        ref={ref}
+      />
+    )),
+    TableRow: forwardRef<HTMLTableRowElement, VirtuosoDataRowProps>((props, ref) => (
+      <CheckboxDataRow
+        ref={ref}
+        {...props}
+        handleClickRow={handleClick}
+        handleCheckBox={setFlagModalOpenId}
+        isSelected={(id: string) => selected.includes(id)}
+      />
+    )),
+    TableBody: forwardRef<HTMLTableSectionElement>((props, ref) => (
+      <TableBody {...props} ref={ref} />
+    )),
+  };
+
+  const updateOffset = () => {
+    if (isFetching || isLoading) {
+      return;
+    }
+    const offset = queryParams.get('offset');
+    const nextOffset = Number(offset) + FETCH_ROW_COUNT;
+
+    updateQuery('offset', String(nextOffset));
+  };
+
+  useEffect(() => {
+    console.log('load-more');
+    fetchNextPage();
+  }, [offset]);
+
+  const handleCloseModal = () => {
+    setFlagModalOpenId(null);
+  };
 
   return (
-    <Box sx={{ width: '100%' }}>
-
-        <Box sx={{my: 4, display: 'flex', alignItems: 'center', gap: 2}}>
-          <DatePickerViews label={'"month" and "year"'} views={['month', 'year']}/>
+    <>
+      <FlagModal id={flagModalOpenId} open={!!flagModalOpenId} onClose={handleCloseModal} />
+      <Box
+        sx={{
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          flexDirection: 'column',
+          flexGrow: 1,
+        }}
+      >
+        <Box sx={{ my: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
+          <DatePickerViews label={'"month" and "year"'} views={['year', 'month']} />
           <EnhancedTableToolbar />
         </Box>
-        <TableContainer component={Paper}  sx={{maxHeight: '95vh', overflow: 'auto'}}>
-          <Table
-            stickyHeader
-            aria-labelledby="tableTitle"
-          >
-            <EnhancedTableHead
-              numSelected={selected.length}
-              order={order}
-              orderBy={orderBy}
-              onSelectAllClick={handleSelectAllClick}
-              onRequestSort={handleRequestSort}
-              rowCount={rows.length}
-              headCells={headCells}
-            />
-            <TableBody>
-              {visibleRows.map((row, index) => {
-                const isItemSelected = selected.includes(row.id);
-                const labelId = `enhanced-table-checkbox-${index}`;
-
-                return (
-                  <TableRow
-                    hover
-                    onClick={(event) => handleClick(event, row.id)}
-                    role="checkbox"
-                    aria-checked={isItemSelected}
-                    tabIndex={-1}
-                    key={row.id}
-                    selected={isItemSelected}
-                    sx={{ cursor: 'pointer' }}
-                  >
-                    <TableCell padding="checkbox">
-                      <Checkbox
-                        color="primary"
-                        checked={isItemSelected}
-                        inputProps={{
-                          'aria-labelledby': labelId,
-                        }}
-                        icon={<OutlinedFlagIcon sx={{ color: theme.palette.cusp_iron.main }}/>}      // unchecked state
-                        checkedIcon={<FlagIcon sx={{ color: theme.palette.cusp_orange.main }} />}       // checked state
-                      />
-                    </TableCell>
+        {visibleRows.length ? (
+          <Box height={'97vh'}>
+            <TableVirtuoso
+              data={visibleRows}
+              endReached={updateOffset}
+              fixedHeaderContent={fixedHeaderContent}
+              increaseViewportBy={FETCH_ROW_COUNT}
+              itemContent={rowContent}
+              components={VirtuosoTableComponents}
+              fixedFooterContent={() =>
+                isFetching || isLoading ? (
+                  <TableRow sx={{ backgroundColor: 'lightgray' }}>
                     <TableCell
-                      // component="th"
-                      id={labelId}
-                      scope="row"
-                      padding="none"
+                      colSpan={headCells.length}
+                      sx={{ textAlign: 'center' }}
+                      align='center'
                     >
-                      {row.id}
+                      <Box
+                        sx={{
+                          width: '100%',
+                          textAlign: 'center',
+                          display: 'block',
+                        }}
+                      >
+                        <CircularProgress size={24} />
+                      </Box>
                     </TableCell>
-
-                    {/* 
-                    // id: 'id',
-                    // id: 'providerName',
-                    // id: 'overallRiskScore',
-                    // id: 'childrenBilledOver',
-                    // id: 'childrenPlacedOverCapacity',
-                    // id: 'distanceTraveled',
-                    // id: 'providersWithSameAddress', 
-                    */}
-                    <TableCell align="left">{row.providerName}</TableCell>
-                    <TableCell align="center">{row.overallRiskScore}</TableCell>
-                    <TableCell align="center">{row.childrenBilledOver}</TableCell>
-                    <TableCell align="center">{row.childrenPlacedOverCapacity}</TableCell>
-                    <TableCell  align="center">{row.distanceTraveled}</TableCell>
-                    <TableCell align="center">{row.providersWithSameAddress}</TableCell>
                   </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </TableContainer>
-    </Box>
+                ) : null
+              }
+            />
+          </Box>
+        ) : isFetching || isLoading ? (
+          <Box display={'flex'} justifyContent={'center'} alignItems={'center'}>
+            <CircularProgress size={24} />
+          </Box>
+        ) : (
+          <NoData />
+        )}
+      </Box>
+    </>
   );
 }

@@ -6,7 +6,6 @@ declare module '@mui/material/styles' {
   interface Palette {
     cusp_orange: Palette['primary'];
     cusp_iron: Palette['primary'];
-
   }
   interface PaletteOptions {
     cusp_orange?: PaletteOptions['primary'];
@@ -17,14 +16,13 @@ declare module '@mui/material/styles' {
 const theme = createTheme({
   palette: {
     cusp_orange: {
-        main: '#F59E0B'
+      main: '#F59E0B',
     },
     cusp_iron: {
-        main: '#E4E4E7',
-        contrastText: '#71717A'
-    }
+      main: '#E4E4E7',
+      contrastText: '#71717A',
+    },
   },
-
 });
 
 export default theme;
