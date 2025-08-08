@@ -1,14 +1,7 @@
 import { TableVirtuoso, type TableComponents } from 'react-virtuoso';
 import { useState, forwardRef, Fragment, useMemo, useEffect } from 'react';
 import EnhancedTableHead from '~/components/table/EnhancedTableHead';
-import {
-  Box,
-  CircularProgress,
-  Table,
-  TableBody,
-  TableCell,
-  TableRow,
-} from '@mui/material';
+import { Box, CircularProgress, Table, TableBody, TableCell, TableRow } from '@mui/material';
 
 import type { Data, HeadCell, Order } from '~/types';
 import DatePickerViews from '~/components/DatePickerViews';
@@ -23,6 +16,8 @@ import { useProviderMonthlyData } from '~/hooks/useProviderMonthlyData';
 import { CheckboxDataRow, type VirtuosoDataRowProps } from '~/components/table/CheckBoxDataRow';
 import { Scroller } from '~/components/table/VirutalTableScroller';
 import { TooltipTableCell } from '~/components/table/TooltipTableCell';
+import { onSave } from '~/components/services/providerDataServices';
+import { useAuth } from '~/contexts/authContext';
 
 const riskThresholds = [
   { max: 4, min: 3, color: 'red' },
@@ -175,15 +170,20 @@ const renderCellContent = (
 export default function MonthlyProviderData({ params }: Route.ComponentProps) {
   const [selected, setSelected] = useState<readonly string[]>([]);
   const [order, setOrder] = useState<Order>('desc');
+  const [alert, setAlert] = useState<{ success: string; message: string } | null>(null);
   const [orderBy, setOrderBy] = useState<keyof Data>('overallRiskScore');
   const [flagModalOpenId, setFlagModalOpenId] = useState<string | null>(null);
   const [queryParams, updateQuery] = useQueryParamsState();
   const offset = queryParams.get('offset') || '0';
+  const { setToken } = useAuth();
 
-  const { data, fetchNextPage, isFetching, isLoading } = useProviderMonthlyData(
+  const { data, fetchNextPage, isFetching, isLoading, error } = useProviderMonthlyData(
     params.date,
     offset
   );
+  useEffect(() => {
+    setToken("")
+  }, [error]);
 
   const visibleRows = useMemo(() => {
     const items = data?.pages.flat() || [];
@@ -289,9 +289,37 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
     setFlagModalOpenId(null);
   };
 
+  const handleOnSave = async (row_data: {
+    id: number;
+    comment?: string;
+    provider_licensing_id: number;
+    is_flagged: boolean;
+  }) => {
+    const res = await onSave(row_data);
+
+    if (res.ok) {
+      setAlert({
+        success: 'success',
+        message: 'Successfully updated record!',
+      });
+      handleCloseModal();
+    } else {
+      setAlert({
+        success: 'error',
+        message: 'An Error Occured',
+      });
+    }
+  };
+
   return (
     <>
-      <FlagModal id={flagModalOpenId} open={!!flagModalOpenId} onClose={handleCloseModal} />
+      <FlagModal
+        id={flagModalOpenId}
+        open={!!flagModalOpenId}
+        onClose={handleCloseModal}
+        onSave={(data: any) => handleOnSave(data)}
+        row_data={visibleRows.find(data => data.id === flagModalOpenId)}
+      />
       <Box
         sx={{
           width: '100%',

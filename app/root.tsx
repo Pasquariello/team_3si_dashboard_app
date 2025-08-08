@@ -13,6 +13,9 @@ import './app.css';
 import { queryClient } from './queryClient';
 import theme from './theme'; // your custom theme
 import { CssBaseline, ThemeProvider } from '@mui/material';
+import { useState } from 'react';
+import { AuthProvider, useAuth } from './contexts/authContext';
+import { env } from './env';
 
 export const links: Route.LinksFunction = () => [
   { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
@@ -45,6 +48,46 @@ export function Layout({ children }: { children: React.ReactNode }) {
   );
 }
 
+function LoginPage() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const { token, setToken } = useAuth();
+
+  if (token) {
+    return null;
+  }
+
+  const handleLogin = async () => {
+    const res = await fetch(`${env.VITE_API_ROOT_API_URL}/api/v1/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+
+    const data = await res.json();
+    if (res.ok) {
+      setToken(data.token);
+      console.log('Logged in! Token:', data.token);
+    } else {
+      console.error('Login failed:', data.error);
+    }
+  };
+
+  return (
+    <div>
+      <h1>Login</h1>
+      <input value={email} onChange={e => setEmail(e.target.value)} placeholder='email' />
+      <input
+        value={password}
+        onChange={e => setPassword(e.target.value)}
+        placeholder='password'
+        type='password'
+      />
+      <button onClick={handleLogin}>Login</button>
+    </div>
+  );
+}
+
 export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
@@ -52,7 +95,12 @@ export default function App() {
         {' '}
         {/* ✅ Wrap with ThemeProvider */}
         <CssBaseline /> {/* optional: resets base styles */}
-        <Outlet />
+        <>
+          <AuthProvider>
+            <LoginPage />
+            <Outlet />
+          </AuthProvider>
+        </>
       </ThemeProvider>
     </QueryClientProvider>
   );
