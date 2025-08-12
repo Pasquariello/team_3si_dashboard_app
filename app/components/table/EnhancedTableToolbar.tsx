@@ -1,7 +1,7 @@
 import { Box, Button, Divider, TextField } from '@mui/material';
 
 import DownloadIcon from '@mui/icons-material/Download';
-import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
+import { TableFilterMenu } from '../menus/TableFilterMenu';
 
 function EnhancedTableToolbar() {
   return (
@@ -22,14 +22,7 @@ function EnhancedTableToolbar() {
         // sx={{flexGrow: 1 }}
       />
 
-      <Button
-        variant='outlined'
-        size='small'
-        sx={{ alignSelf: 'stretch' }} // 👈 grow to match sibling height
-        startIcon={<FilterAltOutlinedIcon />}
-      >
-        Filter
-      </Button>
+      <TableFilterMenu />
 
       <Divider orientation='vertical' flexItem sx={{ mx: 0.5 }} />
 
