@@ -28,6 +28,7 @@ import FlagModal from '~/components/modals/FlagModal';
 import NoData from '~/components/NoData';
 import { onSave } from '~/components/services/providerDataServices';
 import DescriptionAlerts from '~/components/DescriptionAlerts';
+import { getAnnualData } from '~/data-loaders/providerMonthlyData';
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -140,7 +141,7 @@ const foo_data = [
   },
 ];
 
-const rows = [
+const rows1 = [
   createData('1', true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
   createData('2', false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
   createData('3', false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
@@ -148,53 +149,53 @@ const rows = [
   createData('5', true, 'Kiddie Cove', 50, 1, 1, 1, 1),
   createData('6', false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
 
-  createData('1', true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
-  createData('2', false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
-  createData('3', false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
-  createData('4', false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
-  createData('5', true, 'Kiddie Cove', 50, 1, 1, 1, 1),
-  createData('6', false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
-  createData('1', true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
-  createData('2', false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
-  createData('3', false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
-  createData('4', false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
-  createData('5', true, 'Kiddie Cove', 50, 1, 1, 1, 1),
-  createData('6', false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
-  createData('1', true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
-  createData('2', false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
-  createData('3', false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
-  createData('4', false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
-  createData('5', true, 'Kiddie Cove', 50, 1, 1, 1, 1),
-  createData('6', false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
-  createData('1', true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
-  createData('2', false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
-  createData('3', false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
-  createData('4', false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
-  createData('5', true, 'Kiddie Cove', 50, 1, 1, 1, 1),
-  createData('6', false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
-  createData('1', true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
-  createData('2', false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
-  createData('3', false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
-  createData('4', false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
-  createData('5', true, 'Kiddie Cove', 50, 1, 1, 1, 1),
-  createData('6', false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
-  createData('1', true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
-  createData('2', false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
-  createData('3', false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
-  createData('4', false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
-  createData('5', true, 'Kiddie Cove', 50, 1, 1, 1, 1),
-  createData('6', false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
-  createData('1', true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
-  createData('2', false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
-  createData('3', false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
-  createData('4', false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
-  createData('5', true, 'Kiddie Cove', 50, 1, 1, 1, 1),
-  createData('6', false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
-  createData('1', true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
-  createData('2', false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
-  createData('3', false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
-  createData('4', false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
-  createData('5', true, 'Kiddie Cove', 50, 1, 1, 1, 1),
+  // createData('1', true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
+  // createData('2', false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
+  // createData('3', false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
+  // createData('4', false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
+  // createData('5', true, 'Kiddie Cove', 50, 1, 1, 1, 1),
+  // createData('6', false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
+  // createData('1', true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
+  // createData('2', false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
+  // createData('3', false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
+  // createData('4', false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
+  // createData('5', true, 'Kiddie Cove', 50, 1, 1, 1, 1),
+  // createData('6', false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
+  // createData('1', true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
+  // createData('2', false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
+  // createData('3', false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
+  // createData('4', false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
+  // createData('5', true, 'Kiddie Cove', 50, 1, 1, 1, 1),
+  // createData('6', false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
+  // createData('1', true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
+  // createData('2', false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
+  // createData('3', false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
+  // createData('4', false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
+  // createData('5', true, 'Kiddie Cove', 50, 1, 1, 1, 1),
+  // createData('6', false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
+  // createData('1', true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
+  // createData('2', false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
+  // createData('3', false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
+  // createData('4', false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
+  // createData('5', true, 'Kiddie Cove', 50, 1, 1, 1, 1),
+  // createData('6', false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
+  // createData('1', true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
+  // createData('2', false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
+  // createData('3', false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
+  // createData('4', false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
+  // createData('5', true, 'Kiddie Cove', 50, 1, 1, 1, 1),
+  // createData('6', false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
+  // createData('1', true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
+  // createData('2', false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
+  // createData('3', false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
+  // createData('4', false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
+  // createData('5', true, 'Kiddie Cove', 50, 1, 1, 1, 1),
+  // createData('6', false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
+  // createData('1', true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
+  // createData('2', false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
+  // createData('3', false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
+  // createData('4', false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
+  // createData('5', true, 'Kiddie Cove', 50, 1, 1, 1, 1),
 ];
 
 // Provider ID
@@ -219,37 +220,37 @@ const headCells: readonly HeadCell[] = [
     label: 'ID',
   },
   {
-    id: 'providerName',
+    id: 'provider_name', //'providerName',
     numeric: false,
     disablePadding: false,
     label: 'Provider Name',
   },
   {
-    id: 'overallRiskScore',
+    id: 'overall_risk_score', // 'overallRiskScore',
     numeric: true,
     disablePadding: false,
     label: 'Overall Risk Score',
   },
   {
-    id: 'childrenBilledOverCapacity',
+    id: 'total_billed_over_capacity', // 'childrenBilledOverCapacity',
     numeric: true,
     disablePadding: false,
     label: 'Children Billed Over',
   },
   {
-    id: 'childrenPlacedOverCapacity',
+    id: 'total_placed_over_capacity', // 'childrenPlacedOverCapacity',
     numeric: true,
     disablePadding: false,
     label: 'Children Placed Over Capacity',
   },
   {
-    id: 'distanceTraveled',
+    id: 'total_distance_traveled', //'distanceTraveled',
     numeric: true,
     disablePadding: false,
     label: 'Distance Traveled',
   },
   {
-    id: 'providersWithSameAddress',
+    id: 'total_same_address', //'providersWithSameAddress',
     numeric: true,
     disablePadding: false,
     label: 'Providers with Same Address',
@@ -262,12 +263,44 @@ export default function AnnualProviderData() {
   const [alert, setAlert] = React.useState<{ success: string; message: string } | null>(null);
   const [flagModalOpenId, setFlagModalOpenId] = React.useState<string | null>(null);
 
-  const [orderBy, setOrderBy] = React.useState<keyof Data>('overallRiskScore');
+  const [orderBy, setOrderBy] = React.useState<keyof Data>('overall_risk_score');
   const [selected, setSelected] = React.useState<readonly string[]>([]);
-  const [selectedPeriod, setSelectedPeriod] = React.useState<string>('last12');
+  const [selectedPeriod, setSelectedPeriod] = React.useState<string>('2024');
+
+  const [rows, setRows] = React.useState<Data[]>([]);
+
+   const getData = async () => {
+      try {
+        const res = await getAnnualData(selectedPeriod);
+        console.log('data', res);
+        setRows(res);
+        // optionally set state here with res
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+  };
+
+  React.useEffect(() => {
+    const getData = async () => {
+      try {
+        const res = await getAnnualData(selectedPeriod);
+        console.log('data', res);
+        setRows(res);
+        // optionally set state here with res
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      }
+    };
+
+    getData();
+  }, []);
 
   const handlePeriodChange = (event: any) => {
     setSelectedPeriod(event.target.value);
+
+    getData()
+
+
     // You could also trigger a data reload here
   };
 
@@ -312,8 +345,13 @@ export default function AnnualProviderData() {
   ];
 
   function getColor(value: number) {
+    const valPercent = (value / 48 ) * 100;
     const match = riskThresholds.find(
-      threshold => value <= threshold.max && value >= threshold.min
+      // threshold => value <= threshold.max && value >= threshold.min
+      threshold => valPercent  <= threshold.max && valPercent >= threshold.min
+
+      // threshold => value <= (threshold.max / 48 ) * 100 && value >= (threshold.min / 48 ) * 100
+
     );
     return match ? match.color : 'defaultColor';
   }
@@ -398,24 +436,24 @@ export default function AnnualProviderData() {
                 >
                   {row.id}
                 </TableCell>
-                <TableCell align='left'>{row.providerName}</TableCell>
+                <TableCell align='left'>{row.provider_name}</TableCell>
                 <TableCell
                   align='center'
                   sx={{
-                    color: getColor(row.overallRiskScore),
+                    color: getColor(row.overall_risk_score),
                   }}
                 >
-                  {row.overallRiskScore}
+                  {row.overall_risk_score}
                 </TableCell>
                 <TableCell align='center'>
-                  {renderTableCellContent(row.childrenBilledOverCapacity)}
+                  {renderTableCellContent(row.total_billed_over_capacity)}
                 </TableCell>
                 <TableCell align='center'>
-                  {renderTableCellContent(row.childrenPlacedOverCapacity)}
+                  {renderTableCellContent(row.total_placed_over_capacity)}
                 </TableCell>
-                <TableCell align='center'>{renderTableCellContent(row.distanceTraveled)}</TableCell>
+                <TableCell align='center'>{renderTableCellContent(row.total_distance_traveled)}</TableCell>
                 <TableCell align='center'>
-                  {renderTableCellContent(row.providersWithSameAddress)}
+                  {renderTableCellContent(row.total_same_address)}
                 </TableCell>
               </TableRow>
             );
