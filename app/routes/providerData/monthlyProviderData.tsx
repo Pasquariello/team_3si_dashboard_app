@@ -18,6 +18,7 @@ import { Scroller } from '~/components/table/VirutalTableScroller';
 import { TooltipTableCell } from '~/components/table/TooltipTableCell';
 import { onSave } from '~/components/services/providerDataServices';
 import { useAuth } from '~/contexts/authContext';
+import { useProviderFilters } from '~/contexts/providerFilterContext';
 
 const riskThresholds = [
   { max: 4, min: 3, color: 'red' },
@@ -176,10 +177,12 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
   const [queryParams, updateQuery] = useQueryParamsState();
   const offset = queryParams.get('offset') || '0';
   const { setToken } = useAuth();
+  const { filters } = useProviderFilters()
 
   const { data, fetchNextPage, isFetching, isLoading, error } = useProviderMonthlyData(
     params.date,
-    offset
+    offset,
+    filters
   );
   useEffect(() => {
     setToken("")
