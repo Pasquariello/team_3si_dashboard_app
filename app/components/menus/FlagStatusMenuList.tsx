@@ -1,5 +1,5 @@
 import Check from '@mui/icons-material/Check';
-import { MenuList, MenuItem, ListItemIcon, styled } from '@mui/material';
+import { MenuList, MenuItem, ListItemIcon, styled, Typography, Box } from '@mui/material';
 import ListSubheader from '@mui/material/ListSubheader';
 import { useProviderFilters } from '~/contexts/providerFilterContext';
 
@@ -25,21 +25,27 @@ export const FlagStatusMenuList = () => {
   return (
     <MenuList dense>
       <StyledListHeader>Flag Status</StyledListHeader>
-      <MenuItem onClick={handleFlagged}>
-        {flagged && (
-          <ListItemIcon>
-            <Check />
-          </ListItemIcon>
-        )}
-        Flagged Providers
+      <MenuItem selected={flagged} onClick={handleFlagged}>
+        <ListItemIcon
+          sx={{
+            ...(flagged ? { visibility: 'unset' } : { visibility: 'hidden' }),
+          }}
+        >
+          <Check />
+        </ListItemIcon>
+
+        <Typography>Flagged Providers</Typography>
       </MenuItem>
-      <MenuItem onClick={handleUnflagged}>
-        {unflagged && (
-          <ListItemIcon>
-            <Check />
-          </ListItemIcon>
-        )}
-        Unflagged Providers
+      <MenuItem selected={unflagged} onClick={handleUnflagged}>
+        <ListItemIcon
+          sx={{
+            ...(unflagged ? { visibility: 'unset' } : { visibility: 'hidden' }),
+          }}
+        >
+          <Check />
+        </ListItemIcon>
+
+        <Typography>Unflagged Providers</Typography>
       </MenuItem>
     </MenuList>
   );
