@@ -180,6 +180,7 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
   const [alert, setAlert] = useState<{ success: string; message: string } | null>(null);
   const [orderBy, setOrderBy] = useState<keyof Data>('overallRiskScore');
   const [flagModalOpenId, setFlagModalOpenId] = useState<string | null>(null);
+  const [localFlags, setLocalFlags] = useState<string[]>([]);
   const [queryParams, updateQuery] = useQueryParamsState();
   const offset = queryParams.get('offset') || '0';
   const { setToken } = useAuth();
@@ -196,11 +197,24 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
 
   const visibleRows = useMemo(() => {
     const items = data?.pages.flat() || [];
+    setLocalFlags(() =>
+      items.reduce((acc, curr) => {
+        if (curr.flagged) {
+          acc.push(curr.providerLicensingId);
+        }
+
+        if (acc.includes(curr.providerLicensingId) && !curr.flagged) {
+          return acc.filter(id => curr.providerLicensingId !== id);
+        }
+
+        return acc;
+      }, localFlags)
+    );
     return getVisibleRows(items, order, orderBy);
   }, [order, orderBy, data]);
 
   const rowContent = (index: number, row: Data) => {
-    const isItemSelected = selected.includes(row.id);
+    const isItemSelected = selected.includes(row.providerLicensingId);
     const labelId = `enhanced-table-checkbox-${index}`;
     return (
       <Fragment>
@@ -272,6 +286,7 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
         handleClickRow={handleClick}
         handleCheckBox={setFlagModalOpenId}
         isSelected={(id: string) => selected.includes(id)}
+        isChecked={(id: string) => localFlags.includes(id)}
       />
     )),
     TableBody: forwardRef<HTMLTableSectionElement>((props, ref) => (
@@ -294,7 +309,12 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
     fetchNextPage();
   }, [offset]);
 
-  const handleCloseModal = () => {
+  const handleCloseModal = (isFlagged?: boolean, rowId?: string) => {
+    if (isFlagged !== undefined && rowId) {
+      setLocalFlags(prev => {
+        return isFlagged ? [...prev, rowId] : prev.filter(id => id !== rowId);
+      });
+    }
     setFlagModalOpenId(null);
   };
 
