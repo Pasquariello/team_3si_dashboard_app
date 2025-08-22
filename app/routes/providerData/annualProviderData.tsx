@@ -327,12 +327,9 @@ export default function AnnualProviderData() {
     setFlagModalOpenId(null);
   };
 
-  const handleOnSave = async (row_data: {
-    id: number;
-    comment?: string;
-    provider_licensing_id: number;
-    is_flagged: boolean;
-  }) => {
+  const handleOnSave = async (
+    row_data: Pick<Data, 'comment' | 'flagged' | 'providerLicensingId'>
+  ) => {
     const res = await onSave(row_data);
 
     if (res.ok) {
@@ -438,7 +435,6 @@ export default function AnnualProviderData() {
       >
         {/* TODO: Probably should refactor so checking a flag just sets the entire dataset we need not just an id, that way we can reduce the props being passed and remove a .find() */}
         <FlagModal
-          id={flagModalOpenId}
           open={!!flagModalOpenId}
           onClose={handleCloseModal}
           onSave={(data: any) => handleOnSave(data)}
