@@ -19,4 +19,16 @@ export interface Data {
   flagged?: boolean;
   comment?: string;
 }
+
+export interface MonthlyData {
+  providerLicensingId: string;
+  providerName: string;
+  overallRiskScore: number;
+  childrenBilledOverCapacity: string;
+  childrenPlacedOverCapacity: string;
+  distanceTraveled: string;
+  providersWithSameAddress: string;
+  flagged?: boolean;
+  comment?: string;
+  startOfMonth?: string
 }

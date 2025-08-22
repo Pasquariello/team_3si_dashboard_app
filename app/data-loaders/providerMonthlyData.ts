@@ -16,7 +16,7 @@ export const getMonthlyData = async (
   console.log(`http://localhost:3000/api/v1/month/${date}?offset=${offset}`);
 
   const authRes = await fetchWithAuth(
-    `${env.VITE_API_ROOT_API_URL}/api/v1/month/${date}?offset=${offset}`,
+    `${env.VITE_API_ROOT_API_URL}/month/${date}?offset=${offset}`,
     {
       method: 'POST',
       body: JSON.stringify(filters),
