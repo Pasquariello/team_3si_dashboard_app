@@ -19,6 +19,7 @@ import { TooltipTableCell } from '~/components/table/TooltipTableCell';
 import { onSave } from '~/components/services/providerDataServices';
 import { useAuth } from '~/contexts/authContext';
 import { useProviderFilters } from '~/contexts/providerFilterContext';
+import { queryClient } from '~/queryClient';
 
 const riskThresholds = [
   { max: 4, min: 3, color: 'red' },
@@ -40,7 +41,7 @@ const headCells: readonly HeadCell[] = [
     width: '90px',
   },
   {
-    id: 'id',
+    id: 'providerLicensingId',
     numeric: false,
     disablePadding: true,
     label: 'ID',
@@ -111,9 +112,6 @@ const renderCellContent = (
 ): React.ReactNode => {
   // console.log(columnId, row);
   switch (columnId) {
-    case 'flagged':
-      // Flagged is handled at the Table Row to more easily pass handlers to it
-      return null;
     case 'providerLicensingId':
       return (
         <TooltipTableCell
@@ -184,15 +182,23 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
   const [queryParams, updateQuery] = useQueryParamsState();
   const offset = queryParams.get('offset') || '0';
   const { setToken } = useAuth();
-  const { filters } = useProviderFilters()
+  const { filters } = useProviderFilters();
 
-  const { data, fetchNextPage, isFetching, isLoading, error } = useProviderMonthlyData(
+  const { data, fetchNextPage, isFetching, isLoading, error, refetch } = useProviderMonthlyData(
     params.date,
     offset,
     filters
   );
+
   useEffect(() => {
-    setToken("")
+    updateQuery('offset', String(0));
+    refetch();
+  }, [filters]);
+
+  useEffect(() => {
+    if (error) {
+      setToken('');
+    }
   }, [error]);
 
   const visibleRows = useMemo(() => {
@@ -227,22 +233,25 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
   };
 
   const handleClick = (event: React.MouseEvent<unknown>, id: string) => {
-    const selectedIndex = selected.indexOf(id);
-    let newSelected: readonly string[] = [];
-
-    if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, id);
-    } else if (selectedIndex === 0) {
-      newSelected = newSelected.concat(selected.slice(1));
-    } else if (selectedIndex === selected.length - 1) {
-      newSelected = newSelected.concat(selected.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(
-        selected.slice(0, selectedIndex),
-        selected.slice(selectedIndex + 1)
-      );
+    if (selected.includes(id)) {
+      // If it's already selected, remove it
+      setSelected(selected.filter(item => item !== id));
+    } else {
+      // If it's not selected, add it
+      setSelected([...selected, id]);
     }
-    setSelected(newSelected);
+  };
+
+  const handleCheck = (event: React.MouseEvent<unknown>, id: string) => {
+    setFlagModalOpenId(id);
+
+    if (selected.includes(id)) {
+      // If it's already selected, remove it
+      setSelected(selected.filter(item => item !== id));
+    } else {
+      // If it's not selected, add it
+      setSelected([...selected, id]);
+    }
   };
 
   // will eventually requery
@@ -284,7 +293,7 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
         ref={ref}
         {...props}
         handleClickRow={handleClick}
-        handleCheckBox={setFlagModalOpenId}
+        handleCheckBox={handleCheck}
         isSelected={(id: string) => selected.includes(id)}
         isChecked={(id: string) => localFlags.includes(id)}
       />
@@ -318,12 +327,9 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
     setFlagModalOpenId(null);
   };
 
-  const handleOnSave = async (row_data: {
-    id: number;
-    comment?: string;
-    provider_licensing_id: number;
-    is_flagged: boolean;
-  }) => {
+  const handleOnSave = async (
+    row_data: Pick<Data, 'comment' | 'flagged' | 'providerLicensingId'>
+  ) => {
     const res = await onSave(row_data);
 
     if (res.ok) {
@@ -331,11 +337,15 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
         success: 'success',
         message: 'Successfully updated record!',
       });
-      handleCloseModal();
+      // this is ran after we get a success from out local payload
+      handleCloseModal(row_data.flagged, row_data.providerLicensingId);
+      // data has changed in the DB
+      queryClient.invalidateQueries({ queryKey: ['monthlyProviderData', params.date] });
+      updateQuery('offset', String(0));
     } else {
       setAlert({
         success: 'error',
-        message: 'An Error Occured',
+        message: 'An Error Occurred',
       });
     }
   };
@@ -343,7 +353,6 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
   return (
     <>
       <FlagModal
-        id={flagModalOpenId}
         open={!!flagModalOpenId}
         onClose={handleCloseModal}
         onSave={handleOnSave}

@@ -14,11 +14,12 @@ export type VirtuosoDataRowProps = {
 export type CheckboxDataRowProps = VirtuosoDataRowProps & {
   handleClickRow: (event: React.MouseEvent<HTMLTableRowElement>, id: string) => void;
   isSelected: (id: string) => boolean;
-  handleCheckBox: (id: string) => void;
+  handleCheckBox: (e: React.MouseEvent<any>, id: string) => void;
+  isChecked: (id: string) => boolean;
 };
 
 export const CheckboxDataRow = forwardRef<HTMLTableRowElement, CheckboxDataRowProps>(
-  ({ style, item, isSelected, handleClickRow, handleCheckBox, ...rest }, ref) => {
+  ({ style, item, isSelected, isChecked, handleClickRow, handleCheckBox, ...rest }, ref) => {
     const theme = useTheme();
     const labelId = `enhanced-table-checkbox-${rest['data-index']}`;
 
