@@ -114,10 +114,16 @@ const renderCellContent = (
     case 'flagged':
       // Flagged is handled at the Table Row to more easily pass handlers to it
       return null;
-    case 'id':
+    case 'providerLicensingId':
       return (
-        <TooltipTableCell tooltipTitle={row.id} key={key} id={labelId} scope='row' padding='none'>
-          {row.id}
+        <TooltipTableCell
+          tooltipTitle={row.providerLicensingId}
+          key={key}
+          id={labelId}
+          scope='row'
+          padding='none'
+        >
+          {row.providerLicensingId}
         </TooltipTableCell>
       );
     case 'providerName':
@@ -234,7 +240,7 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
 
   const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
-      const newSelected = visibleRows.map(n => n.id);
+      const newSelected = visibleRows.map(n => n.providerLicensingId);
       setSelected(newSelected);
       return;
     }
@@ -320,8 +326,9 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
         id={flagModalOpenId}
         open={!!flagModalOpenId}
         onClose={handleCloseModal}
-        onSave={(data: any) => handleOnSave(data)}
-        row_data={visibleRows.find(data => data.id === flagModalOpenId)}
+        onSave={handleOnSave}
+        disableRemove={flagModalOpenId ? !localFlags.includes(flagModalOpenId) : false}
+        providerLicensingId={flagModalOpenId || ''}
       />
       <Box
         sx={{

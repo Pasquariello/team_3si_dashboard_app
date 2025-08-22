@@ -25,13 +25,15 @@ export const CheckboxDataRow = forwardRef<HTMLTableRowElement, CheckboxDataRowPr
     return (
       <TableRow
         hover
-        onClick={(event: MouseEvent<HTMLTableRowElement>) => handleClickRow(event, item.id)}
+        onClick={(event: MouseEvent<HTMLTableRowElement>) =>
+          handleClickRow(event, item.providerLicensingId)
+        }
         role='checkbox'
-        aria-checked={isSelected(item.id)}
+        aria-checked={isSelected(item.providerLicensingId)}
         tabIndex={-1}
-        key={item.id}
+        key={item.providerLicensingId}
         sx={{ cursor: 'pointer', ...style }}
-        selected={isSelected(item.id)}
+        selected={isSelected(item.providerLicensingId)}
         ref={ref}
         {...rest}
       >
@@ -41,9 +43,9 @@ export const CheckboxDataRow = forwardRef<HTMLTableRowElement, CheckboxDataRowPr
             color='primary'
             onClick={e => {
               e.stopPropagation();
-              handleCheckBox(item.id);
+              handleCheckBox(e, item.providerLicensingId);
             }}
-            checked={item.flagged}
+            checked={isChecked(item.providerLicensingId)}
             inputProps={{
               'aria-labelledby': labelId,
             }}

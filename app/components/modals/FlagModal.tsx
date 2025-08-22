@@ -9,18 +9,24 @@ import CloseIcon from '@mui/icons-material/Close';
 import Typography from '@mui/material/Typography';
 import { Box, TextField } from '@mui/material';
 import OutlinedFlagIcon from '@mui/icons-material/OutlinedFlag';
+import type { Data } from '~/types';
 
 type FlagModalProps = Readonly<{
-  id: string | null;
   open: boolean;
   onClose: () => void;
-  onSave: (data: any) => void;
-  row_data: any;
+  onSave: (data: Pick<Data, 'comment' | 'flagged' | 'providerLicensingId'>) => void;
+  disableRemove: boolean;
+  providerLicensingId: Data['providerLicensingId'];
 }>;
 
-export default function FlagModal({ id, row_data, open, onClose, onSave }: FlagModalProps) {
+export default function FlagModal({
+  providerLicensingId,
+  open,
+  onClose,
+  onSave,
+  disableRemove,
+}: FlagModalProps) {
   const theme = useTheme();
-
   const [comment, setComment] = React.useState('');
 
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -28,16 +34,19 @@ export default function FlagModal({ id, row_data, open, onClose, onSave }: FlagM
   };
 
   const handleOnSave = () => {
-    onSave({
-      id,
-      provider_licensing_id: row_data.provider_licensing_id,
-      comment,
-      is_flagged: true,
-    });
+    if (providerLicensingId) {
+      onSave({
+        providerLicensingId,
+        comment,
+        flagged: true,
+      });
+    }
   };
 
   const handleRemoveFlag = () => {
-    onSave({ id, provider_licensing_id: row_data.provider_licensing_id, is_flagged: false });
+    if (providerLicensingId) {
+      onSave({ providerLicensingId: providerLicensingId, flagged: false });
+    }
   };
 
   return (
@@ -57,7 +66,7 @@ export default function FlagModal({ id, row_data, open, onClose, onSave }: FlagM
         <Box display={'flex'} gap={2}>
           <OutlinedFlagIcon sx={{ color: theme.palette.cusp_orange.main }} />
           {/* <Box  gap={2} display="flex" alignItems="center"> */}
-          <Typography variant='h6'>Provider Flag {id}</Typography>
+          <Typography variant='h6'>Provider Flag {providerLicensingId}</Typography>
           {/* <Typography color="error" variant='body2'>
                             An Error Occured!
                         </Typography> */}
@@ -84,6 +93,7 @@ export default function FlagModal({ id, row_data, open, onClose, onSave }: FlagM
       <DialogActions sx={{ px: 3, pb: 3, justifyContent: 'space-between' }}>
         <Button
           variant='outlined'
+          disabled={disableRemove}
           onClick={handleRemoveFlag}
           sx={{
             color: theme.palette.error.main, // Sets the text color to white

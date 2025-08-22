@@ -9,7 +9,7 @@ export interface HeadCell {
 }
 
 export interface Data {
-  id: string;
+  providerLicensingId: string;
   providerName: string;
   overallRiskScore: number;
   childrenBilledOverCapacity: number;
@@ -17,4 +17,6 @@ export interface Data {
   distanceTraveled: number;
   providersWithSameAddress: number;
   flagged?: boolean;
+  comment?: string;
+}
 }
