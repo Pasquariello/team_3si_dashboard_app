@@ -59,7 +59,7 @@ function LoginPage() {
   }
 
   const handleLogin = async () => {
-    const res = await fetch(`${env.VITE_API_ROOT_API_URL}/api/v1/login`, {
+    const res = await fetch(`${env.VITE_API_ROOT_API_URL}/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
