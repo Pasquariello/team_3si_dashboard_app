@@ -1,6 +1,6 @@
 import { createContext, useContext, useReducer, type FC, type ReactNode } from 'react';
 
-const defaultFilterValues: ProviderFilters = {
+export const defaultFilterValues: ProviderFilters = {
   flagged: false,
   unflagged: false,
 };

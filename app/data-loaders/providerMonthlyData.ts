@@ -4,22 +4,23 @@ import { queryClient } from '~/queryClient';
 import type { Data } from '~/types';
 import { fetchWithAuth } from '~/apiClient';
 import { env } from '~/env';
-import type { ProviderFilters } from '~/contexts/providerFilterContext';
+import { defaultFilterValues, type ProviderFilters } from '~/contexts/providerFilterContext';
+import { checkedFilter } from '~/utils/filterParseHelpers';
 
 export const FETCH_ROW_COUNT = 200;
+export const DEFAULT_FILTER_CRITERIA = defaultFilterValues;
 
 export const getMonthlyData = async (
   date: string,
   offset: string,
-  filters?: ProviderFilters
+  filters: ProviderFilters
 ): Promise<Data[]> => {
-  console.log(`http://localhost:3000/api/v1/month/${date}?offset=${offset}`);
+  const flagged = checkedFilter(filters);
 
   const authRes = await fetchWithAuth(
-    `${env.VITE_API_ROOT_API_URL}/month/${date}?offset=${offset}`,
+    `${env.VITE_API_ROOT_API_URL}/month/${date}?offset=${offset}&flagged=${flagged}`,
     {
       method: 'POST',
-      body: JSON.stringify(filters),
     }
   );
   if (!authRes.ok) {
@@ -37,7 +38,7 @@ export function loader({ request }: Route.LoaderArgs) {
   queryClient.prefetchInfiniteQuery({
     initialPageParam: offset,
     queryKey: ['monthlyProviderData', date],
-    queryFn: () => getMonthlyData(date, offset),
+    queryFn: () => getMonthlyData(date, offset, DEFAULT_FILTER_CRITERIA),
   });
 
   return null;
