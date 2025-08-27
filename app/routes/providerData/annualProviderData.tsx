@@ -13,7 +13,6 @@ import {
   TableCell,
   TableContainer,
   TableRow,
-  type AlertColor,
 } from '@mui/material';
 
 import FlagIcon from '@mui/icons-material/Flag';
@@ -148,53 +147,53 @@ const rows = [
   createData('5', true, 'Kiddie Cove', 50, 1, 1, 1, 1),
   createData('6', false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
 
-  createData('1', true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
-  createData('2', false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
-  createData('3', false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
-  createData('4', false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
-  createData('5', true, 'Kiddie Cove', 50, 1, 1, 1, 1),
-  createData('6', false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
-  createData('1', true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
-  createData('2', false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
-  createData('3', false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
-  createData('4', false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
-  createData('5', true, 'Kiddie Cove', 50, 1, 1, 1, 1),
-  createData('6', false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
-  createData('1', true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
-  createData('2', false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
-  createData('3', false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
-  createData('4', false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
-  createData('5', true, 'Kiddie Cove', 50, 1, 1, 1, 1),
-  createData('6', false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
-  createData('1', true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
-  createData('2', false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
-  createData('3', false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
-  createData('4', false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
-  createData('5', true, 'Kiddie Cove', 50, 1, 1, 1, 1),
-  createData('6', false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
-  createData('1', true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
-  createData('2', false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
-  createData('3', false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
-  createData('4', false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
-  createData('5', true, 'Kiddie Cove', 50, 1, 1, 1, 1),
-  createData('6', false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
-  createData('1', true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
-  createData('2', false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
-  createData('3', false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
-  createData('4', false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
-  createData('5', true, 'Kiddie Cove', 50, 1, 1, 1, 1),
-  createData('6', false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
-  createData('1', true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
-  createData('2', false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
-  createData('3', false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
-  createData('4', false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
-  createData('5', true, 'Kiddie Cove', 50, 1, 1, 1, 1),
-  createData('6', false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
-  createData('1', true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
-  createData('2', false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
-  createData('3', false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
-  createData('4', false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
-  createData('5', true, 'Kiddie Cove', 50, 1, 1, 1, 1),
+  createData('7', true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
+  createData('8', false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
+  createData('9', false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
+  createData('10', false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
+  createData('11', true, 'Kiddie Cove', 50, 1, 1, 1, 1),
+  createData('12', false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
+  createData('13', true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
+  createData('14', false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
+  createData('15', false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
+  createData('16', false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
+  createData('17', true, 'Kiddie Cove', 50, 1, 1, 1, 1),
+  createData('18', false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
+  createData('19', true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
+  createData('20', false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
+  createData('21', false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
+  createData('22', false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
+  createData('23', true, 'Kiddie Cove', 50, 1, 1, 1, 1),
+  createData('24', false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
+  createData('25', true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
+  createData('26', false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
+  createData('27', false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
+  createData('28', false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
+  createData('29', true, 'Kiddie Cove', 50, 1, 1, 1, 1),
+  createData('30', false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
+  createData('31', true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
+  createData('32', false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
+  createData('33', false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
+  createData('34', false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
+  createData('35', true, 'Kiddie Cove', 50, 1, 1, 1, 1),
+  createData('36', false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
+  createData('37', true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
+  createData('38', false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
+  createData('39', false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
+  createData('40', false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
+  createData('41', true, 'Kiddie Cove', 50, 1, 1, 1, 1),
+  createData('42', false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
+  createData('43', true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
+  createData('44', false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
+  createData('45', false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
+  createData('46', false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
+  createData('47', true, 'Kiddie Cove', 50, 1, 1, 1, 1),
+  createData('48', false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
+  createData('49', true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
+  createData('50', false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
+  createData('51', false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
+  createData('52', false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
+  createData('53', true, 'Kiddie Cove', 50, 1, 1, 1, 1),
 ];
 
 // Provider ID
@@ -383,6 +382,7 @@ export default function AnnualProviderData() {
                     inputProps={{
                       'aria-labelledby': labelId,
                     }}
+                    name={labelId}
                     icon={<OutlinedFlagIcon sx={{ color: theme.palette.cusp_iron.main }} />} // unchecked state
                     checkedIcon={<FlagIcon sx={{ color: theme.palette.cusp_orange.main }} />} // checked state
                   />
@@ -439,7 +439,9 @@ export default function AnnualProviderData() {
           onClose={handleCloseModal}
           onSave={(data: any) => handleOnSave(data)}
           disableRemove={false}
-          providerLicensingId={flagModalOpenId || ''}
+          providerData={
+            visibleRows.find(data => data.providerLicensingId === flagModalOpenId) || ({} as Data)
+          }
         />
 
         <DescriptionAlerts

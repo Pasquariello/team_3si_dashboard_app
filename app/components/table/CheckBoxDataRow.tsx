@@ -42,6 +42,7 @@ export const CheckboxDataRow = forwardRef<HTMLTableRowElement, CheckboxDataRowPr
           <Checkbox
             sx={{ display: 'flex', justifySelf: 'center' }}
             color='primary'
+            name={item.providerLicensingId}
             onClick={e => {
               e.stopPropagation();
               handleCheckBox(e, item.providerLicensingId);

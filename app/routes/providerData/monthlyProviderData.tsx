@@ -226,7 +226,7 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
     return (
       <Fragment>
         {headCells.map((column, index) => {
-          const key = `${index}-${column.id}-${row[column.id as keyof Data]}`;
+          const key = `${index}-${column.id}-${row.providerLicensingId}`;
           return renderCellContent(row, column.id, isItemSelected, labelId, key);
         })}
       </Fragment>
