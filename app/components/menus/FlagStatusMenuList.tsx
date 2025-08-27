@@ -1,5 +1,5 @@
 import Check from '@mui/icons-material/Check';
-import { MenuList, MenuItem, ListItemIcon, styled, Typography, Box } from '@mui/material';
+import { MenuList, MenuItem, ListItemIcon, styled, Typography } from '@mui/material';
 import ListSubheader from '@mui/material/ListSubheader';
 import { useProviderFilters } from '~/contexts/providerFilterContext';
 
