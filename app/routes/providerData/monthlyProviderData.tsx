@@ -192,8 +192,10 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
   );
 
   useEffect(() => {
-    updateQuery('offset', String(0));
-    refetch();
+    updateQuery('offset', '0');
+    queryClient.resetQueries({
+      queryKey: ['monthlyProviderData', params.date, filters],
+    });
   }, [filters]);
 
   useEffect(() => {
@@ -308,16 +310,12 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
     if (isFetching || isLoading) {
       return;
     }
-    const offset = queryParams.get('offset');
-    const nextOffset = Number(offset) + FETCH_ROW_COUNT;
-
-    updateQuery('offset', String(nextOffset));
+    const previousOffset = queryParams.get('offset');
+    if (typeof previousOffset === 'string') {
+      const nextOffset = Number(previousOffset) + FETCH_ROW_COUNT;
+      updateQuery('offset', String(nextOffset));
+    }
   };
-
-  useEffect(() => {
-    console.log('load-more');
-    fetchNextPage();
-  }, [offset]);
 
   const handleCloseModal = (isFlagged?: boolean, rowId?: string) => {
     if (isFlagged !== undefined && rowId) {
@@ -349,6 +347,13 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
         success: 'error',
         message: 'An Error Occurred',
       });
+    }
+  };
+
+  const handleEndScroll = (arg: any) => {
+    // fix for when we request a page that immediately shows the end row
+    if ((arg + 1) % 200 === 0) {
+      fetchNextPage().then(() => updateOffset());
     }
   };
 
