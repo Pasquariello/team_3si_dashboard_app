@@ -173,6 +173,7 @@ const renderCellContent = (
 };
 
 export default function MonthlyProviderData({ params }: Route.ComponentProps) {
+  const [isLoadingOverlayActive, setIsLoadingOverlayActive] = useState(false);
   const [selected, setSelected] = useState<readonly string[]>([]);
   const [order, setOrder] = useState<Order>('desc');
   const [alert, setAlert] = useState<{ success: string; message: string } | null>(null);
@@ -330,8 +331,9 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
   const handleOnSave = async (
     row_data: Pick<Data, 'comment' | 'flagged' | 'providerLicensingId'>
   ) => {
+    setIsLoadingOverlayActive(true);
     const res = await onSave(row_data);
-
+    setIsLoadingOverlayActive(false);
     if (res.ok) {
       setAlert({
         success: 'success',
@@ -352,12 +354,33 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
 
   return (
     <>
+      {isLoadingOverlayActive && (
+        <Backdrop
+          open={true}
+          sx={theme => ({
+            color: '#fff',
+            zIndex: 100000, // ensure it's on top
+          })}
+        >
+          <CircularProgress color='inherit' />
+        </Backdrop>
+      )}
+
       <FlagModal
         open={!!flagModalOpenId}
         onClose={handleCloseModal}
         onSave={handleOnSave}
         disableRemove={flagModalOpenId ? !localFlags.includes(flagModalOpenId) : false}
-        providerLicensingId={flagModalOpenId || ''}
+        providerData={
+          visibleRows.find(data => data.providerLicensingId === flagModalOpenId) || ({} as Data)
+        }
+      />
+
+      <DescriptionAlerts
+        severity={alert?.success}
+        message={alert?.message}
+        open={alert !== null}
+        handleClose={() => setAlert(null)}
       />
       <Box
         sx={{

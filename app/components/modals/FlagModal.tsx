@@ -1,4 +1,3 @@
-import * as React from 'react';
 import Button from '@mui/material/Button';
 import { useTheme } from '@mui/material/styles';
 import Dialog from '@mui/material/Dialog';
@@ -10,42 +9,49 @@ import Typography from '@mui/material/Typography';
 import { Box, TextField } from '@mui/material';
 import OutlinedFlagIcon from '@mui/icons-material/OutlinedFlag';
 import type { Data } from '~/types';
+import { useEffect, useState } from 'react';
 
 type FlagModalProps = Readonly<{
   open: boolean;
   onClose: () => void;
   onSave: (data: Pick<Data, 'comment' | 'flagged' | 'providerLicensingId'>) => void;
   disableRemove: boolean;
-  providerLicensingId: Data['providerLicensingId'];
+  providerData: Data;
 }>;
 
 export default function FlagModal({
-  providerLicensingId,
+  providerData,
   open,
   onClose,
   onSave,
   disableRemove,
 }: FlagModalProps) {
   const theme = useTheme();
-  const [comment, setComment] = React.useState('');
+  const [comment, setComment] = useState('');
+
+  useEffect(() => {
+    if (providerData?.comment) {
+      setComment(providerData.comment || '');
+    }
+  }, [providerData?.comment]);
 
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setComment(e.target.value);
   };
-
+  // TODO: clean/limit Comment 
   const handleOnSave = () => {
-    if (providerLicensingId) {
+    if (providerData) {
       onSave({
-        providerLicensingId,
+        providerLicensingId: providerData?.providerLicensingId,
         comment,
         flagged: true,
       });
     }
   };
-
+  // TODO: clean/limit Comment 
   const handleRemoveFlag = () => {
-    if (providerLicensingId) {
-      onSave({ providerLicensingId: providerLicensingId, flagged: false });
+    if (providerData) {
+      onSave({ providerLicensingId: providerData?.providerLicensingId, comment, flagged: false });
     }
   };
 
@@ -66,7 +72,7 @@ export default function FlagModal({
         <Box display={'flex'} gap={2}>
           <OutlinedFlagIcon sx={{ color: theme.palette.cusp_orange.main }} />
           {/* <Box  gap={2} display="flex" alignItems="center"> */}
-          <Typography variant='h6'>Provider Flag {providerLicensingId}</Typography>
+          <Typography variant='h6'>Provider Flag {providerData.providerLicensingId}</Typography>
           {/* <Typography color="error" variant='body2'>
                             An Error Occured!
                         </Typography> */}
@@ -85,7 +91,7 @@ export default function FlagModal({
           multiline
           rows={4}
           sx={{ mt: 1 }}
-          value={comment}
+          value={comment ? comment : ''}
           onChange={handleTextChange}
         />
       </DialogContent>
