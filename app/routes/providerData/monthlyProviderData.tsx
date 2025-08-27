@@ -1,7 +1,15 @@
 import { TableVirtuoso, type TableComponents } from 'react-virtuoso';
 import { useState, forwardRef, Fragment, useMemo, useEffect } from 'react';
 import EnhancedTableHead from '~/components/table/EnhancedTableHead';
-import { Box, CircularProgress, Table, TableBody, TableCell, TableRow } from '@mui/material';
+import {
+  Backdrop,
+  Box,
+  CircularProgress,
+  Table,
+  TableBody,
+  TableCell,
+  TableRow,
+} from '@mui/material';
 
 import type { Data, HeadCell, Order } from '~/types';
 import DatePickerViews from '~/components/DatePickerViews';
@@ -20,6 +28,7 @@ import { onSave } from '~/components/services/providerDataServices';
 import { useAuth } from '~/contexts/authContext';
 import { useProviderFilters } from '~/contexts/providerFilterContext';
 import { queryClient } from '~/queryClient';
+import DescriptionAlerts from '~/components/DescriptionAlerts';
 
 const riskThresholds = [
   { max: 4, min: 3, color: 'red' },
@@ -181,7 +190,7 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
   const [flagModalOpenId, setFlagModalOpenId] = useState<string | null>(null);
   const [localFlags, setLocalFlags] = useState<string[]>([]);
   const [queryParams, updateQuery] = useQueryParamsState();
-  const offset = queryParams.get('offset') || '0';
+  const offset = queryParams?.get('offset') || '0';
   const { setToken } = useAuth();
   const { filters } = useProviderFilters();
 
@@ -340,7 +349,9 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
       // this is ran after we get a success from out local payload
       handleCloseModal(row_data.flagged, row_data.providerLicensingId);
       // data has changed in the DB
-      queryClient.invalidateQueries({ queryKey: ['monthlyProviderData', params.date] });
+      queryClient.invalidateQueries({
+        queryKey: ['monthlyProviderData', params.date, filters],
+      });
       updateQuery('offset', String(0));
     } else {
       setAlert({
@@ -404,7 +415,7 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
           <Box height={'97vh'}>
             <TableVirtuoso
               data={visibleRows}
-              endReached={updateOffset}
+              endReached={handleEndScroll}
               fixedHeaderContent={fixedHeaderContent}
               increaseViewportBy={FETCH_ROW_COUNT}
               itemContent={rowContent}
