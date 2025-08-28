@@ -51,14 +51,15 @@ export function Layout({ children }: { children: React.ReactNode }) {
 function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const { token, setToken } = useAuth();
+  const [isAuth, setIsAuth] = useState(false);
+  const { setToken } = useAuth();
 
-  if (token) {
+  if (isAuth) {
     return null;
   }
 
   const handleLogin = async () => {
-    const res = await fetch(`${env.VITE_API_ROOT_API_URL}/api/v1/login`, {
+    const res = await fetch(`${env.VITE_API_ROOT_API_URL}/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, password }),
@@ -67,6 +68,7 @@ function LoginPage() {
     const data = await res.json();
     if (res.ok) {
       setToken(data.token);
+      setIsAuth(true);
       console.log('Logged in! Token:', data.token);
     } else {
       console.error('Login failed:', data.error);

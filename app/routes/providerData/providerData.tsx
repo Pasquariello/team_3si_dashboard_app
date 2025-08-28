@@ -5,6 +5,7 @@ import { Card, Tabs, Tab, Box, Grid, useTheme } from '@mui/material';
 import { useNavigate } from 'react-router';
 import Typography from '@mui/material/Typography';
 import { getCurrentDate } from '~/utils/dates';
+import { ProviderFilterContext } from '~/contexts/providerFilterContext';
 
 export function meta({}: Route.MetaArgs) {
   return [{ title: 'Provider Data' }, { name: 'description', content: 'providerData' }];
@@ -134,7 +135,9 @@ export default function ProviderData() {
         ))}
       </Tabs>
       {/* <Box sx={{width: 100, background: 'blue', height: 100, display: 'flex', flexGrow: 1}}></Box> */}
-      <Outlet />
+      <ProviderFilterContext>
+        <Outlet />
+      </ProviderFilterContext>
     </Box>
   );
 }

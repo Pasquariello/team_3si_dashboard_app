@@ -1,7 +1,15 @@
 import { TableVirtuoso, type TableComponents } from 'react-virtuoso';
 import { useState, forwardRef, Fragment, useMemo, useEffect } from 'react';
 import EnhancedTableHead from '~/components/table/EnhancedTableHead';
-import { Box, CircularProgress, Table, TableBody, TableCell, TableRow } from '@mui/material';
+import {
+  Backdrop,
+  Box,
+  CircularProgress,
+  Table,
+  TableBody,
+  TableCell,
+  TableRow,
+} from '@mui/material';
 
 import type { Data, HeadCell, Order } from '~/types';
 import DatePickerViews from '~/components/DatePickerViews';
@@ -18,6 +26,9 @@ import { Scroller } from '~/components/table/VirutalTableScroller';
 import { TooltipTableCell } from '~/components/table/TooltipTableCell';
 import { onSave } from '~/components/services/providerDataServices';
 import { useAuth } from '~/contexts/authContext';
+import { useProviderFilters } from '~/contexts/providerFilterContext';
+import { queryClient } from '~/queryClient';
+import DescriptionAlerts from '~/components/DescriptionAlerts';
 
 const riskThresholds = [
   { max: 4, min: 3, color: 'red' },
@@ -39,7 +50,7 @@ const headCells: readonly HeadCell[] = [
     width: '90px',
   },
   {
-    id: 'id',
+    id: 'providerLicensingId',
     numeric: false,
     disablePadding: true,
     label: 'ID',
@@ -110,13 +121,16 @@ const renderCellContent = (
 ): React.ReactNode => {
   // console.log(columnId, row);
   switch (columnId) {
-    case 'flagged':
-      // Flagged is handled at the Table Row to more easily pass handlers to it
-      return null;
-    case 'id':
+    case 'providerLicensingId':
       return (
-        <TooltipTableCell tooltipTitle={row.id} key={key} id={labelId} scope='row' padding='none'>
-          {row.id}
+        <TooltipTableCell
+          tooltipTitle={row.providerLicensingId}
+          key={key}
+          id={labelId}
+          scope='row'
+          padding='none'
+        >
+          {row.providerLicensingId}
         </TooltipTableCell>
       );
     case 'providerName':
@@ -168,35 +182,62 @@ const renderCellContent = (
 };
 
 export default function MonthlyProviderData({ params }: Route.ComponentProps) {
+  const [isLoadingOverlayActive, setIsLoadingOverlayActive] = useState(false);
   const [selected, setSelected] = useState<readonly string[]>([]);
   const [order, setOrder] = useState<Order>('desc');
   const [alert, setAlert] = useState<{ success: string; message: string } | null>(null);
   const [orderBy, setOrderBy] = useState<keyof Data>('overallRiskScore');
   const [flagModalOpenId, setFlagModalOpenId] = useState<string | null>(null);
+  const [localFlags, setLocalFlags] = useState<string[]>([]);
   const [queryParams, updateQuery] = useQueryParamsState();
-  const offset = queryParams.get('offset') || '0';
+  const offset = queryParams?.get('offset') || '0';
   const { setToken } = useAuth();
+  const { filters } = useProviderFilters();
 
-  const { data, fetchNextPage, isFetching, isLoading, error } = useProviderMonthlyData(
+  const { data, fetchNextPage, isFetching, isLoading, error, refetch } = useProviderMonthlyData(
     params.date,
-    offset
+    offset,
+    filters
   );
+
   useEffect(() => {
-    setToken("")
+    updateQuery('offset', '0');
+    queryClient.resetQueries({
+      queryKey: ['monthlyProviderData', params.date, filters],
+    });
+  }, [filters]);
+
+  useEffect(() => {
+    if (error) {
+      setToken('');
+    }
   }, [error]);
 
   const visibleRows = useMemo(() => {
     const items = data?.pages.flat() || [];
+    setLocalFlags(() =>
+      items.reduce((acc, curr) => {
+        if (curr.flagged) {
+          acc.push(curr.providerLicensingId);
+        }
+
+        if (acc.includes(curr.providerLicensingId) && !curr.flagged) {
+          return acc.filter(id => curr.providerLicensingId !== id);
+        }
+
+        return acc;
+      }, localFlags)
+    );
     return getVisibleRows(items, order, orderBy);
   }, [order, orderBy, data]);
 
   const rowContent = (index: number, row: Data) => {
-    const isItemSelected = selected.includes(row.id);
+    const isItemSelected = selected.includes(row.providerLicensingId);
     const labelId = `enhanced-table-checkbox-${index}`;
     return (
       <Fragment>
         {headCells.map((column, index) => {
-          const key = `${index}-${column.id}-${row[column.id as keyof Data]}`;
+          const key = `${index}-${column.id}-${row.providerLicensingId}`;
           return renderCellContent(row, column.id, isItemSelected, labelId, key);
         })}
       </Fragment>
@@ -204,22 +245,25 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
   };
 
   const handleClick = (event: React.MouseEvent<unknown>, id: string) => {
-    const selectedIndex = selected.indexOf(id);
-    let newSelected: readonly string[] = [];
-
-    if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, id);
-    } else if (selectedIndex === 0) {
-      newSelected = newSelected.concat(selected.slice(1));
-    } else if (selectedIndex === selected.length - 1) {
-      newSelected = newSelected.concat(selected.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(
-        selected.slice(0, selectedIndex),
-        selected.slice(selectedIndex + 1)
-      );
+    if (selected.includes(id)) {
+      // If it's already selected, remove it
+      setSelected(selected.filter(item => item !== id));
+    } else {
+      // If it's not selected, add it
+      setSelected([...selected, id]);
     }
-    setSelected(newSelected);
+  };
+
+  const handleCheck = (event: React.MouseEvent<unknown>, id: string) => {
+    setFlagModalOpenId(id);
+
+    if (selected.includes(id)) {
+      // If it's already selected, remove it
+      setSelected(selected.filter(item => item !== id));
+    } else {
+      // If it's not selected, add it
+      setSelected([...selected, id]);
+    }
   };
 
   // will eventually requery
@@ -231,7 +275,7 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
 
   const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
-      const newSelected = visibleRows.map(n => n.id);
+      const newSelected = visibleRows.map(n => n.providerLicensingId);
       setSelected(newSelected);
       return;
     }
@@ -261,8 +305,9 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
         ref={ref}
         {...props}
         handleClickRow={handleClick}
-        handleCheckBox={setFlagModalOpenId}
+        handleCheckBox={handleCheck}
         isSelected={(id: string) => selected.includes(id)}
+        isChecked={(id: string) => localFlags.includes(id)}
       />
     )),
     TableBody: forwardRef<HTMLTableSectionElement>((props, ref) => (
@@ -274,51 +319,84 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
     if (isFetching || isLoading) {
       return;
     }
-    const offset = queryParams.get('offset');
-    const nextOffset = Number(offset) + FETCH_ROW_COUNT;
-
-    updateQuery('offset', String(nextOffset));
+    const previousOffset = queryParams.get('offset');
+    if (typeof previousOffset === 'string') {
+      const nextOffset = Number(previousOffset) + FETCH_ROW_COUNT;
+      updateQuery('offset', String(nextOffset));
+    }
   };
 
-  useEffect(() => {
-    console.log('load-more');
-    fetchNextPage();
-  }, [offset]);
-
-  const handleCloseModal = () => {
+  const handleCloseModal = (isFlagged?: boolean, rowId?: string) => {
+    if (isFlagged !== undefined && rowId) {
+      setLocalFlags(prev => {
+        return isFlagged ? [...prev, rowId] : prev.filter(id => id !== rowId);
+      });
+    }
     setFlagModalOpenId(null);
   };
 
-  const handleOnSave = async (row_data: {
-    id: number;
-    comment?: string;
-    provider_licensing_id: number;
-    is_flagged: boolean;
-  }) => {
+  const handleOnSave = async (
+    row_data: Pick<Data, 'comment' | 'flagged' | 'providerLicensingId'>
+  ) => {
+    setIsLoadingOverlayActive(true);
     const res = await onSave(row_data);
-
+    setIsLoadingOverlayActive(false);
     if (res.ok) {
       setAlert({
         success: 'success',
         message: 'Successfully updated record!',
       });
-      handleCloseModal();
+      // this is ran after we get a success from out local payload
+      handleCloseModal(row_data.flagged, row_data.providerLicensingId);
+      // data has changed in the DB
+      queryClient.invalidateQueries({
+        queryKey: ['monthlyProviderData', params.date, filters],
+      });
+      updateQuery('offset', String(0));
     } else {
       setAlert({
         success: 'error',
-        message: 'An Error Occured',
+        message: 'An Error Occurred',
       });
+    }
+  };
+
+  const handleEndScroll = (arg: any) => {
+    // fix for when we request a page that immediately shows the end row
+    if ((arg + 1) % 200 === 0) {
+      fetchNextPage().then(() => updateOffset());
     }
   };
 
   return (
     <>
+      {isLoadingOverlayActive && (
+        <Backdrop
+          open={true}
+          sx={theme => ({
+            color: '#fff',
+            zIndex: 100000, // ensure it's on top
+          })}
+        >
+          <CircularProgress color='inherit' />
+        </Backdrop>
+      )}
+
       <FlagModal
-        id={flagModalOpenId}
         open={!!flagModalOpenId}
         onClose={handleCloseModal}
-        onSave={(data: any) => handleOnSave(data)}
-        row_data={visibleRows.find(data => data.id === flagModalOpenId)}
+        onSave={handleOnSave}
+        disableRemove={flagModalOpenId ? !localFlags.includes(flagModalOpenId) : false}
+        providerData={
+          visibleRows.find(data => data.providerLicensingId === flagModalOpenId) || ({} as Data)
+        }
+      />
+
+      <DescriptionAlerts
+        severity={alert?.success}
+        message={alert?.message}
+        open={alert !== null}
+        handleClose={() => setAlert(null)}
       />
       <Box
         sx={{
@@ -337,7 +415,7 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
           <Box height={'97vh'}>
             <TableVirtuoso
               data={visibleRows}
-              endReached={updateOffset}
+              endReached={handleEndScroll}
               fixedHeaderContent={fixedHeaderContent}
               increaseViewportBy={FETCH_ROW_COUNT}
               itemContent={rowContent}
