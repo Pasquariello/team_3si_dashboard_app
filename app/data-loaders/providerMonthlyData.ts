@@ -4,16 +4,22 @@ import { queryClient } from '~/queryClient';
 import type { Data } from '~/types';
 import { fetchWithAuth } from '~/apiClient';
 import { env } from '~/env';
+import type { ProviderFilters } from '~/contexts/providerFilterContext';
 
 export const FETCH_ROW_COUNT = 200;
 
-export const getMonthlyData = async (date: string, offset: string): Promise<Data[]> => {
+export const getMonthlyData = async (
+  date: string,
+  offset: string,
+  filters?: ProviderFilters
+): Promise<Data[]> => {
   console.log(`http://localhost:3000/api/v1/month/${date}?offset=${offset}`);
 
   const authRes = await fetchWithAuth(
-    `${env.VITE_API_ROOT_API_URL}/api/v1/month/${date}?offset=${offset}`,
+    `${env.VITE_API_ROOT_API_URL}/month/${date}?offset=${offset}`,
     {
-      method: 'GET',
+      method: 'POST',
+      body: JSON.stringify(filters),
     }
   );
   if (!authRes.ok) {

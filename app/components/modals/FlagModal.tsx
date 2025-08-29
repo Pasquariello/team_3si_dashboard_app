@@ -1,4 +1,3 @@
-import * as React from 'react';
 import Button from '@mui/material/Button';
 import { useTheme } from '@mui/material/styles';
 import Dialog from '@mui/material/Dialog';
@@ -9,35 +8,51 @@ import CloseIcon from '@mui/icons-material/Close';
 import Typography from '@mui/material/Typography';
 import { Box, TextField } from '@mui/material';
 import OutlinedFlagIcon from '@mui/icons-material/OutlinedFlag';
+import type { Data } from '~/types';
+import { useEffect, useState } from 'react';
 
 type FlagModalProps = Readonly<{
-  id: string | null;
   open: boolean;
   onClose: () => void;
-  onSave: (data: any) => void;
-  row_data: any;
+  onSave: (data: Pick<Data, 'comment' | 'flagged' | 'providerLicensingId'>) => void;
+  disableRemove: boolean;
+  providerData: Data;
 }>;
 
-export default function FlagModal({ id, row_data, open, onClose, onSave }: FlagModalProps) {
+export default function FlagModal({
+  providerData,
+  open,
+  onClose,
+  onSave,
+  disableRemove,
+}: FlagModalProps) {
   const theme = useTheme();
+  const [comment, setComment] = useState('');
 
-  const [comment, setComment] = React.useState('');
+  useEffect(() => {
+    if (providerData?.comment) {
+      setComment(providerData.comment || '');
+    }
+  }, [providerData?.comment]);
 
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setComment(e.target.value);
   };
-
+  // TODO: clean/limit Comment 
   const handleOnSave = () => {
-    onSave({
-      id,
-      provider_licensing_id: row_data.provider_licensing_id,
-      comment,
-      is_flagged: true,
-    });
+    if (providerData) {
+      onSave({
+        providerLicensingId: providerData?.providerLicensingId,
+        comment,
+        flagged: true,
+      });
+    }
   };
-
+  // TODO: clean/limit Comment 
   const handleRemoveFlag = () => {
-    onSave({ id, provider_licensing_id: row_data.provider_licensing_id, is_flagged: false });
+    if (providerData) {
+      onSave({ providerLicensingId: providerData?.providerLicensingId, comment, flagged: false });
+    }
   };
 
   return (
@@ -57,7 +72,7 @@ export default function FlagModal({ id, row_data, open, onClose, onSave }: FlagM
         <Box display={'flex'} gap={2}>
           <OutlinedFlagIcon sx={{ color: theme.palette.cusp_orange.main }} />
           {/* <Box  gap={2} display="flex" alignItems="center"> */}
-          <Typography variant='h6'>Provider Flag {id}</Typography>
+          <Typography variant='h6'>Provider Flag {providerData.providerLicensingId}</Typography>
           {/* <Typography color="error" variant='body2'>
                             An Error Occured!
                         </Typography> */}
@@ -76,7 +91,7 @@ export default function FlagModal({ id, row_data, open, onClose, onSave }: FlagM
           multiline
           rows={4}
           sx={{ mt: 1 }}
-          value={comment}
+          value={comment ? comment : ''}
           onChange={handleTextChange}
         />
       </DialogContent>
@@ -84,6 +99,7 @@ export default function FlagModal({ id, row_data, open, onClose, onSave }: FlagM
       <DialogActions sx={{ px: 3, pb: 3, justifyContent: 'space-between' }}>
         <Button
           variant='outlined'
+          disabled={disableRemove}
           onClick={handleRemoveFlag}
           sx={{
             color: theme.palette.error.main, // Sets the text color to white

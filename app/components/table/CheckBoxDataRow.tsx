@@ -14,24 +14,27 @@ export type VirtuosoDataRowProps = {
 export type CheckboxDataRowProps = VirtuosoDataRowProps & {
   handleClickRow: (event: React.MouseEvent<HTMLTableRowElement>, id: string) => void;
   isSelected: (id: string) => boolean;
-  handleCheckBox: (id: string) => void;
+  handleCheckBox: (e: React.MouseEvent<any>, id: string) => void;
+  isChecked: (id: string) => boolean;
 };
 
 export const CheckboxDataRow = forwardRef<HTMLTableRowElement, CheckboxDataRowProps>(
-  ({ style, item, isSelected, handleClickRow, handleCheckBox, ...rest }, ref) => {
+  ({ style, item, isSelected, isChecked, handleClickRow, handleCheckBox, ...rest }, ref) => {
     const theme = useTheme();
     const labelId = `enhanced-table-checkbox-${rest['data-index']}`;
 
     return (
       <TableRow
         hover
-        onClick={(event: MouseEvent<HTMLTableRowElement>) => handleClickRow(event, item.id)}
+        onClick={(event: MouseEvent<HTMLTableRowElement>) =>
+          handleClickRow(event, item.providerLicensingId)
+        }
         role='checkbox'
-        aria-checked={isSelected(item.id)}
+        aria-checked={isSelected(item.providerLicensingId)}
         tabIndex={-1}
-        key={item.id}
+        key={item.providerLicensingId}
         sx={{ cursor: 'pointer', ...style }}
-        selected={isSelected(item.id)}
+        selected={isSelected(item.providerLicensingId)}
         ref={ref}
         {...rest}
       >
@@ -39,11 +42,12 @@ export const CheckboxDataRow = forwardRef<HTMLTableRowElement, CheckboxDataRowPr
           <Checkbox
             sx={{ display: 'flex', justifySelf: 'center' }}
             color='primary'
+            name={item.providerLicensingId}
             onClick={e => {
               e.stopPropagation();
-              handleCheckBox(item.id);
+              handleCheckBox(e, item.providerLicensingId);
             }}
-            checked={item.flagged}
+            checked={isChecked(item.providerLicensingId)}
             inputProps={{
               'aria-labelledby': labelId,
             }}

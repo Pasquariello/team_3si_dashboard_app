@@ -13,19 +13,32 @@ export const useQueryParamsState = () => {
   });
 
   useEffect(() => {
-    const updateParams = () => setParams(new URLSearchParams(window?.location?.search));
+    const updateParams = () => setParams(new URLSearchParams(window.location.search));
 
     window.addEventListener('popstate', updateParams);
+    window.addEventListener('queryParamsChanged', updateParams);
 
-    return () => window.removeEventListener('popstate', updateParams);
+    return () => {
+      window.removeEventListener('popstate', updateParams);
+      window.removeEventListener('queryParamsChanged', updateParams);
+    };
   }, []);
 
-  const updateQuery = (key: string, value: string) => {
+  const updateQuery = (key: string, value: string | null) => {
     const searchParams = new URLSearchParams(window.location.search);
-    searchParams.set(key, value);
-    window.history.replaceState(null, '', `?${searchParams.toString()}`);
-    setParams(searchParams);
-  };
 
+    if (value === null) {
+      searchParams.delete(key); // remove the query param entirely
+    } else {
+      searchParams.set(key, value); // set/update the value
+    }
+
+    window.history.replaceState(null, '', `?${searchParams.toString()}`);
+
+    setParams(searchParams);
+
+    // dispatch a custom event so other components can listen
+    window.dispatchEvent(new CustomEvent('queryParamsChanged'));
+  };
   return [params, updateQuery] as const;
 };
