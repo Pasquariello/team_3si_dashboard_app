@@ -2,6 +2,7 @@ import { queryOptions, useQuery } from '@tanstack/react-query';
 import type { Route } from './+types/settings';
 import { queryClient } from '~/queryClient';
 import { objectLogger } from '~/utils/objectLogger';
+import { env } from '~/env';
 
 export function meta({}: Route.MetaArgs) {
   return [{ title: 'Details' }, { name: 'description', content: 'Settings' }];
@@ -12,7 +13,8 @@ export interface MessageResponse {
 }
 
 export const getMessage = async (id: string): Promise<MessageResponse> => {
-  const res = await fetch('https://127.0.0.1:3000/api/v1/databricks/live', {
+  
+  const res = await fetch(`${env.VITE_API_ROOT_API_URL}/databricks/live`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ id }),

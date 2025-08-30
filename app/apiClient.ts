@@ -7,8 +7,7 @@ export async function fetchWithAuth(input: RequestInfo, init: RequestInit = {}) 
     ...(token && { Authorization: `Bearer ${token}` }),
     'Content-Type': 'application/json',
   };
-
-  const response = await fetch(input, { ...init, headers });
+   const response = await fetch(input, { ...init, headers });
 
   return response;
 }
