@@ -11,14 +11,17 @@ export function meta({}: Route.MetaArgs) {
   return [{ title: 'Provider Data' }, { name: 'description', content: 'providerData' }];
 }
 // TODO: use a user set filter if the user changes the filter value
-const currentDate = getCurrentDate();
+// const currentDate = getCurrentDate();
 
 const tabRoutes = [
   { id: 0, label: 'Annual Provider Data', path: 'providerData/annual' },
   {
     id: 1,
     label: 'Monthly Provider Data',
-    path: `providerData/monthly/${currentDate}`,
+    // {year}-${month}
+    path: `providerData/monthly/2024-09`
+    // TODO: detect the current month so on direct nav we go to latest month
+    // path: `providerData/monthly/${currentDate}`, 
   },
   {
     id: 2,
