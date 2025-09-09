@@ -1,11 +1,12 @@
 import * as React from 'react';
 import type { Route } from './+types/providerData';
 import { Outlet } from 'react-router';
-import { Card, Tabs, Tab, Box, Grid, useTheme } from '@mui/material';
+import { Tabs, Tab, Box, Grid, useTheme } from '@mui/material';
 import { useNavigate } from 'react-router';
-import Typography from '@mui/material/Typography';
-import { getCurrentDate } from '~/utils/dates';
 import { ProviderFilterContext } from '~/contexts/providerFilterContext';
+
+import Skeleton from '@mui/material/Skeleton';
+import DashboardCard from './DashboardCard';
 
 export function meta({}: Route.MetaArgs) {
   return [{ title: 'Provider Data' }, { name: 'description', content: 'providerData' }];
@@ -23,11 +24,11 @@ const tabRoutes = [
     // TODO: detect the current month so on direct nav we go to latest month
     // path: `providerData/monthly/${currentDate}`, 
   },
-  {
-    id: 2,
-    label: 'Provider Trend Analysis',
-    path: 'providerData',
-  },
+  // {
+  //   id: 2,
+  //   label: 'Provider Trend Analysis',
+  //   path: 'providerData',
+  // },
 ];
 
 export default function ProviderData() {
@@ -43,6 +44,18 @@ export default function ProviderData() {
     setActiveTab(() => newValue);
   };
 
+  const [loading, setLoading] = React.useState(true);
+
+  // TEMP
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 3000);
+
+    // cleanup in case the component unmounts before 3s
+    return () => clearTimeout(timer);
+  }, []);
+
   return (
     <Box
       sx={{
@@ -55,80 +68,16 @@ export default function ProviderData() {
     >
       <Grid container spacing={2} mb={2} columns={{ xs: 12 }}>
         <Grid style={{ display: 'flex', flexGrow: 1 }} size={{ xs: 12, sm: 12, md: 6, lg: 3 }}>
-          <Card
-            sx={{
-              flex: 1,
-              justifyContent: 'center',
-              display: 'flex',
-              flexDirection: 'column',
-              p: 6,
-            }}
-            variant='outlined'
-          >
-            <Typography variant='h6'>Total Providers</Typography>
-            <Typography variant='h4'>500</Typography>
-            <Typography variant='body1' color={theme.palette.cusp_iron.contrastText}>
-              Active in [state name]
-            </Typography>
-          </Card>
+          <DashboardCard title='Total Providers' description='Active in [state name]' value='500' descColor={theme.palette.cusp_iron.contrastText} loading={loading} />
         </Grid>
         <Grid style={{ display: 'flex', flexGrow: 1 }} size={{ xs: 12, sm: 12, md: 6, lg: 3 }}>
-          <Card
-            sx={{
-              flex: 1,
-              justifyContent: 'center',
-              display: 'flex',
-              flexDirection: 'column',
-              p: 6,
-            }}
-            variant='outlined'
-          >
-            <Typography variant='h6'>High Risk Providers</Typography>
-            <Typography variant='h4' color='error'>
-              114
-            </Typography>
-            <Typography variant='body1' color={theme.palette.cusp_iron.contrastText}>
-              22.8% of 500
-            </Typography>
-          </Card>
+          <DashboardCard title='High Risk Providers' description='22.8% of 500' value='114' valueColor="error" descColor={theme.palette.cusp_iron.contrastText} loading={loading} />
         </Grid>
         <Grid style={{ display: 'flex', flexGrow: 1 }} size={{ xs: 12, sm: 12, md: 6, lg: 3 }}>
-          <Card
-            sx={{
-              flex: 1,
-              justifyContent: 'center',
-              display: 'flex',
-              flexDirection: 'column',
-              p: 6,
-            }}
-            variant='outlined'
-          >
-            <Typography variant='h6'>Flagged for Review</Typography>
-            <Typography variant='h4' color='warning'>
-              250
-            </Typography>
-            <Typography variant='body1' color={theme.palette.cusp_iron.contrastText}>
-              50% require immediate attention
-            </Typography>
-          </Card>
+          <DashboardCard title='Flagged for Review' description='50% require immediate attention' value='250' valueColor="warning" descColor={theme.palette.cusp_iron.contrastText}loading={loading} />
         </Grid>
         <Grid style={{ display: 'flex', flexGrow: 1 }} size={{ xs: 12, sm: 12, md: 6, lg: 3 }}>
-          <Card
-            sx={{
-              flex: 1,
-              justifyContent: 'center',
-              display: 'flex',
-              flexDirection: 'column',
-              p: 6,
-            }}
-            variant='outlined'
-          >
-            <Typography variant='h6'>Top Risk Factor</Typography>
-            <Typography variant='h4'>Risk Factor Name</Typography>
-            <Typography variant='body1' color={theme.palette.cusp_iron.contrastText}>
-              Same as last month
-            </Typography>
-          </Card>
+          <DashboardCard title='Top Risk Factor' description='Same as last month' value='Risk Factor Name' descColor={theme.palette.cusp_iron.contrastText} loading={loading} />
         </Grid>
       </Grid>
 
