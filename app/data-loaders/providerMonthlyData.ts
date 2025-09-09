@@ -13,10 +13,8 @@ export const getMonthlyData = async (
   offset: string,
   filters?: ProviderFilters
 ): Promise<Data[]> => {
-  console.log(`http://localhost:3000/api/v1/month/${date}?offset=${offset}`);
-
   const authRes = await fetchWithAuth(
-    `${env.VITE_API_ROOT_API_URL}/month/${date}?offset=${offset}`,
+    `${env.VITE_API_ROOT_API_URL}/providerData/month/${date}?offset=${offset}`,
     {
       method: 'POST',
       body: JSON.stringify(filters),
