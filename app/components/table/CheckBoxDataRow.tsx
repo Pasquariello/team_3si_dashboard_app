@@ -22,7 +22,7 @@ export const CheckboxDataRow = forwardRef<HTMLTableRowElement, CheckboxDataRowPr
   ({ style, item, isSelected, isChecked, handleClickRow, handleCheckBox, ...rest }, ref) => {
     const theme = useTheme();
     const labelId = `enhanced-table-checkbox-${rest['data-index']}`;
-
+    // console.log('item', item)
     return (
       <TableRow
         hover

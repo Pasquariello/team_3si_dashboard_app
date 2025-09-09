@@ -1,0 +1,105 @@
+# app.yaml
+# command:
+#   - bash
+#   - -lc
+#   - |
+#     set -e
+#     npm ci
+#     npm run build
+#     # Bind to Databricks' assigned port + all interfaces
+#     export HOST="0.0.0.0"
+#     export PORT="${DATABRICKS_APP_PORT}"
+#     npx react-router-serve ./build/server/index.js
+# env:
+#   - name: NODE_ENV
+#     value: production
+#   - name: HOST
+#     value: 0.0.0.0
+#   - name: PORT
+#     valueFrom: DATABRICKS_APP_PORT
+#   - name: VITE_API_ROOT_API_URL
+#     value: https://team-3si-dashboard-api.vercel.app/api/v1
+    
+# app.yaml
+# command:
+#   - bash
+#   - -lc
+#   - |
+#     set -e
+
+#     # Ensure devDependencies (like @react-router/dev) are installed
+#     export NPM_CONFIG_PRODUCTION=false
+#     npm ci
+
+#     # Build the app (VITE_* values get baked in here)
+#     npm run build
+
+#     # Now run the server
+#     export HOST="0.0.0.0"
+#     export PORT="${DATABRICKS_APP_PORT}"
+#     export NODE_ENV="production"
+#     npx react-router-serve ./build/server/index.js
+# env:
+#   - name: VITE_API_ROOT_API_URL
+#     value: https://team-3si-dashboard-api.vercel.app/api/v1
+
+# command:
+#   - bash
+#   - -lc
+#   - |
+#     set -euo pipefail
+
+#     # 1) Install including devDeps (react-router build lives there)
+#     export NPM_CONFIG_PRODUCTION=false
+#     npm ci
+
+#     # 2) Build
+#     npm run build
+
+#     # 3) Quick sanity checks (these echo to the app logs)
+#     echo "Node: $(node -v)"
+#     echo "NPM:  $(npm -v)"
+#     echo "Build tree:"
+#     ls -la ./build || true
+#     ls -la ./build/server || true
+
+#     # 4) Bind to Databricks' port/host and start the server
+#     export HOST="0.0.0.0"
+#     export PORT="${DATABRICKS_APP_PORT}"
+#     export NODE_ENV="production"
+
+#     # Prefer explicit host/port flags to avoid env parsing issues
+#     npx react-router-serve ./build/server/index.js --host "$HOST" --port "$PORT"
+# env:
+#   - name: VITE_API_ROOT_API_URL
+#     value: https://team-3si-dashboard-api.vercel.app/api/v1
+
+command:
+  - bash
+  - -lc
+  - |
+    set -euo pipefail
+
+    # Install including devDependencies so "react-router build" is available
+    export NPM_CONFIG_PRODUCTION=false
+    npm ci
+
+    # Build the app (VITE_* gets baked in here)
+    npm run build
+
+    # Start server on the Databricks-assigned port
+    export HOST="0.0.0.0"
+    export PORT="${DATABRICKS_APP_PORT}"
+    export NODE_ENV="production"
+
+    # Use npm to resolve the local binary instead of `npx`
+    npm start
+env:
+  - name: VITE_API_ROOT_API_URL
+    value: https://team-3si-dashboard-api.vercel.app/api/v1
+  # Quiet the tsconfck noise caused by scanning external tsconfigs
+  - name: TSCONFCK_IGNORE_CONFIG_ERRORS
+    value: "true"
+
+
+
