@@ -1,7 +1,18 @@
 import * as React from 'react';
+import { TableVirtuoso, type TableComponents } from 'react-virtuoso';
+import { CheckboxDataRow, type VirtuosoDataRowProps } from '~/components/table/CheckBoxDataRow';
+import { Scroller } from '~/components/table/VirutalTableScroller';
+import { TooltipTableCell } from '~/components/table/TooltipTableCell';
+
+import { FETCH_ROW_COUNT, getMonthlyData } from '~/data-loaders/providerMonthlyData';
+
+
+import { useState, forwardRef, Fragment, useMemo, useEffect } from 'react';
+
 
 import type { Route } from './+types/annualProviderData';
-import type { Data, HeadCell, Order } from '~/types';
+import type { Data2, HeadCell, Order } from '~/types';
+import { useQuery } from "@tanstack/react-query";
 
 import { useTheme } from '@mui/material/styles';
 import {
@@ -67,78 +78,78 @@ function createData(
 }
 
 // Temporary sample data
-const foo_data: Data[] = [
-  {
-    providerLicensingId: '1',
-    flagged: true,
-    providerName: 'Little Stars Childcare',
-    overallRiskScore: 100,
-    childrenBilledOverCapacity: 12,
-    childrenPlacedOverCapacity: 12,
-    distanceTraveled: 12,
-    providersWithSameAddress: 12,
-    comment: '',
-  },
-  {
-    providerLicensingId: '2',
-    flagged: false,
-    providerName: 'Bright Futures Academy',
-    overallRiskScore: 89,
-    childrenBilledOverCapacity: 12,
-    childrenPlacedOverCapacity: 11,
-    distanceTraveled: 10,
-    providersWithSameAddress: 12,
-    comment: '',
-  },
+// const foo_data: Data2[] = [
+//   {
+//     providerLicensingId: '1',
+//     flagged: true,
+//     providerName: 'Little Stars Childcare',
+//     overallRiskScore: 100,
+//     childrenBilledOverCapacity: 12,
+//     childrenPlacedOverCapacity: 12,
+//     distanceTraveled: 12,
+//     providersWithSameAddress: 12,
+//     comment: '',
+//   },
+//   {
+//     providerLicensingId: '2',
+//     flagged: false,
+//     providerName: 'Bright Futures Academy',
+//     overallRiskScore: 89,
+//     childrenBilledOverCapacity: 12,
+//     childrenPlacedOverCapacity: 11,
+//     distanceTraveled: 10,
+//     providersWithSameAddress: 12,
+//     comment: '',
+//   },
 
-  {
-    providerLicensingId: '3',
-    flagged: false,
-    providerName: 'Happy Hearts Daycare',
-    overallRiskScore: 90,
-    childrenBilledOverCapacity: 6,
-    childrenPlacedOverCapacity: 6,
-    distanceTraveled: 6,
-    providersWithSameAddress: 6,
-    comment: '',
-  },
+//   {
+//     providerLicensingId: '3',
+//     flagged: false,
+//     providerName: 'Happy Hearts Daycare',
+//     overallRiskScore: 90,
+//     childrenBilledOverCapacity: 6,
+//     childrenPlacedOverCapacity: 6,
+//     distanceTraveled: 6,
+//     providersWithSameAddress: 6,
+//     comment: '',
+//   },
 
-  {
-    providerLicensingId: '4',
-    flagged: false,
-    providerName: 'Sunshine Learning Center',
-    overallRiskScore: 80,
-    childrenBilledOverCapacity: 4,
-    childrenPlacedOverCapacity: 11,
-    distanceTraveled: 1,
-    providersWithSameAddress: 5,
-    comment: '',
-  },
+//   {
+//     providerLicensingId: '4',
+//     flagged: false,
+//     providerName: 'Sunshine Learning Center',
+//     overallRiskScore: 80,
+//     childrenBilledOverCapacity: 4,
+//     childrenPlacedOverCapacity: 11,
+//     distanceTraveled: 1,
+//     providersWithSameAddress: 5,
+//     comment: '',
+//   },
 
-  {
-    providerLicensingId: '5',
-    flagged: true,
-    providerName: 'Kiddie Cove',
-    overallRiskScore: 50,
-    childrenBilledOverCapacity: 1,
-    childrenPlacedOverCapacity: 1,
-    distanceTraveled: 1,
-    providersWithSameAddress: 1,
-    comment: '',
-  },
+//   {
+//     providerLicensingId: '5',
+//     flagged: true,
+//     providerName: 'Kiddie Cove',
+//     overallRiskScore: 50,
+//     childrenBilledOverCapacity: 1,
+//     childrenPlacedOverCapacity: 1,
+//     distanceTraveled: 1,
+//     providersWithSameAddress: 1,
+//     comment: '',
+//   },
 
-  {
-    providerLicensingId: '6',
-    flagged: false,
-    providerName: 'Tiny Tots Academy',
-    overallRiskScore: 10,
-    childrenBilledOverCapacity: 0,
-    childrenPlacedOverCapacity: 0,
-    distanceTraveled: 1,
-    providersWithSameAddress: 0,
-    comment: '',
-  },
-];
+//   {
+//     providerLicensingId: '6',
+//     flagged: false,
+//     providerName: 'Tiny Tots Academy',
+//     overallRiskScore: 10,
+//     childrenBilledOverCapacity: 0,
+//     childrenPlacedOverCapacity: 0,
+//     distanceTraveled: 1,
+//     providersWithSameAddress: 0,
+//     comment: '',
+//   },
+// ];
 
 const rows1 = [
   createData('1', true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
@@ -148,53 +159,6 @@ const rows1 = [
   createData('5', true, 'Kiddie Cove', 50, 1, 1, 1, 1),
   createData('6', false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
 
-  // createData('1', true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
-  // createData('2', false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
-  // createData('3', false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
-  // createData('4', false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
-  // createData('5', true, 'Kiddie Cove', 50, 1, 1, 1, 1),
-  // createData('6', false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
-  // createData('1', true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
-  // createData('2', false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
-  // createData('3', false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
-  // createData('4', false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
-  // createData('5', true, 'Kiddie Cove', 50, 1, 1, 1, 1),
-  // createData('6', false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
-  // createData('1', true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
-  // createData('2', false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
-  // createData('3', false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
-  // createData('4', false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
-  // createData('5', true, 'Kiddie Cove', 50, 1, 1, 1, 1),
-  // createData('6', false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
-  // createData('1', true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
-  // createData('2', false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
-  // createData('3', false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
-  // createData('4', false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
-  // createData('5', true, 'Kiddie Cove', 50, 1, 1, 1, 1),
-  // createData('6', false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
-  // createData('1', true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
-  // createData('2', false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
-  // createData('3', false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
-  // createData('4', false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
-  // createData('5', true, 'Kiddie Cove', 50, 1, 1, 1, 1),
-  // createData('6', false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
-  // createData('1', true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
-  // createData('2', false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
-  // createData('3', false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
-  // createData('4', false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
-  // createData('5', true, 'Kiddie Cove', 50, 1, 1, 1, 1),
-  // createData('6', false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
-  // createData('1', true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
-  // createData('2', false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
-  // createData('3', false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
-  // createData('4', false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
-  // createData('5', true, 'Kiddie Cove', 50, 1, 1, 1, 1),
-  // createData('6', false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
-  // createData('1', true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
-  // createData('2', false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
-  // createData('3', false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
-  // createData('4', false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
-  // createData('5', true, 'Kiddie Cove', 50, 1, 1, 1, 1),
 ];
 
 // Provider ID
@@ -205,6 +169,13 @@ const rows1 = [
 // Distance Traveled (integer: number of months with value 1, range: 0–12)
 // Providers with Same Address (integer: number of months with value 1, range: 0–12)
 
+      // c.provider_licensing_id,
+      // pa.provider_name,
+      // c.total_billed_over_capacity,
+      // c.total_placed_over_capacity,
+      // c.total_distance_traveled,
+      // c.total_same_address,
+      // c.overall_risk_score
 const headCells: readonly HeadCell[] = [
   {
     id: 'flagged',
@@ -213,7 +184,7 @@ const headCells: readonly HeadCell[] = [
     label: 'Flagged',
   },
   {
-    id: 'providerLicensingId',
+    id: 'provider_licensing_id',
     numeric: false,
     disablePadding: true,
     label: 'ID',
@@ -256,54 +227,174 @@ const headCells: readonly HeadCell[] = [
   },
 ];
 
+
+const fixedHeaderContent = () => {
+  return (
+    <TableRow>
+      {headCells.map((column, index) => (
+        <TableCell
+          key={`${column.id}+${index}`}
+          variant='head'
+          align={column.numeric || false ? 'right' : 'left'}
+          style={{}}
+          sx={{ backgroundColor: 'background.paper' }}
+        >
+          {column.label}
+        </TableCell>
+      ))}
+    </TableRow>
+  );
+};
+
+  const riskThresholds = [
+    { max: 100, min: 90, color: 'red' },
+    { max: 90, min: 80, color: 'orange' },
+    { max: 80, min: 0, color: 'green' },
+  ];
+
+
+  function getColor(value: number) {
+    const valPercent = (value / 48 ) * 100;
+    const match = riskThresholds.find(
+      // threshold => value <= threshold.max && value >= threshold.min
+      threshold => valPercent  <= threshold.max && valPercent >= threshold.min
+
+      // threshold => value <= (threshold.max / 48 ) * 100 && value >= (threshold.min / 48 ) * 100
+
+    );
+    return match ? match.color : 'defaultColor';
+  }
+
+
+const renderCellContent = (
+  row: Data,
+  columnId: HeadCell['id'],
+  isItemSelected: boolean,
+  labelId: string,
+  key: string
+): React.ReactNode => {
+
+  switch (columnId) {
+    case 'provider_licensing_id':
+      return (
+        <TooltipTableCell
+          tooltipTitle={row.provider_licensing_id}
+          key={key}
+          id={labelId}
+          scope='row'
+          padding='none'
+        >
+          {row.provider_licensing_id}
+        </TooltipTableCell>
+      );
+    case 'provider_name':
+      return (
+        <TooltipTableCell tooltipTitle={row.provider_name} key={key} align='left'>
+          {row.provider_name}
+        </TooltipTableCell>
+      );
+    case 'overall_risk_score':
+      return (
+        <TooltipTableCell
+          key={key}
+          tooltipTitle={row.overall_risk_score}
+          align='center'
+          sx={{
+            color: getColor(row.overall_risk_score),
+          }}
+        >
+          {row.overall_risk_score}
+        </TooltipTableCell>
+      );
+    case 'total_billed_over_capacity':
+      return (
+        <TooltipTableCell tooltipTitle={row.total_billed_over_capacity} key={key} align='center'>
+          {row.total_billed_over_capacity}
+        </TooltipTableCell>
+      );
+    case 'total_distance_traveled':
+      return (
+        <TooltipTableCell tooltipTitle={row.total_distance_traveled} key={key} align='center'>
+          {row.total_distance_traveled}
+        </TooltipTableCell>
+      );
+    case 'total_placed_over_capacity':
+      return (
+        <TooltipTableCell tooltipTitle={row.total_placed_over_capacity} key={key} align='center'>
+          {row.total_placed_over_capacity}
+        </TooltipTableCell>
+      );
+    case 'total_same_address':
+      return (
+        <TooltipTableCell tooltipTitle={row.total_same_address} key={key} align='center'>
+          {row.total_same_address}
+        </TooltipTableCell>
+      );
+    default:
+      return null;
+  }
+};
+
+
+
+
 export default function AnnualProviderData() {
   const theme = useTheme();
   const [order, setOrder] = React.useState<Order>('desc');
   const [alert, setAlert] = React.useState<{ success: string; message: string } | null>(null);
   const [flagModalOpenId, setFlagModalOpenId] = React.useState<string | null>(null);
 
-  const [orderBy, setOrderBy] = React.useState<keyof Data>('overall_risk_score');
+  const [orderBy, setOrderBy] = React.useState<keyof Data2>('overall_risk_score');
   const [selected, setSelected] = React.useState<readonly string[]>([]);
   const [selectedPeriod, setSelectedPeriod] = React.useState<string>('2024');
 
-  const [rows, setRows] = React.useState<Data[]>([]);
+  // const [rows, setRows] = React.useState<Data[]>([]);
 
-   const getData = async () => {
-      try {
-        const res = await getAnnualData(selectedPeriod);
-        console.log('data', res);
-        setRows(res);
-        // optionally set state here with res
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-  };
 
-  React.useEffect(() => {
-    const getData = async () => {
-      try {
-        const res = await getAnnualData(selectedPeriod);
-        console.log('data', res);
-        setRows(res);
-        // optionally set state here with res
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      }
-    };
+   const { data: rows = [], isLoading, isFetching, refetch} = useQuery({
+    queryKey: ["annualData", selectedPeriod],
+    queryFn: () => getAnnualData(selectedPeriod),
+    staleTime: 5 * 60 * 1000, // 5 minutes cache
+  });
 
-    getData();
-  }, []);
+  console.log('rows', rows)
+
+  //  const getData = async () => {
+  //     try {
+  //       const res = await getAnnualData(selectedPeriod);
+  //       console.log('data', res);
+  //       setRows(res);
+  //       // optionally set state here with res
+  //     } catch (error) {
+  //       console.error('Error fetching data:', error);
+  //     }
+  // };
+
+  // React.useEffect(() => {
+  //   const getData = async () => {
+  //     try {
+  //       const res = await getAnnualData(selectedPeriod);
+  //       console.log('data', res);
+  //       setRows(res);
+  //       // optionally set state here with res
+  //     } catch (error) {
+  //       console.error('Error fetching data:', error);
+  //     }
+  //   };
+
+  //   getData();
+  // }, []);
 
   const handlePeriodChange = (event: any) => {
     setSelectedPeriod(event.target.value);
 
-    getData()
+     refetch()
 
 
     // You could also trigger a data reload here
   };
 
-  const handleRequestSort = (event: React.MouseEvent<unknown>, property: keyof Data) => {
+  const handleRequestSort = (event: React.MouseEvent<unknown>, property: keyof Data2) => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
     setOrderBy(property);
@@ -337,23 +428,18 @@ export default function AnnualProviderData() {
     setSelected(newSelected);
   };
 
-  const riskThresholds = [
-    { max: 100, min: 90, color: 'red' },
-    { max: 90, min: 80, color: 'orange' },
-    { max: 80, min: 0, color: 'green' },
-  ];
 
-  function getColor(value: number) {
-    const valPercent = (value / 48 ) * 100;
-    const match = riskThresholds.find(
-      // threshold => value <= threshold.max && value >= threshold.min
-      threshold => valPercent  <= threshold.max && valPercent >= threshold.min
+  // function getColor(value: number) {
+  //   const valPercent = (value / 48 ) * 100;
+  //   const match = riskThresholds.find(
+  //     // threshold => value <= threshold.max && value >= threshold.min
+  //     threshold => valPercent  <= threshold.max && valPercent >= threshold.min
 
-      // threshold => value <= (threshold.max / 48 ) * 100 && value >= (threshold.min / 48 ) * 100
+  //     // threshold => value <= (threshold.max / 48 ) * 100 && value >= (threshold.min / 48 ) * 100
 
-    );
-    return match ? match.color : 'defaultColor';
-  }
+  //   );
+  //   return match ? match.color : 'defaultColor';
+  // }
 
   const visibleRows = getVisibleRows(rows, order, orderBy);
   // const visibleRows =  [];
@@ -365,7 +451,7 @@ export default function AnnualProviderData() {
   };
 
   const handleOnSave = async (
-    row_data: Pick<Data, 'comment' | 'flagged' | 'providerLicensingId'>
+    row_data: Pick<Data2, 'comment' | 'flagged' | 'providerLicensingId'>
   ) => {
     const res = await onSave(row_data);
 
@@ -383,9 +469,125 @@ export default function AnnualProviderData() {
     }
   };
 
+
+  // newVirtuoso functions 
+  const [localFlags, setLocalFlags] = useState<string[]>([]);
+
+    const handleEndScroll = (arg: any) => {
+    // fix for when we request a page that immediately shows the end row
+    if ((arg + 1) % 200 === 0) {
+      fetchNextPage().then(() => updateOffset());
+    }
+  };
+
+
+
+
+    const rowContent = (index: number, row: Data2) => {
+      const isItemSelected = selected.includes(row.providerLicensingId);
+      const labelId = `enhanced-table-checkbox-${index}`;
+      return (
+        <Fragment>
+          {headCells.map((column, index) => {
+            const key = `${index}-${column.id}-${row.providerLicensingId}`;
+            return renderCellContent(row, column.id, isItemSelected, labelId, key);
+          })}
+        </Fragment>
+      );
+    };
+
+
+     
+//  MORE new stuff - taylor
+
+  // const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
+  //   if (event.target.checked) {
+  //     const newSelected = visibleRows.map(n => n.providerLicensingId);
+  //     setSelected(newSelected);
+  //     return;
+  //   }
+  //   setSelected([]);
+  // };
+
+    const handleCheck = (event: React.MouseEvent<unknown>, id: string) => {
+    setFlagModalOpenId(id);
+
+    if (selected.includes(id)) {
+      // If it's already selected, remove it
+      setSelected(selected.filter(item => item !== id));
+    } else {
+      // If it's not selected, add it
+      setSelected([...selected, id]);
+    }
+  };
+
+ const VirtuosoTableComponents: TableComponents<Data2> = {
+    Scroller,
+    Table: props => (
+      <Table stickyHeader aria-label='sticky table' sx={{ tableLayout: 'fixed' }} {...props} />
+    ),
+    TableHead: forwardRef<HTMLTableSectionElement>((props, ref) => (
+      <EnhancedTableHead
+        {...props}
+        numSelected={selected.length}
+        order={order}
+        orderBy={orderBy}
+        onSelectAllClick={handleSelectAllClick}
+        onRequestSort={handleRequestSort}
+        rowCount={visibleRows?.length || 0}
+        headCells={headCells}
+        ref={ref}
+      />
+    )),
+    TableRow: forwardRef<HTMLTableRowElement, VirtuosoDataRowProps>((props, ref) => (
+      <CheckboxDataRow
+        ref={ref}
+        {...props}
+        handleClickRow={handleClick}
+        handleCheckBox={handleCheck}
+        isSelected={(id: string) => selected.includes(id)}
+        isChecked={(id: string) => localFlags.includes(id)}
+      />
+    )),
+    TableBody: forwardRef<HTMLTableSectionElement>((props, ref) => (
+      <TableBody {...props} ref={ref} />
+    )),
+  };
+  
+  console.log('visibleRows', visibleRows)
   const renderTable = () => (
     <TableContainer component={Paper} sx={{ height: '97vh', flexGrow: 1, overflow: 'auto' }}>
-      <Table stickyHeader aria-label='sticky table'>
+       <TableVirtuoso
+                    data={visibleRows}
+                    endReached={handleEndScroll}
+                    fixedHeaderContent={fixedHeaderContent}
+                    increaseViewportBy={FETCH_ROW_COUNT}
+                    itemContent={rowContent}
+                    components={VirtuosoTableComponents}
+                    fixedFooterContent={() =>
+                      isFetching || isLoading ? (
+                        <TableRow sx={{ backgroundColor: 'lightgray' }}>
+                          <TableCell
+                            colSpan={headCells.length}
+                            sx={{ textAlign: 'center' }}
+                            align='center'
+                          >
+                            <Box
+                              sx={{
+                                width: '100%',
+                                textAlign: 'center',
+                                display: 'block',
+                              }}
+                            >
+                              {/* <CircularProgress size={24} /> */}
+                            </Box>
+                          </TableCell>
+                        </TableRow>
+                      ) : null
+                    }
+                  />
+      
+      {/* <Table stickyHeader aria-label='sticky table'>
         <EnhancedTableHead
           numSelected={selected.length}
           order={order}
@@ -456,7 +658,7 @@ export default function AnnualProviderData() {
             );
           })}
         </TableBody>
-      </Table>
+      </Table> */}
     </TableContainer>
   );
 
@@ -478,7 +680,7 @@ export default function AnnualProviderData() {
           onSave={(data: any) => handleOnSave(data)}
           disableRemove={false}
           providerData={
-            visibleRows.find(data => data.providerLicensingId === flagModalOpenId) || ({} as Data)
+            visibleRows.find(data => data.providerLicensingId === flagModalOpenId) || ({} as Data2)
           }
         />
 
