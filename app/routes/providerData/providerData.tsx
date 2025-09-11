@@ -1,11 +1,9 @@
 import * as React from 'react';
 import type { Route } from './+types/providerData';
-import { Outlet } from 'react-router';
+import { Outlet, useLocation, useMatch } from 'react-router';
 import { Card, Tabs, Tab, Box, Grid, useTheme } from '@mui/material';
 import { useNavigate } from 'react-router';
 import Typography from '@mui/material/Typography';
-import { getCurrentDate } from '~/utils/dates';
-import { ProviderFilterContext } from '~/contexts/providerFilterContext';
 
 export function meta({}: Route.MetaArgs) {
   return [{ title: 'Provider Data' }, { name: 'description', content: 'providerData' }];
@@ -18,10 +16,7 @@ const tabRoutes = [
   {
     id: 1,
     label: 'Monthly Provider Data',
-    // {year}-${month}
-    path: `providerData/monthly/2024-09`
-    // TODO: detect the current month so on direct nav we go to latest month
-    // path: `providerData/monthly/${currentDate}`, 
+    path: `providerData/monthly`,
   },
   {
     id: 2,
@@ -29,13 +24,25 @@ const tabRoutes = [
     path: 'providerData',
   },
 ];
+const getActiveTabByPath = (pathName: string) => {
+  if (pathName.includes('annual')) {
+    return 0;
+  }
+  if (pathName.includes('monthly')) {
+    return 1;
+  }
+};
 
 export default function ProviderData() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = React.useState(0);
-
+  const location = useLocation();
+  // get location and set the active tab
+  const [activeTab, setActiveTab] = React.useState(getActiveTabByPath(location.pathname) || 0);
+  const onMatchingRoute = useMatch(`${tabRoutes[activeTab].path}/*`)
   React.useEffect(() => {
-    navigate(tabRoutes[activeTab].path, { relative: 'path' });
+    if (!onMatchingRoute) {
+      navigate(tabRoutes[activeTab].path, { relative: 'path' });
+    }
   }, [activeTab]);
 
   const theme = useTheme();
@@ -138,9 +145,7 @@ export default function ProviderData() {
         ))}
       </Tabs>
       {/* <Box sx={{width: 100, background: 'blue', height: 100, display: 'flex', flexGrow: 1}}></Box> */}
-      <ProviderFilterContext>
-        <Outlet />
-      </ProviderFilterContext>
+      <Outlet />
     </Box>
   );
 }
