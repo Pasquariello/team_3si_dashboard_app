@@ -1,7 +1,8 @@
 import Check from '@mui/icons-material/Check';
 import { MenuList, MenuItem, ListItemIcon, styled, Typography } from '@mui/material';
 import ListSubheader from '@mui/material/ListSubheader';
-import { useProviderFilters } from '~/contexts/providerFilterContext';
+// import { useProviderFilters } from '~/contexts/providerFilterContext';
+import { useQueryParamsState } from '~/hooks/useQueryParamState';
 
 export const StyledListHeader = styled(ListSubheader)({
   backgroundImage: 'var(--Paper-overlay)',
@@ -10,25 +11,29 @@ export const StyledListHeader = styled(ListSubheader)({
 });
 
 export const FlagStatusMenuList = () => {
-  const {
-    filters: { flagged, unflagged },
-    dispatchHandler,
-  } = useProviderFilters();
+  const [queryParams, updateQuery] = useQueryParamsState();
+  const isFlagged = queryParams?.get('flagged') || null;
+  const isUnflagged = queryParams?.get('unflagged') || null;
 
   const handleFlagged = () => {
-    dispatchHandler('SET_FLAGGED', !flagged);
+    updateQuery('offset', '0');
+    isFlagged === 'true' ? updateQuery('flagged', null) : updateQuery('flagged', 'true');
   };
 
   const handleUnflagged = () => {
-    dispatchHandler('SET_UNFLAGGED', !unflagged);
+    updateQuery('offset', '0');
+    isUnflagged === 'true' ? updateQuery('unflagged', null) : updateQuery('unflagged', 'true');
   };
+
+  const isFlaggedChecked = isFlagged === 'true';
+  const isUnflaggedChecked = isUnflagged === 'true';
   return (
     <MenuList dense>
       <StyledListHeader>Flag Status</StyledListHeader>
-      <MenuItem selected={flagged} onClick={handleFlagged}>
+      <MenuItem selected={Boolean(isFlagged)} onClick={handleFlagged}>
         <ListItemIcon
           sx={{
-            ...(flagged ? { visibility: 'unset' } : { visibility: 'hidden' }),
+            ...(isFlaggedChecked ? { visibility: 'unset' } : { visibility: 'hidden' }),
           }}
         >
           <Check />
@@ -36,10 +41,10 @@ export const FlagStatusMenuList = () => {
 
         <Typography>Flagged Providers</Typography>
       </MenuItem>
-      <MenuItem selected={unflagged} onClick={handleUnflagged}>
+      <MenuItem selected={Boolean(isUnflagged)} onClick={handleUnflagged}>
         <ListItemIcon
           sx={{
-            ...(unflagged ? { visibility: 'unset' } : { visibility: 'hidden' }),
+            ...(isUnflaggedChecked ? { visibility: 'unset' } : { visibility: 'hidden' }),
           }}
         >
           <Check />

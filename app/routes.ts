@@ -12,7 +12,7 @@ export default [
     ...prefix('providerData', [
       index('routes/providerData/redirect.tsx'), // 👈 redirect from /providerData
       route('annual', './routes/providerData/annualProviderData.tsx'),
-      route('monthly/:date', './routes/providerData/monthlyProviderData.tsx'),
+      route('monthly/:date?', './routes/providerData/monthlyProviderData.tsx'),
     ]),
   ]),
 ] satisfies RouteConfig;

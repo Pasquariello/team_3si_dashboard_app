@@ -1,5 +1,6 @@
-import { Navigate } from 'react-router';
+import { Navigate, useMatch } from 'react-router';
 
 export default function RedirectToAnnual() {
-  return <Navigate to='/providerData/annual' replace />;
+  const isIndex = useMatch('/providerData');
+  return isIndex ? <Navigate to='annual' replace /> : null;
 }

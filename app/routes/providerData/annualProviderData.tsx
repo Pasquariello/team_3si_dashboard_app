@@ -4,9 +4,6 @@ import { CheckboxDataRow, type VirtuosoDataRowProps } from '~/components/table/C
 import { Scroller } from '~/components/table/VirutalTableScroller';
 import { TooltipTableCell } from '~/components/table/TooltipTableCell';
 
-import { FETCH_ROW_COUNT, getMonthlyData } from '~/data-loaders/providerMonthlyData';
-
-
 import { useState, forwardRef, Fragment, useMemo, useEffect } from 'react';
 
 
@@ -36,9 +33,8 @@ import YearOrRangeSelector from '~/components/YearOrRangeSelector';
 import { getVisibleRows } from '~/utils/table';
 import FlagModal from '~/components/modals/FlagModal';
 import NoData from '~/components/NoData';
-import { onSave } from '~/components/services/providerDataServices';
+import { FETCH_ROW_COUNT, getAnnualData, onSave } from '~/components/services/providerDataServices';
 import DescriptionAlerts from '~/components/DescriptionAlerts';
-import { getAnnualData } from '~/data-loaders/providerMonthlyData';
 
 export function meta({}: Route.MetaArgs) {
   return [
