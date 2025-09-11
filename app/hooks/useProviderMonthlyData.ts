@@ -1,21 +1,27 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
-import type { ProviderFilters } from '~/contexts/providerFilterContext';
-import { FETCH_ROW_COUNT, getMonthlyData } from '~/data-loaders/providerMonthlyData';
+import { redirect } from 'react-router';
+import {
+  FETCH_ROW_COUNT,
+  getMonthlyData,
+  type ProviderFilters,
+} from '~/components/services/providerDataServices';
+import type { Data } from '~/types';
 
 export const useProviderMonthlyData = (
   date: string,
   offset: string,
-  filters: ProviderFilters,
-  initialOffset = 0
-) =>
-  useInfiniteQuery({
-    queryKey: ['monthlyProviderData', date, filters],
-    queryFn: async ({ pageParam = '0' }) => {
+  filters: Partial<ProviderFilters>,
+  initialOffset?: string | number,
+) => {
+  const initOffset = Number(initialOffset) || 0
+  return useInfiniteQuery<Data[]>({
+    queryKey: ['monthlyProviderData', date, filters.flagged, filters.unflagged],
+    queryFn: async ({ pageParam }) => {
       // pageParam defined by getNextPageParam below, offset should only come from the dataLoader
       const pageOffset = String(pageParam) || offset;
       return getMonthlyData(date, pageOffset, filters);
     },
-    initialPageParam: initialOffset,
+    initialPageParam: initOffset,
     getNextPageParam: (lastPage, pages) => {
       if (!lastPage || typeof lastPage !== 'object') return undefined;
 
@@ -28,3 +34,4 @@ export const useProviderMonthlyData = (
     refetchOnReconnect: false,
     refetchOnWindowFocus: false,
   });
+}

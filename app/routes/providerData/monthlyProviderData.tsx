@@ -19,16 +19,20 @@ import type { Route } from './+types/monthlyProviderData';
 import FlagModal from '~/components/modals/FlagModal';
 import NoData from '~/components/NoData';
 import { useQueryParamsState } from '~/hooks/useQueryParamState';
-import { FETCH_ROW_COUNT } from '~/data-loaders/providerMonthlyData';
 import { useProviderMonthlyData } from '~/hooks/useProviderMonthlyData';
 import { CheckboxDataRow, type VirtuosoDataRowProps } from '~/components/table/CheckBoxDataRow';
 import { Scroller } from '~/components/table/VirutalTableScroller';
 import { TooltipTableCell } from '~/components/table/TooltipTableCell';
-import { onSave } from '~/components/services/providerDataServices';
+import {
+  FETCH_ROW_COUNT,
+  getMonthlyData,
+  onSave,
+  type ProviderFilters,
+} from '~/components/services/providerDataServices';
 import { useAuth } from '~/contexts/authContext';
-import { useProviderFilters } from '~/contexts/providerFilterContext';
 import { queryClient } from '~/queryClient';
 import DescriptionAlerts from '~/components/DescriptionAlerts';
+import { redirect, useParams } from 'react-router';
 
 const riskThresholds = [
   { max: 4, min: 3, color: 'red' },
@@ -115,7 +119,6 @@ const fixedHeaderContent = () => {
 const renderCellContent = (
   row: Data,
   columnId: HeadCell['id'],
-  isItemSelected: boolean,
   labelId: string,
   key: string
 ): React.ReactNode => {
@@ -181,7 +184,27 @@ const renderCellContent = (
   }
 };
 
-export default function MonthlyProviderData({ params }: Route.ComponentProps) {
+export async function loader({ params, request }: Route.LoaderArgs) {
+  let date = params?.date;
+  if (!date) {
+    date = '2024-09'; // getCurrentDate()
+    return redirect(`${date}`);
+  }
+  const url = new URL(request.url);
+  const offset = url.searchParams.get('offset') ?? '0';
+  const flagged = url.searchParams.get('flagged') || undefined;
+  const unflagged = url.searchParams.get('unflagged') || undefined;
+
+  await queryClient.prefetchInfiniteQuery({
+    initialPageParam: offset,
+    queryKey: ['monthlyProviderData', date, flagged, unflagged],
+    queryFn: () => getMonthlyData(date, offset, { flagged, unflagged }),
+  });
+
+  return null;
+}
+
+export default function MonthlyProviderData() {
   const [isLoadingOverlayActive, setIsLoadingOverlayActive] = useState(false);
   const [selected, setSelected] = useState<readonly string[]>([]);
   const [order, setOrder] = useState<Order>('desc');
@@ -189,23 +212,28 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
   const [orderBy, setOrderBy] = useState<keyof Data>('overallRiskScore');
   const [flagModalOpenId, setFlagModalOpenId] = useState<string | null>(null);
   const [localFlags, setLocalFlags] = useState<string[]>([]);
+
+  let params = useParams();
   const [queryParams, updateQuery] = useQueryParamsState();
   const offset = queryParams?.get('offset') || '0';
+  const isFlagged = queryParams?.get('flagged') || undefined;
+  const isUnflagged = queryParams?.get('unflagged') || undefined;
   const { setToken } = useAuth();
-  const { filters } = useProviderFilters();
 
-  const { data, fetchNextPage, isFetching, isLoading, error, refetch } = useProviderMonthlyData(
-    params.date,
+  const filters: Partial<ProviderFilters> = useMemo(() => {
+    return {
+      flagged: isFlagged,
+      unflagged: isUnflagged,
+    };
+  }, [isFlagged, isUnflagged]);
+  console.log(filters);
+
+  const { data, fetchNextPage, isFetching, isLoading, error } = useProviderMonthlyData(
+    params.date!, // the loader ensures this will be here via redirect
     offset,
-    filters
+    filters,
+    offset,
   );
-
-  useEffect(() => {
-    updateQuery('offset', '0');
-    queryClient.resetQueries({
-      queryKey: ['monthlyProviderData', params.date, filters],
-    });
-  }, [filters]);
 
   useEffect(() => {
     if (error) {
@@ -232,13 +260,12 @@ export default function MonthlyProviderData({ params }: Route.ComponentProps) {
   }, [order, orderBy, data]);
 
   const rowContent = (index: number, row: Data) => {
-    const isItemSelected = selected.includes(row.providerLicensingId);
     const labelId = `enhanced-table-checkbox-${index}`;
     return (
       <Fragment>
         {headCells.map((column, index) => {
           const key = `${index}-${column.id}-${row.providerLicensingId}`;
-          return renderCellContent(row, column.id, isItemSelected, labelId, key);
+          return renderCellContent(row, column.id, labelId, key);
         })}
       </Fragment>
     );
