@@ -11,11 +11,11 @@ export const useProviderMonthlyData = (
   date: string,
   offset: string,
   filters: Partial<ProviderFilters>,
-  initialOffset?: string | number,
+  initialOffset?: string | number
 ) => {
-  const initOffset = Number(initialOffset) || 0
+  const initOffset = Number(initialOffset) || 0;
   return useInfiniteQuery<Data[]>({
-    queryKey: ['monthlyProviderData', date, filters.flagged, filters.unflagged],
+    queryKey: ['monthlyProviderData', date, filters.flagStatus],
     queryFn: async ({ pageParam }) => {
       // pageParam defined by getNextPageParam below, offset should only come from the dataLoader
       const pageOffset = String(pageParam) || offset;
@@ -34,4 +34,4 @@ export const useProviderMonthlyData = (
     refetchOnReconnect: false,
     refetchOnWindowFocus: false,
   });
-}
+};

@@ -1,55 +1,44 @@
-import Check from '@mui/icons-material/Check';
-import { MenuList, MenuItem, ListItemIcon, styled, Typography } from '@mui/material';
-import ListSubheader from '@mui/material/ListSubheader';
-// import { useProviderFilters } from '~/contexts/providerFilterContext';
+import { MenuList, MenuItem, Typography, Radio } from '@mui/material';
 import { useQueryParamsState } from '~/hooks/useQueryParamState';
-
-export const StyledListHeader = styled(ListSubheader)({
-  backgroundImage: 'var(--Paper-overlay)',
-  color: '#3F3F46B2',
-  opacity: '70%',
-});
 
 export const FlagStatusMenuList = () => {
   const [queryParams, updateQuery] = useQueryParamsState();
-  const isFlagged = queryParams?.get('flagged') || null;
-  const isUnflagged = queryParams?.get('unflagged') || null;
+
+  // 'true' is flagged checked and unFlagged unchecked
+  // 'false' is unflagged checked and flagged unchecked
+  // both or neither equal empty param
+  const flaggedStatus = queryParams?.get('flagStatus') || null;
 
   const handleFlagged = () => {
     updateQuery('offset', '0');
-    isFlagged === 'true' ? updateQuery('flagged', null) : updateQuery('flagged', 'true');
+    if (flaggedStatus === 'true') {
+      updateQuery('flagStatus', null);
+      return;
+    }
+    updateQuery('flagStatus', 'true');
   };
 
   const handleUnflagged = () => {
     updateQuery('offset', '0');
-    isUnflagged === 'true' ? updateQuery('unflagged', null) : updateQuery('unflagged', 'true');
+    if (flaggedStatus === 'false') {
+      updateQuery('flagStatus', null);
+      return;
+    }
+
+    updateQuery('flagStatus', 'false');
   };
 
-  const isFlaggedChecked = isFlagged === 'true';
-  const isUnflaggedChecked = isUnflagged === 'true';
+  const isFlaggedChecked = flaggedStatus === 'true';
+  const isUnflaggedChecked = flaggedStatus === 'false';
+
   return (
     <MenuList dense>
-      <StyledListHeader>Flag Status</StyledListHeader>
-      <MenuItem selected={Boolean(isFlagged)} onClick={handleFlagged}>
-        <ListItemIcon
-          sx={{
-            ...(isFlaggedChecked ? { visibility: 'unset' } : { visibility: 'hidden' }),
-          }}
-        >
-          <Check />
-        </ListItemIcon>
-
+      <MenuItem onClick={handleFlagged}>
+        <Radio checked={isFlaggedChecked} onChange={handleFlagged} name='Flagged Providers' />
         <Typography>Flagged Providers</Typography>
       </MenuItem>
-      <MenuItem selected={Boolean(isUnflagged)} onClick={handleUnflagged}>
-        <ListItemIcon
-          sx={{
-            ...(isUnflaggedChecked ? { visibility: 'unset' } : { visibility: 'hidden' }),
-          }}
-        >
-          <Check />
-        </ListItemIcon>
-
+      <MenuItem onClick={handleUnflagged}>
+        <Radio checked={isUnflaggedChecked} onChange={handleUnflagged} name='Flagged Providers' />
         <Typography>Unflagged Providers</Typography>
       </MenuItem>
     </MenuList>
