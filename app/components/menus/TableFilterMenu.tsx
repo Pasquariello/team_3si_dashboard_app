@@ -2,19 +2,27 @@ import * as React from 'react';
 import Button from '@mui/material/Button';
 import Menu from '@mui/material/Menu';
 import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
-import { Box, Divider, ListSubheader, styled } from '@mui/material';
-import { FlagStatusMenuList } from './FlagStatusMenuList';
-import { useState, type MouseEvent } from 'react';
+import { Badge, Box, Typography, useTheme } from '@mui/material';
+import { useMemo, useState, type MouseEvent } from 'react';
+import { useQueryParamsState } from '~/hooks/useQueryParamState';
 
-export const StyledListHeader = styled(ListSubheader)({
-  backgroundImage: 'var(--Paper-overlay)',
-  fontWeight: 'bold',
-  color: 'black',
-});
+type TableFilterMenuProps = Readonly<{
+  filterName: string;
+  queryKey: string;
+  children: React.ReactNode;
+  startIcon?: boolean;
+}>;
 
-export const TableFilterMenu = () => {
+export const TableFilterMenu = ({
+  filterName,
+  queryKey,
+  children,
+  startIcon,
+}: TableFilterMenuProps) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
+  const theme = useTheme();
   const open = Boolean(anchorEl);
+  const [queryParams] = useQueryParamsState();
 
   const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -23,20 +31,65 @@ export const TableFilterMenu = () => {
   const handleClose = () => {
     setAnchorEl(null);
   };
+  // queryKey must align to a queryParam
+  const selectedValues = useMemo(() => {
+    const param = queryParams.getAll(queryKey);
+    return new Set(param);
+  }, [queryParams, queryKey]);
 
   return (
     <Box display={'flex'}>
       <Button
         variant='outlined'
+        sx={{
+          color: theme.palette.cusp_iron.contrastText,
+          borderColor: theme.palette.cusp_iron.contrastText,
+          display: 'flex',
+          alignItems: 'center',
+          gap: 0, // space between text and badge
+          textTransform: 'none',
+          alignSelf: 'center',
+          px: 3,
+          py: 1,
+        }}
         size='small'
-        startIcon={<FilterAltOutlinedIcon />}
+        startIcon={startIcon ? <FilterAltOutlinedIcon /> : null}
         id='filter-button'
         aria-controls={open ? 'grouped-menu' : undefined}
         aria-haspopup='true'
         aria-expanded={open ? 'true' : undefined}
         onClick={handleClick}
+        title={filterName}
+        endIcon={
+          selectedValues.size !== 0 && (
+            <Box
+              sx={{
+                width: 20,
+                height: 20,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Badge
+                badgeContent={selectedValues.size}
+                color='primary'
+                sx={{
+                  '& .MuiBadge-badge': {
+                    backgroundColor: 'black',
+                    color: 'white',
+                    fontSize: '0.75rem',
+                    borderRadius: '50%',
+                  },
+                }}
+              />
+            </Box>
+          )
+        }
       >
-        Filter
+        <Typography textTransform={'none'} fontWeight={600} variant='caption' fontSize={'.8rem'}>
+          {filterName}
+        </Typography>
       </Button>
       <Menu
         id='grouped-menu'
@@ -52,11 +105,7 @@ export const TableFilterMenu = () => {
           },
         }}
       >
-        <StyledListHeader>Filter Options</StyledListHeader>
-
-        <Divider />
-        <FlagStatusMenuList />
-        <Divider />
+        {children}
       </Menu>
     </Box>
   );

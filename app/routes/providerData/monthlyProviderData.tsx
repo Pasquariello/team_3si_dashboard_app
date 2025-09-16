@@ -5,10 +5,12 @@ import {
   Backdrop,
   Box,
   CircularProgress,
+  Divider,
   Table,
   TableBody,
   TableCell,
   TableRow,
+  Typography,
 } from '@mui/material';
 
 import type { Data, HeadCell, Order } from '~/types';
@@ -33,6 +35,9 @@ import { useAuth } from '~/contexts/authContext';
 import { queryClient } from '~/queryClient';
 import DescriptionAlerts from '~/components/DescriptionAlerts';
 import { redirect, useParams } from 'react-router';
+import { TableFilterMenu } from '~/components/menus/TableFilterMenu';
+import { Tune } from '@mui/icons-material';
+import { FlagStatusMenuList } from '~/components/menus/FlagStatusMenuList';
 
 const riskThresholds = [
   { max: 4, min: 3, color: 'red' },
@@ -192,13 +197,12 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   }
   const url = new URL(request.url);
   const offset = url.searchParams.get('offset') ?? '0';
-  const flagged = url.searchParams.get('flagged') || undefined;
-  const unflagged = url.searchParams.get('unflagged') || undefined;
+  const flagStatus = url.searchParams.get('flagStatus') || undefined;
 
   await queryClient.prefetchInfiniteQuery({
     initialPageParam: offset,
-    queryKey: ['monthlyProviderData', date, flagged, unflagged],
-    queryFn: () => getMonthlyData(date, offset, { flagged, unflagged }),
+    queryKey: ['monthlyProviderData', date, flagStatus],
+    queryFn: () => getMonthlyData(date, offset, { flagStatus }),
   });
 
   return null;
@@ -216,23 +220,21 @@ export default function MonthlyProviderData() {
   let params = useParams();
   const [queryParams, updateQuery] = useQueryParamsState();
   const offset = queryParams?.get('offset') || '0';
-  const isFlagged = queryParams?.get('flagged') || undefined;
-  const isUnflagged = queryParams?.get('unflagged') || undefined;
+  const flagStatus = queryParams?.get('flagStatus') || undefined;
   const { setToken } = useAuth();
 
   const filters: Partial<ProviderFilters> = useMemo(() => {
     return {
-      flagged: isFlagged,
-      unflagged: isUnflagged,
+      flagStatus,
     };
-  }, [isFlagged, isUnflagged]);
+  }, [flagStatus]);
   console.log(filters);
 
   const { data, fetchNextPage, isFetching, isLoading, error } = useProviderMonthlyData(
     params.date!, // the loader ensures this will be here via redirect
     offset,
     filters,
-    offset,
+    offset
   );
 
   useEffect(() => {
@@ -434,9 +436,24 @@ export default function MonthlyProviderData() {
           flexGrow: 1,
         }}
       >
-        <Box sx={{ my: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
-          <DatePickerViews label={'"month" and "year"'} views={['year', 'month']} />
-          <EnhancedTableToolbar />
+        <Box sx={{ my: 4, display: 'flex', alignItems: 'center', gap: 1, flexDirection: 'column' }}>
+          <Box display={'flex'} flex={1} gap={1} width={'100%'}>
+            <DatePickerViews label={'"month" and "year"'} views={['year', 'month']} />
+            <EnhancedTableToolbar />
+          </Box>
+          <Divider orientation='horizontal' flexItem />
+          <Box display={'flex'} flex={1} justifyContent={'start'} width={'100%'}>
+            <Box gap={0.5} display={'flex'} padding={1}>
+              <Tune sx={{ alignSelf: 'center' }} />
+              <Typography fontSize={'.8em'} fontWeight={'bold'} sx={{ alignSelf: 'center' }}>
+                FILTERS:
+              </Typography>
+            </Box>
+            <TableFilterMenu filterName='Flag Status' queryKey={'flagStatus'}>
+              <FlagStatusMenuList />
+            </TableFilterMenu>
+          </Box>
+        {/* TODO: add active filter Display chips  */}
         </Box>
         {visibleRows.length ? (
           <Box height={'97vh'}>
