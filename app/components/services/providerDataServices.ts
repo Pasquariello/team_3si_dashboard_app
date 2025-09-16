@@ -3,8 +3,7 @@ import { env } from '~/env';
 import type { Data } from '~/types';
 
 export type ProviderFilters = {
-  flagged: string | undefined;
-  unflagged: string | undefined;
+  flagStatus: string | undefined;
 };
 
 export const onSave = async (

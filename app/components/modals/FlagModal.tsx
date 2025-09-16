@@ -30,15 +30,13 @@ export default function FlagModal({
   const [comment, setComment] = useState('');
 
   useEffect(() => {
-    if (providerData?.comment) {
-      setComment(providerData.comment || '');
-    }
+    setComment(providerData?.comment || '');
   }, [providerData?.comment]);
 
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setComment(e.target.value);
   };
-  // TODO: clean/limit Comment 
+  // TODO: clean/limit Comment
   const handleOnSave = () => {
     if (providerData) {
       onSave({
@@ -48,7 +46,7 @@ export default function FlagModal({
       });
     }
   };
-  // TODO: clean/limit Comment 
+  // TODO: clean/limit Comment
   const handleRemoveFlag = () => {
     if (providerData) {
       onSave({ providerLicensingId: providerData?.providerLicensingId, comment, flagged: false });
