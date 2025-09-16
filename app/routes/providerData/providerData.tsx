@@ -9,6 +9,7 @@ import Typography from '@mui/material/Typography';
 
 import Skeleton from '@mui/material/Skeleton';
 import DashboardCard from './DashboardCard';
+import { QueryParamsProvider } from '~/contexts/queryParamContext';
 
 export function meta({}: Route.MetaArgs) {
   return [{ title: 'Provider Data' }, { name: 'description', content: 'providerData' }];
@@ -98,7 +99,9 @@ export default function ProviderData() {
         ))}
       </Tabs>
       {/* <Box sx={{width: 100, background: 'blue', height: 100, display: 'flex', flexGrow: 1}}></Box> */}
-      <Outlet />
+      <QueryParamsProvider>
+        <Outlet />
+      </QueryParamsProvider>
     </Box>
   );
 }
