@@ -12,6 +12,7 @@ function EnhancedTableToolbar() {
           width: '100%',
         }}
       >
+        {/* TODO: Hook up for local search */}
         <TextField
           placeholder='Search by provider name or ID...'
           variant='outlined'

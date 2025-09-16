@@ -10,7 +10,6 @@ import {
   TableBody,
   TableCell,
   TableRow,
-  Typography,
 } from '@mui/material';
 
 import type { Data, HeadCell, Order } from '~/types';
@@ -35,9 +34,7 @@ import { useAuth } from '~/contexts/authContext';
 import { queryClient } from '~/queryClient';
 import DescriptionAlerts from '~/components/DescriptionAlerts';
 import { redirect, useParams } from 'react-router';
-import { TableFilterMenu } from '~/components/menus/TableFilterMenu';
-import { Tune } from '@mui/icons-material';
-import { FlagStatusMenuList } from '~/components/menus/FlagStatusMenuList';
+import { ProviderTableFilterBar } from '~/components/ProviderTableFilterBar';
 
 const riskThresholds = [
   { max: 4, min: 3, color: 'red' },
@@ -436,24 +433,21 @@ export default function MonthlyProviderData() {
           flexGrow: 1,
         }}
       >
-        <Box sx={{ my: 4, display: 'flex', alignItems: 'center', gap: 1, flexDirection: 'column' }}>
+        <Box
+          sx={{
+            my: 1,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            flexDirection: 'column',
+          }}
+        >
           <Box display={'flex'} flex={1} gap={1} width={'100%'}>
             <DatePickerViews label={'"month" and "year"'} views={['year', 'month']} />
             <EnhancedTableToolbar />
           </Box>
           <Divider orientation='horizontal' flexItem />
-          <Box display={'flex'} flex={1} justifyContent={'start'} width={'100%'}>
-            <Box gap={0.5} display={'flex'} padding={1}>
-              <Tune sx={{ alignSelf: 'center' }} />
-              <Typography fontSize={'.8em'} fontWeight={'bold'} sx={{ alignSelf: 'center' }}>
-                FILTERS:
-              </Typography>
-            </Box>
-            <TableFilterMenu filterName='Flag Status' queryKey={'flagStatus'}>
-              <FlagStatusMenuList />
-            </TableFilterMenu>
-          </Box>
-        {/* TODO: add active filter Display chips  */}
+          <ProviderTableFilterBar />
         </Box>
         {visibleRows.length ? (
           <Box height={'97vh'}>

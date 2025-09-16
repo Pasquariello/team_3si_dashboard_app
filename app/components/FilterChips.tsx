@@ -8,7 +8,7 @@ export const FilterChips = () => {
 
   const handleDelete = (key: string, value: string) => {
     updateQuery('offset', '0');
-    updateQuery(key, value, "removeOne");
+    updateQuery(key, value, 'removeOne');
   };
 
   const items = allowedKeys.flatMap(({ key, label }) => {
@@ -22,7 +22,7 @@ export const FilterChips = () => {
         return (
           <Chip
             key={`${key}-${value}`}
-            label={`${label}: ${value}`}
+            label={`${label}: ${value.toLocaleUpperCase()}`}
             onDelete={() => handleDelete(key, value)}
           />
         );
