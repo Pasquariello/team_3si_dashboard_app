@@ -42,6 +42,7 @@ export const useQueryParamsState = () => {
       window.history.replaceState(null, '', `?${params.toString()}`);
     }
   }, [params]);
+
   const updateQuery = (action: QueryParamAction) => {
     dispatch(action);
   };

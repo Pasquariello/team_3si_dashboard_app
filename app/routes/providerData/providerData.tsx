@@ -2,12 +2,9 @@ import * as React from 'react';
 import type { Route } from './+types/providerData';
 
 import { Outlet, useLocation, useMatch } from 'react-router';
-import { Card, Tabs, Tab, Box, Grid, useTheme } from '@mui/material';
+import { Tabs, Tab, Box, Grid, useTheme } from '@mui/material';
 import { useNavigate } from 'react-router';
-import Typography from '@mui/material/Typography';
 
-
-import Skeleton from '@mui/material/Skeleton';
 import DashboardCard from './DashboardCard';
 import { QueryParamsProvider } from '~/contexts/queryParamContext';
 
@@ -44,7 +41,7 @@ export default function ProviderData() {
   const location = useLocation();
   // get location and set the active tab
   const [activeTab, setActiveTab] = React.useState(getActiveTabByPath(location.pathname) || 0);
-  const onMatchingRoute = useMatch(`${tabRoutes[activeTab].path}/*`)
+  const onMatchingRoute = useMatch(`${tabRoutes[activeTab].path}/*`);
   React.useEffect(() => {
     if (!onMatchingRoute) {
       navigate(tabRoutes[activeTab].path, { relative: 'path' });
@@ -80,22 +77,56 @@ export default function ProviderData() {
     >
       <Grid container spacing={2} mb={2} columns={{ xs: 12 }}>
         <Grid style={{ display: 'flex', flexGrow: 1 }} size={{ xs: 12, sm: 12, md: 6, lg: 3 }}>
-          <DashboardCard title='Total Providers' description='Active in [state name]' value='500' descColor={theme.palette.cusp_iron.contrastText} loading={loading} />
+          <DashboardCard
+            title='Total Providers'
+            description='Active in [state name]'
+            value='500'
+            descColor={theme.palette.cusp_iron.contrastText}
+            loading={loading}
+          />
         </Grid>
         <Grid style={{ display: 'flex', flexGrow: 1 }} size={{ xs: 12, sm: 12, md: 6, lg: 3 }}>
-          <DashboardCard title='High Risk Providers' description='22.8% of 500' value='114' valueColor="error" descColor={theme.palette.cusp_iron.contrastText} loading={loading} />
+          <DashboardCard
+            title='High Risk Providers'
+            description='22.8% of 500'
+            value='114'
+            valueColor='error'
+            descColor={theme.palette.cusp_iron.contrastText}
+            loading={loading}
+          />
         </Grid>
         <Grid style={{ display: 'flex', flexGrow: 1 }} size={{ xs: 12, sm: 12, md: 6, lg: 3 }}>
-          <DashboardCard title='Flagged for Review' description='50% require immediate attention' value='250' valueColor="warning" descColor={theme.palette.cusp_iron.contrastText}loading={loading} />
+          <DashboardCard
+            title='Flagged for Review'
+            description='50% require immediate attention'
+            value='250'
+            valueColor='warning'
+            descColor={theme.palette.cusp_iron.contrastText}
+            loading={loading}
+          />
         </Grid>
         <Grid style={{ display: 'flex', flexGrow: 1 }} size={{ xs: 12, sm: 12, md: 6, lg: 3 }}>
-          <DashboardCard title='Top Risk Factor' description='Same as last month' value='Risk Factor Name' descColor={theme.palette.cusp_iron.contrastText} loading={loading} />
+          <DashboardCard
+            title='Top Risk Factor'
+            description='Same as last month'
+            value='Risk Factor Name'
+            descColor={theme.palette.cusp_iron.contrastText}
+            loading={loading}
+          />
         </Grid>
       </Grid>
 
       <Tabs value={activeTab} onChange={handleChange}>
         {tabRoutes.map(({ label, id }) => (
-          <Tab key={label} label={label} value={id} />
+          <Tab
+            sx={{
+              color: theme.palette.cusp_iron.contrastText,
+              borderColor: theme.palette.cusp_iron.contrastText,
+            }}
+            key={label}
+            label={label}
+            value={id}
+          />
         ))}
       </Tabs>
       {/* <Box sx={{width: 100, background: 'blue', height: 100, display: 'flex', flexGrow: 1}}></Box> */}
