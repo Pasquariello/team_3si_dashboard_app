@@ -1,18 +1,23 @@
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
-import { useQueryParamsState } from '~/hooks/useQueryParamState';
+import { useContext } from 'react';
+import { QueryParamsContext } from '~/contexts/queryParamContext';
 
-const allowedKeys = [{ key: 'flagStatus', label: 'Filter Status' }];
-export const FilterChips = () => {
-  const [queryParams, updateQuery] = useQueryParamsState();
+export const FilterChips = ({
+  allowedFilters,
+}: {
+  allowedFilters: { key: string; label: string }[];
+}) => {
+  const [params, updateQuery] = useContext(QueryParamsContext)!;
 
   const handleDelete = (key: string, value: string) => {
-    updateQuery('offset', '0');
-    updateQuery(key, value, 'removeOne');
+    // reset offset
+    updateQuery({ type: 'SET', key: 'offset', value: '0' });
+    updateQuery({ type: 'REMOVE_ONE', key, value });
   };
 
-  const items = allowedKeys.flatMap(({ key, label }) => {
-    const values = queryParams.getAll(key);
+  const items = allowedFilters.flatMap(({ key, label }) => {
+    const values = params.getAll(key);
     return values.length > 0 ? values.map(value => ({ key, label, value })) : [];
   });
 

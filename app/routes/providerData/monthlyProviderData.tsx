@@ -1,5 +1,5 @@
 import { TableVirtuoso, type TableComponents } from 'react-virtuoso';
-import { useState, forwardRef, Fragment, useMemo, useEffect } from 'react';
+import { useState, forwardRef, Fragment, useMemo, useEffect, useContext } from 'react';
 import EnhancedTableHead from '~/components/table/EnhancedTableHead';
 import {
   Backdrop,
@@ -19,7 +19,6 @@ import { getVisibleRows } from '~/utils/table';
 import type { Route } from './+types/monthlyProviderData';
 import FlagModal from '~/components/modals/FlagModal';
 import NoData from '~/components/NoData';
-import { useQueryParamsState } from '~/hooks/useQueryParamState';
 import { useProviderMonthlyData } from '~/hooks/useProviderMonthlyData';
 import { CheckboxDataRow, type VirtuosoDataRowProps } from '~/components/table/CheckBoxDataRow';
 import { Scroller } from '~/components/table/VirutalTableScroller';
@@ -35,6 +34,7 @@ import { queryClient } from '~/queryClient';
 import DescriptionAlerts from '~/components/DescriptionAlerts';
 import { redirect, useParams } from 'react-router';
 import { ProviderTableFilterBar } from '~/components/ProviderTableFilterBar';
+import { QueryParamsContext } from '~/contexts/queryParamContext';
 
 const riskThresholds = [
   { max: 4, min: 3, color: 'red' },
@@ -195,11 +195,15 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   const url = new URL(request.url);
   const offset = url.searchParams.get('offset') ?? '0';
   const flagStatus = url.searchParams.get('flagStatus') || undefined;
+  // ensure we don't send undefined as a filter value
+  const filters = {
+    ...(flagStatus !== undefined ? { flagStatus } : {}),
+  };
 
   await queryClient.prefetchInfiniteQuery({
     initialPageParam: offset,
     queryKey: ['monthlyProviderData', date, flagStatus],
-    queryFn: () => getMonthlyData(date, offset, { flagStatus }),
+    queryFn: () => getMonthlyData(date, offset, filters),
   });
 
   return null;
@@ -215,7 +219,7 @@ export default function MonthlyProviderData() {
   const [localFlags, setLocalFlags] = useState<string[]>([]);
 
   let params = useParams();
-  const [queryParams, updateQuery] = useQueryParamsState();
+  const [queryParams, updateQuery] = useContext(QueryParamsContext)!;
   const offset = queryParams?.get('offset') || '0';
   const flagStatus = queryParams?.get('flagStatus') || undefined;
   const { setToken } = useAuth();
@@ -225,7 +229,6 @@ export default function MonthlyProviderData() {
       flagStatus,
     };
   }, [flagStatus]);
-  console.log(filters);
 
   const { data, fetchNextPage, isFetching, isLoading, error } = useProviderMonthlyData(
     params.date!, // the loader ensures this will be here via redirect
@@ -345,11 +348,9 @@ export default function MonthlyProviderData() {
     if (isFetching || isLoading) {
       return;
     }
-    const previousOffset = queryParams.get('offset');
-    if (typeof previousOffset === 'string') {
-      const nextOffset = Number(previousOffset) + FETCH_ROW_COUNT;
-      updateQuery('offset', String(nextOffset));
-    }
+    // Our scroll offset is tracked by our cache :)
+    const items = data?.pages.flat().length;
+    updateQuery({ type: 'SET', key: 'offset', value: String(items) });
   };
 
   const handleCloseModal = (isFlagged?: boolean, rowId?: string) => {
@@ -376,9 +377,9 @@ export default function MonthlyProviderData() {
       handleCloseModal(row_data.flagged, row_data.providerLicensingId);
       // data has changed in the DB
       queryClient.invalidateQueries({
-        queryKey: ['monthlyProviderData', params.date, filters],
+        queryKey: ['monthlyProviderData', params.date],
       });
-      updateQuery('offset', String(0));
+      updateQuery({ type: 'SET', key: 'offset', value: '0' });
     } else {
       setAlert({
         success: 'error',

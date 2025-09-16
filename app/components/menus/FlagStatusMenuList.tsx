@@ -1,31 +1,29 @@
 import { MenuList, MenuItem, Typography, Radio } from '@mui/material';
-import { useQueryParamsState } from '~/hooks/useQueryParamState';
+import { useContext } from 'react';
+import { QueryParamsContext } from '~/contexts/queryParamContext';
 
-export const FlagStatusMenuList = () => {
-  const [queryParams, updateQuery] = useQueryParamsState();
+export const FlagStatusMenuList = ({ queryKey }: { queryKey: string }) => {
+  const [params, updateQuery] = useContext(QueryParamsContext)!;
 
-  // 'true' is flagged checked and unFlagged unchecked
-  // 'false' is unflagged checked and flagged unchecked
-  // both or neither equal empty param
-  const flaggedStatus = queryParams?.get('flagStatus') || null;
+  const flaggedStatus = params?.get(queryKey) || null;
 
   const handleFlagged = () => {
-    updateQuery('offset', '0');
+    updateQuery({ type: 'SET', key: 'offset', value: '0' });
     if (flaggedStatus === 'true') {
-      updateQuery('flagStatus', null);
+      updateQuery({ type: 'DELETE', key: queryKey });
       return;
     }
-    updateQuery('flagStatus', 'true');
+    updateQuery({ type: 'SET', key: queryKey, value: 'true' });
   };
 
   const handleUnflagged = () => {
-    updateQuery('offset', '0');
+    updateQuery({ type: 'SET', key: 'offset', value: '0' });
     if (flaggedStatus === 'false') {
-      updateQuery('flagStatus', null);
+      updateQuery({ type: 'DELETE', key: queryKey });
       return;
     }
 
-    updateQuery('flagStatus', 'false');
+    updateQuery({ type: 'SET', key: queryKey, value: 'false' });
   };
 
   const isFlaggedChecked = flaggedStatus === 'true';

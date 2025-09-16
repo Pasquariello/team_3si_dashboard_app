@@ -19,7 +19,12 @@ export const useProviderMonthlyData = (
     queryFn: async ({ pageParam }) => {
       // pageParam defined by getNextPageParam below, offset should only come from the dataLoader
       const pageOffset = String(pageParam) || offset;
-      return getMonthlyData(date, pageOffset, filters);
+      // ensure we don't send undefined as a value for filters
+      const reqFilters = {
+        ...(filters.flagStatus !== undefined ? { flagStatus: filters.flagStatus } : {}),
+      };
+
+      return getMonthlyData(date, pageOffset, reqFilters);
     },
     initialPageParam: initOffset,
     getNextPageParam: (lastPage, pages) => {

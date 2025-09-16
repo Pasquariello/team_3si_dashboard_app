@@ -3,8 +3,8 @@ import Button from '@mui/material/Button';
 import Menu from '@mui/material/Menu';
 import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
 import { Badge, Box, Typography, useTheme } from '@mui/material';
-import { useMemo, useState, type MouseEvent } from 'react';
-import { useQueryParamsState } from '~/hooks/useQueryParamState';
+import { useContext, useMemo, useState, type MouseEvent } from 'react';
+import { QueryParamsContext } from '~/contexts/queryParamContext';
 
 type TableFilterMenuProps = Readonly<{
   filterName: string;
@@ -22,7 +22,7 @@ export const TableFilterMenu = ({
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const theme = useTheme();
   const open = Boolean(anchorEl);
-  const [queryParams] = useQueryParamsState();
+  const [queryParams] = useContext(QueryParamsContext)!;
 
   const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
