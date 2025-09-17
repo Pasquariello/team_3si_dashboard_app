@@ -1,5 +1,5 @@
 import { TableVirtuoso, type TableComponents } from 'react-virtuoso';
-import { useState, forwardRef, Fragment, useMemo, useEffect, useContext } from 'react';
+import { useState, forwardRef, Fragment, useMemo, useEffect } from 'react';
 import EnhancedTableHead from '~/components/table/EnhancedTableHead';
 import {
   Backdrop,
@@ -12,7 +12,7 @@ import {
   TableRow,
 } from '@mui/material';
 
-import type { Data, HeadCell, Order } from '~/types';
+import type { HeadCell, MonthlyData, Order } from '~/types';
 import DatePickerViews from '~/components/DatePickerViews';
 import EnhancedTableToolbar from '~/components/table/EnhancedTableToolbar';
 import { getVisibleRows } from '~/utils/table';
@@ -119,7 +119,7 @@ const fixedHeaderContent = () => {
 };
 
 const renderCellContent = (
-  row: Data,
+  row: MonthlyData,
   columnId: HeadCell['id'],
   labelId: string,
   key: string
@@ -214,7 +214,7 @@ export default function MonthlyProviderData() {
   const [selected, setSelected] = useState<readonly string[]>([]);
   const [order, setOrder] = useState<Order>('desc');
   const [alert, setAlert] = useState<{ success: string; message: string } | null>(null);
-  const [orderBy, setOrderBy] = useState<keyof Data>('overallRiskScore');
+  const [orderBy, setOrderBy] = useState<keyof MonthlyData>('overallRiskScore');
   const [flagModalOpenId, setFlagModalOpenId] = useState<string | null>(null);
   const [localFlags, setLocalFlags] = useState<string[]>([]);
 
@@ -243,7 +243,7 @@ export default function MonthlyProviderData() {
     }
   }, [error]);
 
-  const visibleRows = useMemo(() => {
+  const visibleRows = useMemo<MonthlyData[]>((): MonthlyData[] => {
     const items = data?.pages.flat() || [];
     setLocalFlags(() =>
       items.reduce((acc, curr) => {
@@ -258,10 +258,10 @@ export default function MonthlyProviderData() {
         return acc;
       }, localFlags)
     );
-    return getVisibleRows(items, order, orderBy);
+    return getVisibleRows<MonthlyData>(items, order, orderBy);
   }, [order, orderBy, data]);
 
-  const rowContent = (index: number, row: Data) => {
+  const rowContent = (index: number, row: MonthlyData) => {
     const labelId = `enhanced-table-checkbox-${index}`;
     return (
       <Fragment>
@@ -296,7 +296,7 @@ export default function MonthlyProviderData() {
   };
 
   // will eventually requery
-  const handleRequestSort = (event: React.MouseEvent<unknown>, property: keyof Data) => {
+  const handleRequestSort = (event: React.MouseEvent<unknown>, property: keyof MonthlyData) => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
     setOrderBy(property);
@@ -311,7 +311,7 @@ export default function MonthlyProviderData() {
     setSelected([]);
   };
 
-  const VirtuosoTableComponents: TableComponents<Data> = {
+  const VirtuosoTableComponents: TableComponents<MonthlyData> = {
     Scroller,
     Table: props => (
       <Table stickyHeader aria-label='sticky table' sx={{ tableLayout: 'fixed' }} {...props} />
@@ -363,7 +363,7 @@ export default function MonthlyProviderData() {
   };
 
   const handleOnSave = async (
-    row_data: Pick<Data, 'comment' | 'flagged' | 'providerLicensingId'>
+    row_data: Pick<MonthlyData, 'comment' | 'flagged' | 'providerLicensingId'>
   ) => {
     setIsLoadingOverlayActive(true);
     const res = await onSave(row_data);
@@ -415,7 +415,8 @@ export default function MonthlyProviderData() {
         onSave={handleOnSave}
         disableRemove={flagModalOpenId ? !localFlags.includes(flagModalOpenId) : false}
         providerData={
-          visibleRows.find(data => data.providerLicensingId === flagModalOpenId) || ({} as Data)
+          visibleRows.find(data => data.providerLicensingId === flagModalOpenId) ||
+          ({} as MonthlyData)
         }
       />
 

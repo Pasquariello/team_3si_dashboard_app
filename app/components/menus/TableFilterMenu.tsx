@@ -3,8 +3,8 @@ import Button from '@mui/material/Button';
 import Menu from '@mui/material/Menu';
 import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
 import { Badge, Box, Typography, useTheme } from '@mui/material';
-import { useContext, useMemo, useState, type MouseEvent } from 'react';
-import { QueryParamsContext, useQueryParams } from '~/contexts/queryParamContext';
+import { useMemo, useState, type MouseEvent } from 'react';
+import { useQueryParams } from '~/contexts/queryParamContext';
 
 type TableFilterMenuProps = Readonly<{
   filterName: string;
@@ -101,6 +101,9 @@ export const TableFilterMenu = ({
             'aria-labelledby': 'basic-button',
             sx: {
               py: 0,
+              display:'flex',
+              flexDirection: 'column',
+              flex: 1
             },
           },
         }}

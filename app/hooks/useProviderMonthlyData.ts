@@ -1,11 +1,10 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { redirect } from 'react-router';
 import {
   FETCH_ROW_COUNT,
   getMonthlyData,
   type ProviderFilters,
 } from '~/components/services/providerDataServices';
-import type { Data } from '~/types';
+import type { MonthlyData } from '~/types';
 
 export const useProviderMonthlyData = (
   date: string,
@@ -14,7 +13,7 @@ export const useProviderMonthlyData = (
   initialOffset?: string | number
 ) => {
   const initOffset = Number(initialOffset) || 0;
-  return useInfiniteQuery<Data[]>({
+  return useInfiniteQuery<MonthlyData[]>({
     queryKey: ['monthlyProviderData', date, filters.flagStatus],
     queryFn: async ({ pageParam }) => {
       // pageParam defined by getNextPageParam below, offset should only come from the dataLoader

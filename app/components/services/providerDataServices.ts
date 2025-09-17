@@ -1,6 +1,6 @@
 import { fetchWithAuth } from '~/apiClient';
 import { env } from '~/env';
-import type { Data } from '~/types';
+import type { Data, MonthlyData } from '~/types';
 
 export type ProviderFilters = {
   flagStatus: string | undefined;
@@ -36,12 +36,12 @@ export const getMonthlyData = async (
   date: string,
   offset: string,
   filters?: Partial<ProviderFilters>
-): Promise<Data[]> => {
-  let result: Data[] = []
-  const queryString = new URLSearchParams({offset, ...filters}).toString();
+): Promise<MonthlyData[]> => {
+  let result: MonthlyData[] = [];
+  const queryString = new URLSearchParams({ offset, ...filters }).toString();
   let url = `${env.VITE_API_ROOT_API_URL}/providerData/month/${date}`;
   if (queryString) {
-    url +=`?${queryString}`;
+    url += `?${queryString}`;
   }
 
   const authRes = await fetchWithAuth(url, {
@@ -52,12 +52,12 @@ export const getMonthlyData = async (
     throw error;
   }
   try {
-    result = await authRes.json() as unknown as Data[]
+    result = (await authRes.json()) as unknown as MonthlyData[];
   } catch {
-    throw new Error('Failed to parse Monthly response.')
+    throw new Error('Failed to parse Monthly response.');
   }
 
-  return result
+  return result;
 };
 
 export const getAnnualData = async (year: number): Promise<Data[]> => {
