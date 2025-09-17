@@ -140,7 +140,7 @@ const renderCellContent = (
       );
     case 'providerName':
       return (
-        <TooltipTableCell tooltipTitle={row.providerName} key={key} align='left'>
+        <TooltipTableCell tooltipTitle={row.providerName} key={key} subtext={row.city} align='left'>
           {row.providerName}
         </TooltipTableCell>
       );
