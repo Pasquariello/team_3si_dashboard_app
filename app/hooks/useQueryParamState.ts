@@ -2,6 +2,7 @@ import { useReducer, useEffect } from 'react';
 
 export type QueryParamAction =
   | { type: 'SET'; key: string; value: string }
+  | { type: 'ADD'; key: string; value: string }
   | { type: 'DELETE'; key: string }
   | { type: 'REMOVE_ONE'; key: string; value: string | number }
   | { type: 'RESET'; params?: URLSearchParams };
@@ -11,6 +12,9 @@ function reducer(state: URLSearchParams, action: QueryParamAction): URLSearchPar
   switch (action.type) {
     case 'SET':
       sp.set(action.key, action.value);
+      break;
+    case 'ADD':
+      sp.append(action.key, action.value);
       break;
     case 'DELETE':
       sp.delete(action.key);

@@ -1,11 +1,15 @@
 import { Tune } from '@mui/icons-material';
-import { Box, Button, Typography, useTheme } from '@mui/material';
+import { Box, Button, MenuItem, Typography, useTheme } from '@mui/material';
 import { FilterChips } from './FilterChips';
 import { FlagStatusMenuList } from './menus/FlagStatusMenuList';
 import { TableFilterMenu } from './menus/TableFilterMenu';
 import { useQueryParams } from '~/contexts/queryParamContext';
+import { CityMultiSelectMenu } from './menus/CityMultiSelectMenu';
 
-const providerFilters = [{ key: 'flagStatus', label: 'Filter Status' }];
+export const providerFilters = [
+  { key: 'flagStatus', label: 'Filter Status' },
+  { key: 'cities', label: 'City' },
+];
 
 export const ProviderTableFilterBar = () => {
   const theme = useTheme();
@@ -36,7 +40,8 @@ export const ProviderTableFilterBar = () => {
               // TODO: Make TableFilterMenu a Factory
               <Box key={label + key}>
                 <TableFilterMenu filterName={label} queryKey={key}>
-                  <FlagStatusMenuList queryKey={key} />
+                  {key === 'flagStatus' && <FlagStatusMenuList queryKey={key} />}
+                  {key === 'cities' && <CityMultiSelectMenu queryKey={key} />}
                 </TableFilterMenu>
               </Box>
             );
