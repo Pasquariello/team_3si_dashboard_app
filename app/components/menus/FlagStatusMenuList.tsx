@@ -1,9 +1,8 @@
 import { MenuList, MenuItem, Typography, Radio } from '@mui/material';
-import { useContext } from 'react';
-import { QueryParamsContext } from '~/contexts/queryParamContext';
+import { useQueryParams } from '~/contexts/queryParamContext';
 
 export const FlagStatusMenuList = ({ queryKey }: { queryKey: string }) => {
-  const [params, updateQuery] = useContext(QueryParamsContext)!;
+  const [params, updateQuery] = useQueryParams();
 
   const flaggedStatus = params?.get(queryKey) || null;
 

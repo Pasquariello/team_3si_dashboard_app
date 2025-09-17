@@ -1,15 +1,13 @@
 import Chip from '@mui/material/Chip';
 import Stack from '@mui/material/Stack';
-import { useContext } from 'react';
-import { QueryParamsContext } from '~/contexts/queryParamContext';
+import { useQueryParams } from '~/contexts/queryParamContext';
 
 export const FilterChips = ({
   allowedFilters,
 }: {
   allowedFilters: { key: string; label: string }[];
 }) => {
-  const [params, updateQuery] = useContext(QueryParamsContext)!;
-
+  const [params, updateQuery] = useQueryParams();
   const handleDelete = (key: string, value: string) => {
     // reset offset
     updateQuery({ type: 'SET', key: 'offset', value: '0' });

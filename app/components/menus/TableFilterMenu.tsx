@@ -4,7 +4,7 @@ import Menu from '@mui/material/Menu';
 import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
 import { Badge, Box, Typography, useTheme } from '@mui/material';
 import { useContext, useMemo, useState, type MouseEvent } from 'react';
-import { QueryParamsContext } from '~/contexts/queryParamContext';
+import { QueryParamsContext, useQueryParams } from '~/contexts/queryParamContext';
 
 type TableFilterMenuProps = Readonly<{
   filterName: string;
@@ -22,7 +22,7 @@ export const TableFilterMenu = ({
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const theme = useTheme();
   const open = Boolean(anchorEl);
-  const [queryParams] = useContext(QueryParamsContext)!;
+  const [params] = useQueryParams();
 
   const handleClick = (event: MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
@@ -33,9 +33,9 @@ export const TableFilterMenu = ({
   };
   // queryKey must align to a queryParam
   const selectedValues = useMemo(() => {
-    const param = queryParams.getAll(queryKey);
+    const param = params.getAll(queryKey);
     return new Set(param);
-  }, [queryParams, queryKey]);
+  }, [params, queryKey]);
 
   return (
     <Box display={'flex'}>

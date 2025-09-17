@@ -11,7 +11,7 @@ export const onSave = async (
 ): Promise<any> => {
   const { providerLicensingId, comment, flagged } = provider_data;
   const res = await fetch(
-    `${process.env.VITE_API_ROOT_API_URL}/providerData/insights/${providerLicensingId}`,
+    `${env.VITE_API_ROOT_API_URL}/providerData/insights/${providerLicensingId}`,
     {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
