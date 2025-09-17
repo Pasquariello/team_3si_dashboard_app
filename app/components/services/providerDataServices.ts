@@ -72,3 +72,27 @@ export const getAnnualData = async (year: number): Promise<Data[]> => {
   }
   return authRes.json();
 };
+
+export const getProviderCities = async (cityName: string): Promise<string[]> => {
+  let result = [];
+  const queryString = new URLSearchParams({ cityName }).toString();
+  let url = `${env.VITE_API_ROOT_API_URL}/providerData/cities`;
+
+  if (queryString) {
+    url += `?${queryString}`;
+  }
+
+  try {
+    const authRes = await fetchWithAuth(url, { method: 'GET' });
+    if (!authRes.ok) {
+      const error = new Error('Failed to fetch');
+      throw error;
+    }
+
+    result = await authRes.json();
+  } catch (error) {
+    throw error;
+  }
+
+  return result;
+};
