@@ -3,14 +3,13 @@ import { Box, Button, Typography, useTheme } from '@mui/material';
 import { FilterChips } from './FilterChips';
 import { FlagStatusMenuList } from './menus/FlagStatusMenuList';
 import { TableFilterMenu } from './menus/TableFilterMenu';
-import { useContext } from 'react';
-import { QueryParamsContext } from '~/contexts/queryParamContext';
+import { useQueryParams } from '~/contexts/queryParamContext';
 
 const providerFilters = [{ key: 'flagStatus', label: 'Filter Status' }];
 
 export const ProviderTableFilterBar = () => {
   const theme = useTheme();
-  const [params, updateQuery] = useContext(QueryParamsContext)!;
+  const [params, updateQuery] = useQueryParams();
   const clearAllFilters = () => {
     providerFilters.forEach(filter => {
       updateQuery({ type: 'DELETE', key: filter.key });

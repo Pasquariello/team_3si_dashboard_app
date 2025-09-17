@@ -34,7 +34,7 @@ import { queryClient } from '~/queryClient';
 import DescriptionAlerts from '~/components/DescriptionAlerts';
 import { redirect, useParams } from 'react-router';
 import { ProviderTableFilterBar } from '~/components/ProviderTableFilterBar';
-import { QueryParamsContext } from '~/contexts/queryParamContext';
+import { useQueryParams } from '~/contexts/queryParamContext';
 
 const riskThresholds = [
   { max: 4, min: 3, color: 'red' },
@@ -219,7 +219,7 @@ export default function MonthlyProviderData() {
   const [localFlags, setLocalFlags] = useState<string[]>([]);
 
   let params = useParams();
-  const [queryParams, updateQuery] = useContext(QueryParamsContext)!;
+  const [queryParams, updateQuery] = useQueryParams();
   const offset = queryParams?.get('offset') || '0';
   const flagStatus = queryParams?.get('flagStatus') || undefined;
   const { setToken } = useAuth();

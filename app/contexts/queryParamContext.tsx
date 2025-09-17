@@ -1,4 +1,4 @@
-import { createContext } from 'react';
+import { createContext, useContext } from 'react';
 import { useQueryParamsState, type QueryParamAction } from '~/hooks/useQueryParamState';
 type QueryParamsContextType = readonly [URLSearchParams, (a: QueryParamAction) => void];
 
@@ -9,5 +9,8 @@ export const QueryParamsProvider = ({ children }: { children: React.ReactNode })
   return <QueryParamsContext.Provider value={value}>{children}</QueryParamsContext.Provider>;
 };
 
-// In any child component
-// const [params, updateQuery] = useContext(QueryParamsContext)!;
+export const useQueryParams = (): QueryParamsContextType => {
+  const ctx = useContext(QueryParamsContext);
+  if (!ctx) throw new Error('useQueryParams must be used within AuthProvider');
+  return ctx;
+};
