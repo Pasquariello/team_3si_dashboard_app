@@ -13,14 +13,18 @@ export const useProviderMonthlyData = (
   initialOffset?: string | number
 ) => {
   const initOffset = Number(initialOffset) || 0;
+  const cityFilters = filters.cities ? filters.cities : [];
+  // TODO: as we add filters we should update the with them!!
+  const queryKey = ['monthlyProviderData', date, filters.flagStatus, ...cityFilters];
   return useInfiniteQuery<MonthlyData[]>({
-    queryKey: ['monthlyProviderData', date, filters.flagStatus],
+    queryKey: queryKey,
     queryFn: async ({ pageParam }) => {
       // pageParam defined by getNextPageParam below, offset should only come from the dataLoader
       const pageOffset = String(pageParam) || offset;
       // ensure we don't send undefined as a value for filters
       const reqFilters = {
         ...(filters.flagStatus !== undefined ? { flagStatus: filters.flagStatus } : {}),
+        ...(filters.cities !== undefined ? { cities: filters.cities } : {}),
       };
 
       return getMonthlyData(date, pageOffset, reqFilters);

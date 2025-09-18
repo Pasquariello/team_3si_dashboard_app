@@ -4,6 +4,7 @@ import type { Data, MonthlyData } from '~/types';
 
 export type ProviderFilters = {
   flagStatus: string | undefined;
+  cities: string[] | undefined;
 };
 
 export const onSave = async (
@@ -32,16 +33,38 @@ export const onSave = async (
 
 export const FETCH_ROW_COUNT = 200;
 
+const createQueryStringFromFilters = (filters?: Partial<ProviderFilters>) => {
+  if (!filters) return null;
+
+  const params = new URLSearchParams();
+
+  if (filters.flagStatus) {
+    params.append('flagStatus', filters.flagStatus);
+  }
+
+  if (filters.cities?.length) {
+    filters.cities.forEach(value => {
+      params.append('cities', value);
+    });
+  }
+
+  const queryString = params.toString();
+  return queryString || null;
+};
+
 export const getMonthlyData = async (
   date: string,
   offset: string,
   filters?: Partial<ProviderFilters>
 ): Promise<MonthlyData[]> => {
   let result: MonthlyData[] = [];
-  const queryString = new URLSearchParams({ offset, ...filters }).toString();
   let url = `${env.VITE_API_ROOT_API_URL}/providerData/month/${date}`;
+  const offsetMod = new URLSearchParams({ offset }).toString();
+  url += `?${offsetMod}`;
+
+  const queryString = createQueryStringFromFilters(filters);
   if (queryString) {
-    url += `?${queryString}`;
+    url += `&${queryString}`;
   }
 
   const authRes = await fetchWithAuth(url, {

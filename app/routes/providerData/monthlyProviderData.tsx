@@ -195,14 +195,19 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   const url = new URL(request.url);
   const offset = url.searchParams.get('offset') ?? '0';
   const flagStatus = url.searchParams.get('flagStatus') || undefined;
+  const cities = url.searchParams.getAll('cities') || undefined;
   // ensure we don't send undefined as a filter value
   const filters = {
     ...(flagStatus !== undefined ? { flagStatus } : {}),
+    ...(cities !== undefined ? { cities } : {}),
   };
+  const cityFilters = filters.cities ? filters.cities : [];
+  // TODO: as we add filters we should update the with them!!
+  const queryKey = ['monthlyProviderData', date, filters.flagStatus, ...cityFilters];
 
   await queryClient.prefetchInfiniteQuery({
     initialPageParam: offset,
-    queryKey: ['monthlyProviderData', date, flagStatus],
+    queryKey: queryKey,
     queryFn: () => getMonthlyData(date, offset, filters),
   });
 
@@ -222,13 +227,16 @@ export default function MonthlyProviderData() {
   const [queryParams, updateQuery] = useQueryParams();
   const offset = queryParams?.get('offset') || '0';
   const flagStatus = queryParams?.get('flagStatus') || undefined;
+  // Memo for cities?
+  const cities = queryParams.getAll('cities') || undefined;
   const { setToken } = useAuth();
 
   const filters: Partial<ProviderFilters> = useMemo(() => {
     return {
       flagStatus,
+      cities,
     };
-  }, [flagStatus]);
+  }, [flagStatus, cities]);
 
   const { data, fetchNextPage, isFetching, isLoading, error } = useProviderMonthlyData(
     params.date!, // the loader ensures this will be here via redirect
