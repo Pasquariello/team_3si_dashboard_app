@@ -27,7 +27,6 @@ export function CityMultiSelectMenu({ queryKey }: { queryKey: string }) {
     queryKey: [queryKey, inputValue],
     queryFn: async () => {
       const res = await getProviderCities(inputValue);
-      console.log(res);
       return res.map(city => ({
         title: city,
       }));
@@ -40,7 +39,7 @@ export function CityMultiSelectMenu({ queryKey }: { queryKey: string }) {
 
     const handler = setTimeout(() => {
       refetch();
-    }, 300); // debounce 300ms
+    }, 1000); // debounce 1 second
 
     return () => clearTimeout(handler);
   }, [inputValue, refetch]);
@@ -51,43 +50,26 @@ export function CityMultiSelectMenu({ queryKey }: { queryKey: string }) {
     values: { title: string }[],
     reason: string
   ) => {
-    console.log(reason);
     if (reason === 'selectOption') {
+      updateQuery({ type: 'SET', key: 'offset', value: '0' });
       updateQuery({ type: 'ADD', key: queryKey, value: option.title });
     }
     if (reason === 'removeOption') {
+      updateQuery({ type: 'SET', key: 'offset', value: '0' });
       updateQuery({ type: 'REMOVE_ONE', key: queryKey, value: option.title });
     }
   };
+
   const clearAllFilters = () => {
     providerFilters.forEach(filter => {
       updateQuery({ type: 'DELETE', key: filter.key });
     });
   };
+
   const clearAll = () => {
     clearAllFilters();
   };
 
-  console.log(options);
-
-  // const stub = [
-  //   { title: 'Amadeus' },
-  //   { title: 'To Kill a Mockingbird' },
-  //   { title: 'Toy Story 3' },
-  //   { title: 'Logan' },
-  //   { title: 'Full Metal Jacket' },
-  //   { title: 'Dangal' },
-  //   { title: 'The Sting' },
-  //   { title: '2001: A Space Odyssey' },
-  //   { title: "Singin' in the Rain" },
-  //   { title: 'Toy Story' },
-  //   { title: 'Bicycle Thieves' },
-  //   { title: 'The Kid' },
-  //   { title: 'Inglourious Basterds' },
-  //   { title: 'Snatch' },
-  //   { title: '3 Idiots' },
-  //   { title: 'Monty Python and the Holy Grail' },
-  // ];
   return (
     <Autocomplete
       onOpen={async () => refetch()}

@@ -7,7 +7,7 @@ import { useQueryParams } from '~/contexts/queryParamContext';
 import { CityMultiSelectMenu } from './menus/CityMultiSelectMenu';
 
 export const providerFilters = [
-  { key: 'flagStatus', label: 'Filter Status' },
+  { key: 'flagStatus', label: 'Flag Status' },
   { key: 'cities', label: 'City' },
 ];
 
