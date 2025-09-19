@@ -2,7 +2,7 @@ import { Box, Button, Divider, TextField, useTheme } from '@mui/material';
 
 import DownloadIcon from '@mui/icons-material/Download';
 
-function EnhancedTableToolbar() {
+function EnhancedTableToolbar({ searchHandler }: { searchHandler: (val: string) => void }) {
   const theme = useTheme();
   return (
     <Box
@@ -17,6 +17,7 @@ function EnhancedTableToolbar() {
       <TextField
         placeholder='Search by provider name or ID...'
         variant='outlined'
+        onChange={event => searchHandler(event.target.value)}
         size='small'
         fullWidth
       />
