@@ -1,6 +1,6 @@
 import { fetchWithAuth } from '~/apiClient';
 import { env } from '~/env';
-import type { Data, MonthlyData } from '~/types';
+import type { Data, Data2, MonthlyData } from '~/types';
 
 export type ProviderFilters = {
   flagStatus: string | undefined;
@@ -83,7 +83,7 @@ export const getMonthlyData = async (
   return result;
 };
 
-export const getAnnualData = async (year: number): Promise<Data[]> => {
+export const getAnnualData = async (year: string): Promise<Data2[]> => {
   console.log(`HERE!!!! ${env.VITE_API_ROOT_API_URL}/annual/${year}`);
 
   const authRes = await fetchWithAuth(`${env.VITE_API_ROOT_API_URL}/providerData/annual/${year}`, {
