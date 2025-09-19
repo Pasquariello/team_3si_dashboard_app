@@ -222,6 +222,7 @@ export default function MonthlyProviderData() {
   const [orderBy, setOrderBy] = useState<keyof MonthlyData>('overallRiskScore');
   const [flagModalOpenId, setFlagModalOpenId] = useState<string | null>(null);
   const [localFlags, setLocalFlags] = useState<string[]>([]);
+  const [searchValue, setSearchValue] = useState<string>('');
 
   let params = useParams();
   const [queryParams, updateQuery] = useQueryParams();
@@ -252,7 +253,17 @@ export default function MonthlyProviderData() {
   }, [error]);
 
   const visibleRows = useMemo<MonthlyData[]>((): MonthlyData[] => {
-    const items = data?.pages.flat() || [];
+    const items =
+      data?.pages.flat().filter(dataRow => {
+        const providerName = dataRow.providerName.toLocaleLowerCase();
+        const providerId = dataRow.providerLicensingId.toLocaleLowerCase();
+        const searchTerm = searchValue.toLocaleLowerCase();
+        if (providerName.includes(searchTerm) || providerId.includes(searchTerm)) {
+          return true;
+        }
+        return false;
+      }) || [];
+
     setLocalFlags(() =>
       items.reduce((acc, curr) => {
         if (curr.flagged) {
@@ -266,8 +277,9 @@ export default function MonthlyProviderData() {
         return acc;
       }, localFlags)
     );
+
     return getVisibleRows<MonthlyData>(items, order, orderBy);
-  }, [order, orderBy, data]);
+  }, [order, orderBy, data, searchValue]);
 
   const rowContent = (index: number, row: MonthlyData) => {
     const labelId = `enhanced-table-checkbox-${index}`;
@@ -396,9 +408,10 @@ export default function MonthlyProviderData() {
     }
   };
 
-  const handleEndScroll = (arg: any) => {
-    // fix for when we request a page that immediately shows the end row
-    if ((arg + 1) % 200 === 0) {
+  const handleEndScroll = (_rowCount: number) => {
+    // rowCount is the visible rows in the table
+    // since we can locally filter we need to check the results from cache
+    if ((data?.pages?.flat().length || 0 + 1) % 200 === 0) {
       fetchNextPage().then(() => updateOffset());
     }
   };
@@ -454,7 +467,7 @@ export default function MonthlyProviderData() {
         >
           <Box display={'flex'} flex={1} gap={1} width={'100%'}>
             <DatePickerViews label={'"month" and "year"'} views={['year', 'month']} />
-            <EnhancedTableToolbar />
+            <EnhancedTableToolbar searchHandler={setSearchValue} />
           </Box>
           <Divider orientation='horizontal' flexItem />
           <ProviderTableFilterBar />
