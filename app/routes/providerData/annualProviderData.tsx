@@ -6,10 +6,9 @@ import { TooltipTableCell } from '~/components/table/TooltipTableCell';
 
 import { useState, forwardRef, Fragment, useMemo, useEffect } from 'react';
 
-
 import type { Route } from './+types/annualProviderData';
-import type { Data2, HeadCell, Order } from '~/types';
-import { useQuery } from "@tanstack/react-query";
+import type { Data, Data2, HeadCell, Order } from '~/types';
+import { useQuery } from '@tanstack/react-query';
 
 import { useTheme } from '@mui/material/styles';
 import {
@@ -154,7 +153,6 @@ const rows1 = [
   createData('4', false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
   createData('5', true, 'Kiddie Cove', 50, 1, 1, 1, 1),
   createData('6', false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
-
 ];
 
 // Provider ID
@@ -165,13 +163,13 @@ const rows1 = [
 // Distance Traveled (integer: number of months with value 1, range: 0–12)
 // Providers with Same Address (integer: number of months with value 1, range: 0–12)
 
-      // c.provider_licensing_id,
-      // pa.provider_name,
-      // c.total_billed_over_capacity,
-      // c.total_placed_over_capacity,
-      // c.total_distance_traveled,
-      // c.total_same_address,
-      // c.overall_risk_score
+// c.provider_licensing_id,
+// pa.provider_name,
+// c.total_billed_over_capacity,
+// c.total_placed_over_capacity,
+// c.total_distance_traveled,
+// c.total_same_address,
+// c.overall_risk_score
 const headCells: readonly HeadCell[] = [
   {
     id: 'flagged',
@@ -223,7 +221,6 @@ const headCells: readonly HeadCell[] = [
   },
 ];
 
-
 const fixedHeaderContent = () => {
   return (
     <TableRow>
@@ -242,34 +239,30 @@ const fixedHeaderContent = () => {
   );
 };
 
-  const riskThresholds = [
-    { max: 100, min: 90, color: 'red' },
-    { max: 90, min: 80, color: 'orange' },
-    { max: 80, min: 0, color: 'green' },
-  ];
+const riskThresholds = [
+  { max: 100, min: 90, color: 'red' },
+  { max: 90, min: 80, color: 'orange' },
+  { max: 80, min: 0, color: 'green' },
+];
 
+function getColor(value: number) {
+  const valPercent = (value / 48) * 100;
+  const match = riskThresholds.find(
+    // threshold => value <= threshold.max && value >= threshold.min
+    threshold => valPercent <= threshold.max && valPercent >= threshold.min
 
-  function getColor(value: number) {
-    const valPercent = (value / 48 ) * 100;
-    const match = riskThresholds.find(
-      // threshold => value <= threshold.max && value >= threshold.min
-      threshold => valPercent  <= threshold.max && valPercent >= threshold.min
-
-      // threshold => value <= (threshold.max / 48 ) * 100 && value >= (threshold.min / 48 ) * 100
-
-    );
-    return match ? match.color : 'defaultColor';
-  }
-
+    // threshold => value <= (threshold.max / 48 ) * 100 && value >= (threshold.min / 48 ) * 100
+  );
+  return match ? match.color : 'defaultColor';
+}
 
 const renderCellContent = (
-  row: Data,
+  row: Data2,
   columnId: HeadCell['id'],
   isItemSelected: boolean,
   labelId: string,
   key: string
 ): React.ReactNode => {
-
   switch (columnId) {
     case 'provider_licensing_id':
       return (
@@ -331,9 +324,6 @@ const renderCellContent = (
   }
 };
 
-
-
-
 export default function AnnualProviderData() {
   const theme = useTheme();
   const [order, setOrder] = React.useState<Order>('desc');
@@ -343,17 +333,22 @@ export default function AnnualProviderData() {
   const [orderBy, setOrderBy] = React.useState<keyof Data2>('overall_risk_score');
   const [selected, setSelected] = React.useState<readonly string[]>([]);
   const [selectedPeriod, setSelectedPeriod] = React.useState<string>('2024');
+  const [searchValue, setSearchValue] = useState<string>('');
 
   // const [rows, setRows] = React.useState<Data[]>([]);
 
-
-   const { data: rows = [], isLoading, isFetching, refetch} = useQuery({
-    queryKey: ["annualData", selectedPeriod],
+  const {
+    data: rows = [],
+    isLoading,
+    isFetching,
+    refetch,
+  } = useQuery({
+    queryKey: ['annualData', selectedPeriod],
     queryFn: () => getAnnualData(selectedPeriod),
     staleTime: 5 * 60 * 1000, // 5 minutes cache
   });
 
-  console.log('rows', rows)
+  console.log('rows', rows);
 
   //  const getData = async () => {
   //     try {
@@ -384,8 +379,7 @@ export default function AnnualProviderData() {
   const handlePeriodChange = (event: any) => {
     setSelectedPeriod(event.target.value);
 
-     refetch()
-
+    refetch();
 
     // You could also trigger a data reload here
   };
@@ -398,7 +392,7 @@ export default function AnnualProviderData() {
 
   const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
-      const newSelected = rows.map(n => n.providerLicensingId);
+      const newSelected = rows.map(n => n.provider_licensing_id);
       setSelected(newSelected);
       return;
     }
@@ -424,7 +418,6 @@ export default function AnnualProviderData() {
     setSelected(newSelected);
   };
 
-
   // function getColor(value: number) {
   //   const valPercent = (value / 48 ) * 100;
   //   const match = riskThresholds.find(
@@ -437,17 +430,27 @@ export default function AnnualProviderData() {
   //   return match ? match.color : 'defaultColor';
   // }
 
-  const visibleRows = getVisibleRows(rows, order, orderBy);
-  // const visibleRows =  [];
+  const visibleRows = useMemo(() => {
+    const items =
+      rows.filter(dataRow => {
+        const providerName = dataRow.provider_name.toLocaleLowerCase();
+        const providerId = dataRow.provider_licensing_id.toLocaleLowerCase();
+        const searchTerm = searchValue.toLocaleLowerCase();
+        if (providerName.includes(searchTerm) || providerId.includes(searchTerm)) {
+          return true;
+        }
+        return false;
+      }) || [];
 
-  const renderTableCellContent = (value: string | number) => (value === null ? '--' : value);
+    return getVisibleRows(items, order, orderBy);
+  }, [rows, orderBy, order, searchValue]);
 
   const handleCloseModal = () => {
     setFlagModalOpenId(null);
   };
-
+  // TODO: get comments and flags from API
   const handleOnSave = async (
-    row_data: Pick<Data2, 'comment' | 'flagged' | 'providerLicensingId'>
+    row_data: Pick<Data2, 'comment' | 'flagged' | 'provider_licensing_id'>
   ) => {
     const res = await onSave(row_data);
 
@@ -465,36 +468,30 @@ export default function AnnualProviderData() {
     }
   };
 
-
-  // newVirtuoso functions 
+  // newVirtuoso functions
   const [localFlags, setLocalFlags] = useState<string[]>([]);
 
-    const handleEndScroll = (arg: any) => {
+  const handleEndScroll = (arg: any) => {
     // fix for when we request a page that immediately shows the end row
     if ((arg + 1) % 200 === 0) {
       fetchNextPage().then(() => updateOffset());
     }
   };
 
+  const rowContent = (index: number, row: Data2) => {
+    const isItemSelected = selected.includes(row.provider_licensing_id);
+    const labelId = `enhanced-table-checkbox-${index}`;
+    return (
+      <Fragment>
+        {headCells.map((column, index) => {
+          const key = `${index}-${column.id}-${row.provider_licensing_id}`;
+          return renderCellContent(row, column.id, isItemSelected, labelId, key);
+        })}
+      </Fragment>
+    );
+  };
 
-
-
-    const rowContent = (index: number, row: Data2) => {
-      const isItemSelected = selected.includes(row.providerLicensingId);
-      const labelId = `enhanced-table-checkbox-${index}`;
-      return (
-        <Fragment>
-          {headCells.map((column, index) => {
-            const key = `${index}-${column.id}-${row.providerLicensingId}`;
-            return renderCellContent(row, column.id, isItemSelected, labelId, key);
-          })}
-        </Fragment>
-      );
-    };
-
-
-     
-//  MORE new stuff - taylor
+  //  MORE new stuff - taylor
 
   // const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
   //   if (event.target.checked) {
@@ -505,7 +502,7 @@ export default function AnnualProviderData() {
   //   setSelected([]);
   // };
 
-    const handleCheck = (event: React.MouseEvent<unknown>, id: string) => {
+  const handleCheck = (event: React.MouseEvent<unknown>, id: string) => {
     setFlagModalOpenId(id);
 
     if (selected.includes(id)) {
@@ -517,7 +514,7 @@ export default function AnnualProviderData() {
     }
   };
 
- const VirtuosoTableComponents: TableComponents<Data2> = {
+  const VirtuosoTableComponents: TableComponents<Data2> = {
     Scroller,
     Table: props => (
       <Table stickyHeader aria-label='sticky table' sx={{ tableLayout: 'fixed' }} {...props} />
@@ -549,40 +546,36 @@ export default function AnnualProviderData() {
       <TableBody {...props} ref={ref} />
     )),
   };
-  
-  console.log('visibleRows', visibleRows)
+
+  console.log('visibleRows', visibleRows);
   const renderTable = () => (
     <TableContainer component={Paper} sx={{ height: '97vh', flexGrow: 1, overflow: 'auto' }}>
-       <TableVirtuoso
-                    data={visibleRows}
-                    endReached={handleEndScroll}
-                    fixedHeaderContent={fixedHeaderContent}
-                    increaseViewportBy={FETCH_ROW_COUNT}
-                    itemContent={rowContent}
-                    components={VirtuosoTableComponents}
-                    fixedFooterContent={() =>
-                      isFetching || isLoading ? (
-                        <TableRow sx={{ backgroundColor: 'lightgray' }}>
-                          <TableCell
-                            colSpan={headCells.length}
-                            sx={{ textAlign: 'center' }}
-                            align='center'
-                          >
-                            <Box
-                              sx={{
-                                width: '100%',
-                                textAlign: 'center',
-                                display: 'block',
-                              }}
-                            >
-                              {/* <CircularProgress size={24} /> */}
-                            </Box>
-                          </TableCell>
-                        </TableRow>
-                      ) : null
-                    }
-                  />
-      
+      <TableVirtuoso
+        data={visibleRows}
+        endReached={handleEndScroll}
+        fixedHeaderContent={fixedHeaderContent}
+        increaseViewportBy={FETCH_ROW_COUNT}
+        itemContent={rowContent}
+        components={VirtuosoTableComponents}
+        fixedFooterContent={() =>
+          isFetching || isLoading ? (
+            <TableRow sx={{ backgroundColor: 'lightgray' }}>
+              <TableCell colSpan={headCells.length} sx={{ textAlign: 'center' }} align='center'>
+                <Box
+                  sx={{
+                    width: '100%',
+                    textAlign: 'center',
+                    display: 'block',
+                  }}
+                >
+                  {/* <CircularProgress size={24} /> */}
+                </Box>
+              </TableCell>
+            </TableRow>
+          ) : null
+        }
+      />
+
       {/* <Table stickyHeader aria-label='sticky table'>
         <EnhancedTableHead
           numSelected={selected.length}
@@ -676,7 +669,8 @@ export default function AnnualProviderData() {
           onSave={(data: any) => handleOnSave(data)}
           disableRemove={false}
           providerData={
-            visibleRows.find(data => data.providerLicensingId === flagModalOpenId) || ({} as Data2)
+            visibleRows.find(data => data.provider_licensing_id === flagModalOpenId) ||
+            ({} as Data2)
           }
         />
 
@@ -696,9 +690,9 @@ export default function AnnualProviderData() {
           }}
         >
           {/* ^ that line added  height: '100vh', display: 'flex', flexDirection: 'column' */}
-          <Box sx={{ my: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Box sx={{ my: 1, display: 'flex', alignItems: 'center', gap: 2 }}>
             <YearOrRangeSelector value={selectedPeriod} onChange={handlePeriodChange} />
-            <EnhancedTableToolbar />
+            <EnhancedTableToolbar searchHandler={setSearchValue} />
           </Box>
           {visibleRows.length ? renderTable() : <NoData />}
         </Box>

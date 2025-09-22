@@ -1,9 +1,9 @@
-import { Box, Button, Divider, TextField } from '@mui/material';
+import { Box, Button, Divider, TextField, useTheme } from '@mui/material';
 
 import DownloadIcon from '@mui/icons-material/Download';
-import { TableFilterMenu } from '../menus/TableFilterMenu';
 
-function EnhancedTableToolbar() {
+function EnhancedTableToolbar({ searchHandler }: { searchHandler: (val: string) => void }) {
+  const theme = useTheme();
   return (
     <Box
       sx={{
@@ -11,25 +11,25 @@ function EnhancedTableToolbar() {
         gap: 1,
         alignItems: 'stretch', // 👈 ensures all items match height
         width: '100%',
-        // my: 4,
       }}
     >
+      {/* TODO: Hook up for local search */}
       <TextField
         placeholder='Search by provider name or ID...'
         variant='outlined'
+        onChange={event => searchHandler(event.target.value)}
         size='small'
         fullWidth
-        // sx={{flexGrow: 1 }}
       />
-
-      <TableFilterMenu />
 
       <Divider orientation='vertical' flexItem sx={{ mx: 0.5 }} />
 
       <Button
         variant='outlined'
         size='small'
-        sx={{ alignSelf: 'stretch' }} // 👈 grow to match sibling height
+        sx={{
+          alignSelf: 'stretch',
+        }}
         startIcon={<DownloadIcon />}
       >
         Export

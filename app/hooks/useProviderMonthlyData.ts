@@ -1,25 +1,33 @@
 import { useInfiniteQuery } from '@tanstack/react-query';
-import { redirect } from 'react-router';
 import {
   FETCH_ROW_COUNT,
   getMonthlyData,
   type ProviderFilters,
 } from '~/components/services/providerDataServices';
-import type { Data } from '~/types';
+import type { MonthlyData } from '~/types';
 
 export const useProviderMonthlyData = (
   date: string,
   offset: string,
   filters: Partial<ProviderFilters>,
-  initialOffset?: string | number,
+  initialOffset?: string | number
 ) => {
-  const initOffset = Number(initialOffset) || 0
-  return useInfiniteQuery<Data[]>({
-    queryKey: ['monthlyProviderData', date, filters.flagged, filters.unflagged],
+  const initOffset = Number(initialOffset) || 0;
+  const cityFilters = filters.cities ? filters.cities : [];
+  // TODO: as we add filters we should update the with them!!
+  const queryKey = ['monthlyProviderData', date, filters.flagStatus, ...cityFilters];
+  return useInfiniteQuery<MonthlyData[]>({
+    queryKey: queryKey,
     queryFn: async ({ pageParam }) => {
       // pageParam defined by getNextPageParam below, offset should only come from the dataLoader
       const pageOffset = String(pageParam) || offset;
-      return getMonthlyData(date, pageOffset, filters);
+      // ensure we don't send undefined as a value for filters
+      const reqFilters = {
+        ...(filters.flagStatus !== undefined ? { flagStatus: filters.flagStatus } : {}),
+        ...(filters.cities !== undefined ? { cities: filters.cities } : {}),
+      };
+
+      return getMonthlyData(date, pageOffset, reqFilters);
     },
     initialPageParam: initOffset,
     getNextPageParam: (lastPage, pages) => {
@@ -34,4 +42,4 @@ export const useProviderMonthlyData = (
     refetchOnReconnect: false,
     refetchOnWindowFocus: false,
   });
-}
+};

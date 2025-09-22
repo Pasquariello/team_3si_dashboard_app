@@ -5,20 +5,20 @@ import {
   Backdrop,
   Box,
   CircularProgress,
+  Divider,
   Table,
   TableBody,
   TableCell,
   TableRow,
 } from '@mui/material';
 
-import type { Data, HeadCell, Order } from '~/types';
+import type { HeadCell, MonthlyData, Order } from '~/types';
 import DatePickerViews from '~/components/DatePickerViews';
 import EnhancedTableToolbar from '~/components/table/EnhancedTableToolbar';
 import { getVisibleRows } from '~/utils/table';
 import type { Route } from './+types/monthlyProviderData';
 import FlagModal from '~/components/modals/FlagModal';
 import NoData from '~/components/NoData';
-import { useQueryParamsState } from '~/hooks/useQueryParamState';
 import { useProviderMonthlyData } from '~/hooks/useProviderMonthlyData';
 import { CheckboxDataRow, type VirtuosoDataRowProps } from '~/components/table/CheckBoxDataRow';
 import { Scroller } from '~/components/table/VirutalTableScroller';
@@ -33,6 +33,8 @@ import { useAuth } from '~/contexts/authContext';
 import { queryClient } from '~/queryClient';
 import DescriptionAlerts from '~/components/DescriptionAlerts';
 import { redirect, useParams } from 'react-router';
+import { ProviderTableFilterBar } from '~/components/ProviderTableFilterBar';
+import { useQueryParams } from '~/contexts/queryParamContext';
 
 const riskThresholds = [
   { max: 4, min: 3, color: 'red' },
@@ -117,7 +119,7 @@ const fixedHeaderContent = () => {
 };
 
 const renderCellContent = (
-  row: Data,
+  row: MonthlyData,
   columnId: HeadCell['id'],
   labelId: string,
   key: string
@@ -138,7 +140,7 @@ const renderCellContent = (
       );
     case 'providerName':
       return (
-        <TooltipTableCell tooltipTitle={row.providerName} key={key} align='left'>
+        <TooltipTableCell tooltipTitle={row.providerName} key={key} subtext={row.city} align='left'>
           {row.providerName}
         </TooltipTableCell>
       );
@@ -192,13 +194,21 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   }
   const url = new URL(request.url);
   const offset = url.searchParams.get('offset') ?? '0';
-  const flagged = url.searchParams.get('flagged') || undefined;
-  const unflagged = url.searchParams.get('unflagged') || undefined;
+  const flagStatus = url.searchParams.get('flagStatus') || undefined;
+  const cities = url.searchParams.getAll('cities') || undefined;
+  // ensure we don't send undefined as a filter value
+  const filters = {
+    ...(flagStatus !== undefined ? { flagStatus } : {}),
+    ...(cities !== undefined ? { cities } : {}),
+  };
+  const cityFilters = filters.cities ? filters.cities : [];
+  // TODO: as we add filters we should update the with them!!
+  const queryKey = ['monthlyProviderData', date, filters.flagStatus, ...cityFilters];
 
   await queryClient.prefetchInfiniteQuery({
     initialPageParam: offset,
-    queryKey: ['monthlyProviderData', date, flagged, unflagged],
-    queryFn: () => getMonthlyData(date, offset, { flagged, unflagged }),
+    queryKey: queryKey,
+    queryFn: () => getMonthlyData(date, offset, filters),
   });
 
   return null;
@@ -209,30 +219,31 @@ export default function MonthlyProviderData() {
   const [selected, setSelected] = useState<readonly string[]>([]);
   const [order, setOrder] = useState<Order>('desc');
   const [alert, setAlert] = useState<{ success: string; message: string } | null>(null);
-  const [orderBy, setOrderBy] = useState<keyof Data>('overallRiskScore');
+  const [orderBy, setOrderBy] = useState<keyof MonthlyData>('overallRiskScore');
   const [flagModalOpenId, setFlagModalOpenId] = useState<string | null>(null);
   const [localFlags, setLocalFlags] = useState<string[]>([]);
+  const [searchValue, setSearchValue] = useState<string>('');
 
   let params = useParams();
-  const [queryParams, updateQuery] = useQueryParamsState();
+  const [queryParams, updateQuery] = useQueryParams();
   const offset = queryParams?.get('offset') || '0';
-  const isFlagged = queryParams?.get('flagged') || undefined;
-  const isUnflagged = queryParams?.get('unflagged') || undefined;
+  const flagStatus = queryParams?.get('flagStatus') || undefined;
+  // Memo for cities?
+  const cities = queryParams.getAll('cities') || undefined;
   const { setToken } = useAuth();
 
   const filters: Partial<ProviderFilters> = useMemo(() => {
     return {
-      flagged: isFlagged,
-      unflagged: isUnflagged,
+      flagStatus,
+      cities,
     };
-  }, [isFlagged, isUnflagged]);
-  console.log(filters);
+  }, [flagStatus, cities]);
 
   const { data, fetchNextPage, isFetching, isLoading, error } = useProviderMonthlyData(
     params.date!, // the loader ensures this will be here via redirect
     offset,
     filters,
-    offset,
+    offset
   );
 
   useEffect(() => {
@@ -241,8 +252,18 @@ export default function MonthlyProviderData() {
     }
   }, [error]);
 
-  const visibleRows = useMemo(() => {
-    const items = data?.pages.flat() || [];
+  const visibleRows = useMemo<MonthlyData[]>((): MonthlyData[] => {
+    const items =
+      data?.pages.flat().filter(dataRow => {
+        const providerName = dataRow.providerName.toLocaleLowerCase();
+        const providerId = dataRow.providerLicensingId.toLocaleLowerCase();
+        const searchTerm = searchValue.toLocaleLowerCase();
+        if (providerName.includes(searchTerm) || providerId.includes(searchTerm)) {
+          return true;
+        }
+        return false;
+      }) || [];
+
     setLocalFlags(() =>
       items.reduce((acc, curr) => {
         if (curr.flagged) {
@@ -256,10 +277,11 @@ export default function MonthlyProviderData() {
         return acc;
       }, localFlags)
     );
-    return getVisibleRows(items, order, orderBy);
-  }, [order, orderBy, data]);
 
-  const rowContent = (index: number, row: Data) => {
+    return getVisibleRows<MonthlyData>(items, order, orderBy);
+  }, [order, orderBy, data, searchValue]);
+
+  const rowContent = (index: number, row: MonthlyData) => {
     const labelId = `enhanced-table-checkbox-${index}`;
     return (
       <Fragment>
@@ -294,7 +316,7 @@ export default function MonthlyProviderData() {
   };
 
   // will eventually requery
-  const handleRequestSort = (event: React.MouseEvent<unknown>, property: keyof Data) => {
+  const handleRequestSort = (event: React.MouseEvent<unknown>, property: keyof MonthlyData) => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
     setOrderBy(property);
@@ -309,7 +331,7 @@ export default function MonthlyProviderData() {
     setSelected([]);
   };
 
-  const VirtuosoTableComponents: TableComponents<Data> = {
+  const VirtuosoTableComponents: TableComponents<MonthlyData> = {
     Scroller,
     Table: props => (
       <Table stickyHeader aria-label='sticky table' sx={{ tableLayout: 'fixed' }} {...props} />
@@ -346,11 +368,9 @@ export default function MonthlyProviderData() {
     if (isFetching || isLoading) {
       return;
     }
-    const previousOffset = queryParams.get('offset');
-    if (typeof previousOffset === 'string') {
-      const nextOffset = Number(previousOffset) + FETCH_ROW_COUNT;
-      updateQuery('offset', String(nextOffset));
-    }
+    // Our scroll offset is tracked by our cache :)
+    const items = data?.pages.flat().length;
+    updateQuery({ type: 'SET', key: 'offset', value: String(items) });
   };
 
   const handleCloseModal = (isFlagged?: boolean, rowId?: string) => {
@@ -363,7 +383,7 @@ export default function MonthlyProviderData() {
   };
 
   const handleOnSave = async (
-    row_data: Pick<Data, 'comment' | 'flagged' | 'providerLicensingId'>
+    row_data: Pick<MonthlyData, 'comment' | 'flagged' | 'providerLicensingId'>
   ) => {
     setIsLoadingOverlayActive(true);
     const res = await onSave(row_data);
@@ -377,9 +397,9 @@ export default function MonthlyProviderData() {
       handleCloseModal(row_data.flagged, row_data.providerLicensingId);
       // data has changed in the DB
       queryClient.invalidateQueries({
-        queryKey: ['monthlyProviderData', params.date, filters],
+        queryKey: ['monthlyProviderData', params.date],
       });
-      updateQuery('offset', String(0));
+      updateQuery({ type: 'SET', key: 'offset', value: '0' });
     } else {
       setAlert({
         success: 'error',
@@ -388,9 +408,10 @@ export default function MonthlyProviderData() {
     }
   };
 
-  const handleEndScroll = (arg: any) => {
-    // fix for when we request a page that immediately shows the end row
-    if ((arg + 1) % 200 === 0) {
+  const handleEndScroll = (_rowCount: number) => {
+    // rowCount is the visible rows in the table
+    // since we can locally filter we need to check the results from cache
+    if ((data?.pages?.flat().length || 0 + 1) % 200 === 0) {
       fetchNextPage().then(() => updateOffset());
     }
   };
@@ -415,7 +436,8 @@ export default function MonthlyProviderData() {
         onSave={handleOnSave}
         disableRemove={flagModalOpenId ? !localFlags.includes(flagModalOpenId) : false}
         providerData={
-          visibleRows.find(data => data.providerLicensingId === flagModalOpenId) || ({} as Data)
+          visibleRows.find(data => data.providerLicensingId === flagModalOpenId) ||
+          ({} as MonthlyData)
         }
       />
 
@@ -434,9 +456,21 @@ export default function MonthlyProviderData() {
           flexGrow: 1,
         }}
       >
-        <Box sx={{ my: 4, display: 'flex', alignItems: 'center', gap: 2 }}>
-          <DatePickerViews label={'"month" and "year"'} views={['year', 'month']} />
-          <EnhancedTableToolbar />
+        <Box
+          sx={{
+            my: 1,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            flexDirection: 'column',
+          }}
+        >
+          <Box display={'flex'} flex={1} gap={1} width={'100%'}>
+            <DatePickerViews label={'"month" and "year"'} views={['year', 'month']} />
+            <EnhancedTableToolbar searchHandler={setSearchValue} />
+          </Box>
+          <Divider orientation='horizontal' flexItem />
+          <ProviderTableFilterBar />
         </Box>
         {visibleRows.length ? (
           <Box height={'97vh'}>

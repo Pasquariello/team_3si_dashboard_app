@@ -8,7 +8,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import Typography from '@mui/material/Typography';
 import { Box, TextField } from '@mui/material';
 import OutlinedFlagIcon from '@mui/icons-material/OutlinedFlag';
-import type { Data } from '~/types';
+import type { Data, MonthlyData } from '~/types';
 import { useEffect, useState } from 'react';
 
 type FlagModalProps = Readonly<{
@@ -16,7 +16,7 @@ type FlagModalProps = Readonly<{
   onClose: () => void;
   onSave: (data: Pick<Data, 'comment' | 'flagged' | 'providerLicensingId'>) => void;
   disableRemove: boolean;
-  providerData: Data;
+  providerData: Data | MonthlyData;
 }>;
 
 export default function FlagModal({
@@ -30,15 +30,13 @@ export default function FlagModal({
   const [comment, setComment] = useState('');
 
   useEffect(() => {
-    if (providerData?.comment) {
-      setComment(providerData.comment || '');
-    }
+    setComment(providerData?.comment || '');
   }, [providerData?.comment]);
 
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setComment(e.target.value);
   };
-  // TODO: clean/limit Comment 
+  // TODO: clean/limit Comment
   const handleOnSave = () => {
     if (providerData) {
       onSave({
@@ -48,7 +46,7 @@ export default function FlagModal({
       });
     }
   };
-  // TODO: clean/limit Comment 
+  // TODO: clean/limit Comment
   const handleRemoveFlag = () => {
     if (providerData) {
       onSave({ providerLicensingId: providerData?.providerLicensingId, comment, flagged: false });
