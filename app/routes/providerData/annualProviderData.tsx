@@ -246,7 +246,7 @@ const riskThresholds = [
 ];
 
 function getColor(value: number) {
-  const valPercent = (value / 48) * 100;
+  const valPercent = (value / 48) * 100; // 48 is highest possible value so this calcs percentage 
   const match = riskThresholds.find(
     // threshold => value <= threshold.max && value >= threshold.min
     threshold => valPercent <= threshold.max && valPercent >= threshold.min
