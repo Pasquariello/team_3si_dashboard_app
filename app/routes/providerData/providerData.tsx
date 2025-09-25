@@ -69,8 +69,6 @@ export default function ProviderData() {
   return (
     <Box
       sx={{
-        py: 3,
-        px: 4,
         display: 'flex',
         flexDirection: 'column',
         minHeight: '100vh',
