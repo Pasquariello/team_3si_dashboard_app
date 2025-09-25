@@ -1,6 +1,7 @@
-import { Box, Typography } from '@mui/material';
+import { Box, Typography, useTheme } from '@mui/material';
 
 export default function NoData() {
+  const theme = useTheme();
   return (
     <Box
       sx={{
@@ -9,6 +10,7 @@ export default function NoData() {
         height: '100%',
         justifyContent: 'center',
         alignItems: 'center',
+        backgroundColor: theme.palette.primary.contrastText,
       }}
     >
       <Typography

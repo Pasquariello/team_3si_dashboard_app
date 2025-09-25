@@ -4,7 +4,7 @@ import { CheckboxDataRow, type VirtuosoDataRowProps } from '~/components/table/C
 import { Scroller } from '~/components/table/VirutalTableScroller';
 import { TooltipTableCell } from '~/components/table/TooltipTableCell';
 
-import { useState, forwardRef, Fragment, useMemo, useEffect } from 'react';
+import { useState, forwardRef, Fragment, useMemo } from 'react';
 
 import type { Route } from './+types/annualProviderData';
 import type { Data, Data2, HeadCell, Order } from '~/types';
@@ -13,7 +13,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useTheme } from '@mui/material/styles';
 import {
   Box,
-  Checkbox,
+  Divider,
   Paper,
   Table,
   TableBody,
@@ -22,8 +22,6 @@ import {
   TableRow,
 } from '@mui/material';
 
-import FlagIcon from '@mui/icons-material/Flag';
-import OutlinedFlagIcon from '@mui/icons-material/OutlinedFlag';
 
 import EnhancedTableHead from '~/components/table/EnhancedTableHead';
 import EnhancedTableToolbar from '~/components/table/EnhancedTableToolbar';
@@ -34,6 +32,7 @@ import FlagModal from '~/components/modals/FlagModal';
 import NoData from '~/components/NoData';
 import { FETCH_ROW_COUNT, getAnnualData, onSave } from '~/components/services/providerDataServices';
 import DescriptionAlerts from '~/components/DescriptionAlerts';
+import { ProviderTableFilterBar } from '~/components/ProviderTableFilterBar';
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -246,7 +245,7 @@ const riskThresholds = [
 ];
 
 function getColor(value: number) {
-  const valPercent = (value / 48) * 100; // 48 is highest possible value so this calcs percentage 
+  const valPercent = (value / 48) * 100; // 48 is highest possible value so this calcs percentage
   const match = riskThresholds.find(
     // threshold => value <= threshold.max && value >= threshold.min
     threshold => valPercent <= threshold.max && valPercent >= threshold.min
@@ -653,6 +652,23 @@ export default function AnnualProviderData() {
 
   return (
     <>
+      {/* TODO: Probably should refactor so checking a flag just sets the entire dataset we need not just an id, that way we can reduce the props being passed and remove a .find() */}
+      <FlagModal
+        open={!!flagModalOpenId}
+        onClose={handleCloseModal}
+        onSave={(data: any) => handleOnSave(data)}
+        disableRemove={false}
+        providerData={
+          visibleRows.find(data => data.provider_licensing_id === flagModalOpenId) || ({} as Data2)
+        }
+      />
+
+      <DescriptionAlerts
+        severity={alert?.success}
+        message={alert?.message}
+        open={alert !== null}
+        handleClose={() => setAlert(null)}
+      />
       <Box
         sx={{
           width: '100%',
@@ -660,42 +676,28 @@ export default function AnnualProviderData() {
           display: 'flex',
           flexDirection: 'column',
           flexGrow: 1,
+          backgroundColor: theme.palette.cusp_iron.light,
         }}
       >
-        {/* TODO: Probably should refactor so checking a flag just sets the entire dataset we need not just an id, that way we can reduce the props being passed and remove a .find() */}
-        <FlagModal
-          open={!!flagModalOpenId}
-          onClose={handleCloseModal}
-          onSave={(data: any) => handleOnSave(data)}
-          disableRemove={false}
-          providerData={
-            visibleRows.find(data => data.provider_licensing_id === flagModalOpenId) ||
-            ({} as Data2)
-          }
-        />
-
-        <DescriptionAlerts
-          severity={alert?.success}
-          message={alert?.message}
-          open={alert !== null}
-          handleClose={() => setAlert(null)}
-        />
         <Box
           sx={{
-            width: '100%',
-            height: '100%',
+            my: 1,
             display: 'flex',
+            alignItems: 'center',
+            gap: 1,
             flexDirection: 'column',
-            flexGrow: 1,
+            m: 2,
           }}
         >
           {/* ^ that line added  height: '100vh', display: 'flex', flexDirection: 'column' */}
-          <Box sx={{ my: 1, display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Box display={'flex'} flex={1} gap={1} width={'100%'}>
             <YearOrRangeSelector value={selectedPeriod} onChange={handlePeriodChange} />
             <EnhancedTableToolbar searchHandler={setSearchValue} />
           </Box>
-          {visibleRows.length ? renderTable() : <NoData />}
+          <Divider orientation='horizontal' flexItem />
+          <ProviderTableFilterBar />
         </Box>
+        {visibleRows.length ? renderTable() : <NoData />}
       </Box>
     </>
   );
