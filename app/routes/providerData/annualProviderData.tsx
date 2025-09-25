@@ -278,7 +278,7 @@ const renderCellContent = (
       );
     case 'provider_name':
       return (
-        <TooltipTableCell tooltipTitle={row.provider_name} key={key} align='left'>
+        <TooltipTableCell tooltipTitle={row.provider_name} key={key}>
           {row.provider_name}
         </TooltipTableCell>
       );
@@ -517,7 +517,7 @@ export default function AnnualProviderData() {
   const VirtuosoTableComponents: TableComponents<Data2> = {
     Scroller,
     Table: props => (
-      <Table stickyHeader aria-label='sticky table' sx={{ tableLayout: 'fixed' }} {...props} />
+      <Table stickyHeader aria-label='sticky table' sx={{ tableLayout: 'auto' }} {...props} />
     ),
     TableHead: forwardRef<HTMLTableSectionElement>((props, ref) => (
       <EnhancedTableHead

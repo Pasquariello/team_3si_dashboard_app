@@ -12,7 +12,7 @@ export const FETCH_ROW_COUNT = 200;
 export const getMonthlyData = async (
   date: string,
   offset: string,
-  filters?: ProviderFilters
+  filters?: ProviderFilters 
 ): Promise<Data[]> => {
   console.log(`http://localhost:3000/api/v1/month/${date}?offset=${offset}`);
 

@@ -7,6 +7,7 @@ import { useNavigate } from 'react-router';
 
 import DashboardCard from './DashboardCard';
 import { QueryParamsProvider } from '~/contexts/queryParamContext';
+import ProviderDataCards from '~/components/providerData/providerDataCards';
 
 export function meta({}: Route.MetaArgs) {
   return [{ title: 'Provider Data' }, { name: 'description', content: 'providerData' }];
@@ -53,17 +54,17 @@ export default function ProviderData() {
     setActiveTab(() => newValue);
   };
 
-  const [loading, setLoading] = React.useState(true);
+  // const [loading, setLoading] = React.useState(true);
 
-  // TEMP
-  React.useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 3000);
+  // // TEMP
+  // React.useEffect(() => {
+  //   const timer = setTimeout(() => {
+  //     setLoading(false);
+  //   }, 3000);
 
-    // cleanup in case the component unmounts before 3s
-    return () => clearTimeout(timer);
-  }, []);
+  //   // cleanup in case the component unmounts before 3s
+  //   return () => clearTimeout(timer);
+  // }, []);
 
   return (
     <Box
@@ -75,7 +76,8 @@ export default function ProviderData() {
         minHeight: '100vh',
       }}
     >
-      <Grid container spacing={2} mb={2} columns={{ xs: 12 }}>
+      <ProviderDataCards />
+      {/* <Grid container spacing={2} mb={2} columns={{ xs: 12 }}>
         <Grid style={{ display: 'flex', flexGrow: 1 }} size={{ xs: 12, sm: 12, md: 6, lg: 3 }}>
           <DashboardCard
             title='Total Providers'
@@ -114,7 +116,7 @@ export default function ProviderData() {
             loading={loading}
           />
         </Grid>
-      </Grid>
+      </Grid> */}
 
       <Tabs value={activeTab} onChange={handleChange}>
         {tabRoutes.map(({ label, id }) => (
