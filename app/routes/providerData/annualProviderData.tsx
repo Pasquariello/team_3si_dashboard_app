@@ -246,7 +246,7 @@ const riskThresholds = [
 ];
 
 function getColor(value: number) {
-  const valPercent = (value / 48) * 100;
+  const valPercent = (value / 48) * 100; // 48 is highest possible value so this calcs percentage 
   const match = riskThresholds.find(
     // threshold => value <= threshold.max && value >= threshold.min
     threshold => valPercent <= threshold.max && valPercent >= threshold.min
@@ -278,7 +278,7 @@ const renderCellContent = (
       );
     case 'provider_name':
       return (
-        <TooltipTableCell tooltipTitle={row.provider_name} key={key} align='left'>
+        <TooltipTableCell tooltipTitle={row.provider_name} key={key}>
           {row.provider_name}
         </TooltipTableCell>
       );
@@ -517,7 +517,7 @@ export default function AnnualProviderData() {
   const VirtuosoTableComponents: TableComponents<Data2> = {
     Scroller,
     Table: props => (
-      <Table stickyHeader aria-label='sticky table' sx={{ tableLayout: 'fixed' }} {...props} />
+      <Table stickyHeader aria-label='sticky table' sx={{ tableLayout: 'auto' }} {...props} />
     ),
     TableHead: forwardRef<HTMLTableSectionElement>((props, ref) => (
       <EnhancedTableHead

@@ -334,7 +334,7 @@ export default function MonthlyProviderData() {
   const VirtuosoTableComponents: TableComponents<MonthlyData> = {
     Scroller,
     Table: props => (
-      <Table stickyHeader aria-label='sticky table' sx={{ tableLayout: 'fixed' }} {...props} />
+      <Table stickyHeader aria-label='sticky table' sx={{ tableLayout: 'auto' }} {...props} />
     ),
     TableHead: forwardRef<HTMLTableSectionElement>((props, ref) => (
       <EnhancedTableHead

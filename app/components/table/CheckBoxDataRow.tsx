@@ -1,6 +1,6 @@
 import Flag from '@mui/icons-material/Flag';
 import OutlinedFlag from '@mui/icons-material/OutlinedFlag';
-import { Checkbox, TableRow, useTheme } from '@mui/material';
+import { Checkbox, TableCell, TableRow, useTheme } from '@mui/material';
 import { forwardRef, type MouseEvent } from 'react';
 import type { Data, MonthlyData } from '~/types';
 
@@ -22,7 +22,6 @@ export const CheckboxDataRow = forwardRef<HTMLTableRowElement, CheckboxDataRowPr
   ({ style, item, isSelected, isChecked, handleClickRow, handleCheckBox, ...rest }, ref) => {
     const theme = useTheme();
     const labelId = `enhanced-table-checkbox-${rest['data-index']}`;
-    // console.log('item', item)
     return (
       <TableRow
         hover
@@ -38,9 +37,15 @@ export const CheckboxDataRow = forwardRef<HTMLTableRowElement, CheckboxDataRowPr
         ref={ref}
         {...rest}
       >
-        <td>
+        <TableCell
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+         >
           <Checkbox
-            sx={{ display: 'flex', justifySelf: 'center' }}
+            sx={{ justifySelf: 'center'}}
             color='primary'
             name={item.providerLicensingId}
             onClick={e => {
@@ -48,13 +53,13 @@ export const CheckboxDataRow = forwardRef<HTMLTableRowElement, CheckboxDataRowPr
               handleCheckBox(e, item.providerLicensingId);
             }}
             checked={isChecked(item.providerLicensingId)}
-            inputProps={{
+               inputProps={{
               'aria-labelledby': labelId,
             }}
             icon={<OutlinedFlag sx={{ color: theme.palette.cusp_iron.main }} />}
             checkedIcon={<Flag sx={{ color: theme.palette.cusp_orange.main }} />}
           />
-        </td>
+        </TableCell>
         {rest.children}
       </TableRow>
     );
