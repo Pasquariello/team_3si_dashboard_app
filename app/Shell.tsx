@@ -9,7 +9,6 @@ import Divider from '@mui/material/Divider';
 import IconButton from '@mui/material/IconButton';
 import ListItem from '@mui/material/ListItem';
 import ListItemButton from '@mui/material/ListItemButton';
-import ListItemIcon from '@mui/material/ListItemIcon';
 import ListItemText from '@mui/material/ListItemText';
 import ViewSidebarOutlinedIcon from '@mui/icons-material/ViewSidebarOutlined';
 import { useState, type ReactNode } from 'react';
@@ -19,9 +18,9 @@ import { ReactComponent as GENOVIA } from './assets/GENOVIA.svg?react';
 import Cusp from './assets/CUSP.png';
 import { Collapse } from '@mui/material';
 import { ExpandLess, ExpandMore } from '@mui/icons-material';
-import CalendarMonthOutlinedIcon from '@mui/icons-material/CalendarMonthOutlined';
 import { generatePath, matchPath, useLocation, useNavigate } from 'react-router';
 import { ROUTE_PATTERNS, routeOptions } from './routeConfigs';
+import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
 
 const drawerWidth = 280;
 
@@ -101,9 +100,9 @@ export const Shell = ({ children }: { children: ReactNode }) => {
   const [open, setOpen] = useState(false);
 
   // TODO: Open the group that is match to the URL by default
-  const [openInsights, setOpenInsights] = useState(false);
+  const [openServices, setOpenServices] = useState(false);
   const handleClick = () => {
-    setOpenInsights(prev => !prev);
+    setOpenServices(prev => !prev);
   };
 
   const handleDrawerOpen = () => {
@@ -112,9 +111,9 @@ export const Shell = ({ children }: { children: ReactNode }) => {
 
   const navigate = useNavigate();
   const navTo = (route: string) => {
-    const ROUTE = `/providerData/:route`;
+    const ROUTE = `:route`;
     const path = generatePath(ROUTE, {
-      route: route.toLocaleLowerCase(),
+      route,
     });
     navigate(path);
   };
@@ -122,7 +121,7 @@ export const Shell = ({ children }: { children: ReactNode }) => {
   const getIsSelected = (option: string) => {
     return (
       ROUTE_PATTERNS.find((patterns, i) => {
-        if (routeOptions[i] !== option) return false;
+        if (routeOptions[i].label !== option) return false;
         return patterns.some(pattern =>
           matchPath({ path: pattern, end: false }, location.pathname)
         );
@@ -131,7 +130,7 @@ export const Shell = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <Box sx={{ display: 'flex', pr: 2, pl: open ? 0 : 2 }}>
+    <Box sx={{ display: 'flex' }}>
       <AppBar
         sx={{
           color: theme.palette.cusp_iron.contrastText,
@@ -180,24 +179,61 @@ export const Shell = ({ children }: { children: ReactNode }) => {
           />
         </DrawerHeader>
         <Box display={'flex'} flex={1} flexDirection={'column'} sx={{ overflowY: 'auto' }}>
-          <List>
-            <ListItemButton onClick={handleClick}>
-              <Typography p={1} color={theme.palette.cusp_iron.contrastText}>
-                Provider Insights
-                {openInsights ? <ExpandLess /> : <ExpandMore />}
+          <List dense disablePadding>
+            <ListItemButton dense onClick={handleClick}>
+              <GroupOutlinedIcon sx={{ opacity: '.5' }} />
+              <Typography
+                width={'100%'}
+                display={'flex'}
+                justifyContent={'space-between'}
+                p={1}
+                color={theme.palette.cusp_iron.contrastText}
+              >
+                Provider Services
+                {openServices ? <ExpandMore /> : <ExpandLess />}
               </Typography>
             </ListItemButton>
-            <Collapse in={openInsights} unmountOnExit>
-              <List>
-                {routeOptions.map((text, index) => {
-                  const isSelected = getIsSelected(text);
+            <Collapse in={openServices} unmountOnExit>
+              <List dense disablePadding sx={{ paddingLeft: 6, marginRight: 2 }}>
+                {routeOptions.map((route, index) => {
+                  const isSelected = getIsSelected(route.label);
                   return (
-                    <ListItem key={text} disablePadding>
-                      <ListItemButton selected={isSelected} onClick={() => navTo(text)}>
-                        <ListItemIcon>
-                          <CalendarMonthOutlinedIcon />
-                        </ListItemIcon>
-                        <ListItemText sx={{ textTransform: 'capitalize' }} primary={text} />
+                    <ListItem
+                      dense
+                      key={route.label}
+                      disablePadding
+                      sx={{
+                        opacity: '.8',
+                        borderRadius: 1,
+                        overflow: 'hidden',
+                        '& .MuiListItem-root.Mui-selected': {
+                          overflow: 'hidden',
+                          borderRadius: 1,
+                        },
+                        '& .MuiListItem-root.Mui-selected:hover': {
+                          borderRadius: 1,
+                          overflow: 'hidden',
+                        },
+                      }}
+                    >
+                      <ListItemButton
+                        dense
+                        sx={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'baseline',
+                        }}
+                        selected={isSelected}
+                        onClick={() => navTo(route.route)}
+                      >
+                        <ListItemText
+                          sx={{ textTransform: 'capitalize', m: 0 }}
+                          primary={route.label}
+                        />
+                        <ListItemText
+                          sx={{ color: theme.palette.cusp_iron.contrastText, m: 0 }}
+                          primary={route.altText}
+                        />
                       </ListItemButton>
                     </ListItem>
                   );

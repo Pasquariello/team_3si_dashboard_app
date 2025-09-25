@@ -4,6 +4,7 @@ import Stack from '@mui/material/Stack';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import { useNavigate, useLocation, matchPath } from 'react-router';
 import { ROUTE_PATTERNS, routeOptions } from '~/routeConfigs';
+import { Typography } from '@mui/material';
 
 export const NavBreadcrumbs = () => {
   function useBreadcrumbs() {
@@ -15,12 +16,12 @@ export const NavBreadcrumbs = () => {
     if (!matchedOption) return [];
     return [
       {
-        label: 'Provider Insights',
+        label: 'Provider Services',
         href: '/providerData',
       },
       {
-        label: matchedOption.toLocaleLowerCase(),
-        href: `/providerData/${matchedOption}`,
+        label: matchedOption.label,
+        href: `${matchedOption.route}`,
       },
     ];
   }
@@ -32,7 +33,11 @@ export const NavBreadcrumbs = () => {
     <Stack spacing={2}>
       <Breadcrumbs separator={<ChevronRightIcon />} aria-label='breadcrumb'>
         {crumbs.map((crumb, index) => {
-          return (
+          return index === crumbs.length - 1 ? (
+            <Typography key={index} fontWeight={'600'} color='text.primary'>
+              {crumb.label}
+            </Typography>
+          ) : (
             <Link
               underline='hover'
               key={index}
