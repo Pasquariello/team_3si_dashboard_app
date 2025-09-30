@@ -11,7 +11,7 @@ const YearOrRangeSelector: React.FC<Props> = ({ value, onChange }) => {
   const years = Array.from({ length: 5 }, (_, i) => (currentYear - i).toString());
 
   return (
-    <FormControl>
+    <FormControl sx={{ flexShrink: 0, minWidth: 180 }}>
       <InputLabel id='year-select-label'>Select Period</InputLabel>
       <Select
         size='small'

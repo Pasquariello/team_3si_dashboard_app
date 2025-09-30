@@ -458,7 +458,7 @@ export default function MonthlyProviderData() {
       >
         <Box
           sx={{
-            my: 1,
+            my: 3,
             display: 'flex',
             alignItems: 'center',
             gap: 1,
