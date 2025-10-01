@@ -690,7 +690,7 @@ export default function AnnualProviderData() {
           }}
         >
           {/* ^ that line added  height: '100vh', display: 'flex', flexDirection: 'column' */}
-          <Box display={'flex'} flex={1} gap={1} width={'100%'}>
+          <Box sx={{ my: 3 }} display={'flex'} flex={1} gap={1} width={'100%'}>
             <YearOrRangeSelector value={selectedPeriod} onChange={handlePeriodChange} />
             <EnhancedTableToolbar searchHandler={setSearchValue} />
           </Box>
