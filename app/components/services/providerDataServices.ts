@@ -84,7 +84,6 @@ export const getMonthlyData = async (
 };
 
 export const getAnnualData = async (year: string): Promise<Data2[]> => {
-  console.log(`HERE!!!! ${env.VITE_API_ROOT_API_URL}/annual/${year}`);
 
   const authRes = await fetchWithAuth(`${env.VITE_API_ROOT_API_URL}/providerData/annual/${year}`, {
     method: 'GET',
