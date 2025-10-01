@@ -37,15 +37,9 @@ export const CheckboxDataRow = forwardRef<HTMLTableRowElement, CheckboxDataRowPr
         ref={ref}
         {...rest}
       >
-        <TableCell
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-         >
+        <TableCell>
           <Checkbox
-            sx={{ justifySelf: 'center'}}
+            sx={{ justifySelf: 'center', display: 'flex', alignSelf: 'center' }}
             color='primary'
             name={item.providerLicensingId}
             onClick={e => {
@@ -53,8 +47,10 @@ export const CheckboxDataRow = forwardRef<HTMLTableRowElement, CheckboxDataRowPr
               handleCheckBox(e, item.providerLicensingId);
             }}
             checked={isChecked(item.providerLicensingId)}
-               inputProps={{
-              'aria-labelledby': labelId,
+            slotProps={{
+              input: {
+                'aria-labelledby': labelId,
+              },
             }}
             icon={<OutlinedFlag sx={{ color: theme.palette.cusp_iron.main }} />}
             checkedIcon={<Flag sx={{ color: theme.palette.cusp_orange.main }} />}

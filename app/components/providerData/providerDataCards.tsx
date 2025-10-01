@@ -103,7 +103,7 @@ export default function ProviderDataCards() {
   console.log('highestRiskScore === ', highestRiskScore)
     
     return (
-        <Grid container spacing={2} mb={2} columns={{ xs: 12 }}>
+        <Grid container spacing={2} m={2} columns={{ xs: 12 }}>
             <Grid style={{ display: 'flex', flexGrow: 1 }} size={{ xs: 12, sm: 12, md: 6, lg: 3 }}>
             <DashboardCard
                 title='Total Providers'

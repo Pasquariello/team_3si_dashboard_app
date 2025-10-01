@@ -16,6 +16,7 @@ import { CssBaseline, ThemeProvider } from '@mui/material';
 import { useState } from 'react';
 import { AuthProvider, useAuth } from './contexts/authContext';
 import { env } from './env';
+import { Shell } from './Shell';
 
 export const links: Route.LinksFunction = () => [
   { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
@@ -99,8 +100,10 @@ export default function App() {
         <CssBaseline /> {/* optional: resets base styles */}
         <>
           <AuthProvider>
-            <LoginPage />
-            <Outlet />
+            <Shell>
+              {/* <LoginPage /> */}
+              <Outlet />
+            </Shell>
           </AuthProvider>
         </>
       </ThemeProvider>

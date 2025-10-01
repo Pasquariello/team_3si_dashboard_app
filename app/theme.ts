@@ -28,6 +28,7 @@ const theme = createTheme({
     },
     cusp_iron: {
       main: '#E4E4E7',
+      light: '#FAFAFA',
       contrastText: '#71717A',
     },
     cusp_woodsmoke: {

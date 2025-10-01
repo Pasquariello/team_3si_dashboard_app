@@ -10,6 +10,7 @@ import {
   TableBody,
   TableCell,
   TableRow,
+  useTheme,
 } from '@mui/material';
 
 import type { HeadCell, MonthlyData, Order } from '~/types';
@@ -223,6 +224,7 @@ export default function MonthlyProviderData() {
   const [flagModalOpenId, setFlagModalOpenId] = useState<string | null>(null);
   const [localFlags, setLocalFlags] = useState<string[]>([]);
   const [searchValue, setSearchValue] = useState<string>('');
+  const theme = useTheme();
 
   let params = useParams();
   const [queryParams, updateQuery] = useQueryParams();
@@ -454,6 +456,7 @@ export default function MonthlyProviderData() {
           display: 'flex',
           flexDirection: 'column',
           flexGrow: 1,
+          backgroundColor: theme.palette.cusp_iron.light,
         }}
       >
         <Box
@@ -463,6 +466,7 @@ export default function MonthlyProviderData() {
             alignItems: 'center',
             gap: 1,
             flexDirection: 'column',
+            m: 2
           }}
         >
           <Box display={'flex'} flex={1} gap={1} width={'100%'}>
@@ -473,7 +477,7 @@ export default function MonthlyProviderData() {
           <ProviderTableFilterBar />
         </Box>
         {visibleRows.length ? (
-          <Box height={'97vh'}>
+          <Box height={'97vh'} sx={{ backgroundColor: theme.palette.primary.contrastText }}>
             <TableVirtuoso
               data={visibleRows}
               endReached={handleEndScroll}
@@ -505,7 +509,16 @@ export default function MonthlyProviderData() {
             />
           </Box>
         ) : isFetching || isLoading ? (
-          <Box display={'flex'} justifyContent={'center'} alignItems={'center'}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexGrow: 1,
+              height: '100%',
+              justifyContent: 'center',
+              alignItems: 'center',
+              backgroundColor: theme.palette.primary.contrastText,
+            }}
+          >
             <CircularProgress size={24} />
           </Box>
         ) : (
