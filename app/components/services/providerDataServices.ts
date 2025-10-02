@@ -1,6 +1,6 @@
 import { fetchWithAuth } from '~/apiClient';
 import { env } from '~/env';
-import type { Data, Data2, MonthlyData } from '~/types';
+import type { AnnualData, Data, MonthlyData } from '~/types';
 
 export type ProviderFilters = {
   flagStatus: string | undefined;

@@ -2,10 +2,10 @@ import Flag from '@mui/icons-material/Flag';
 import OutlinedFlag from '@mui/icons-material/OutlinedFlag';
 import { Checkbox, TableCell, TableRow, useTheme } from '@mui/material';
 import { forwardRef, type MouseEvent } from 'react';
-import type { Data, MonthlyData } from '~/types';
+import type { Data } from '~/types';
 
 export type VirtuosoDataRowProps = {
-  item: Data | MonthlyData;
+  item: Data;
   style?: React.CSSProperties;
   'data-index'?: number;
   children?: React.ReactNode;

@@ -2,10 +2,9 @@ import * as React from 'react';
 import type { Route } from './+types/providerData';
 
 import { Outlet, useLocation, useMatch } from 'react-router';
-import { Tabs, Tab, Box, Grid, useTheme } from '@mui/material';
+import { Tabs, Tab, Box, useTheme } from '@mui/material';
 import { useNavigate } from 'react-router';
 
-import DashboardCard from './DashboardCard';
 import { QueryParamsProvider } from '~/contexts/queryParamContext';
 import ProviderDataCards from '~/components/providerData/providerDataCards';
 
@@ -54,18 +53,6 @@ export default function ProviderData() {
     setActiveTab(() => newValue);
   };
 
-  // const [loading, setLoading] = React.useState(true);
-
-  // // TEMP
-  // React.useEffect(() => {
-  //   const timer = setTimeout(() => {
-  //     setLoading(false);
-  //   }, 3000);
-
-  //   // cleanup in case the component unmounts before 3s
-  //   return () => clearTimeout(timer);
-  // }, []);
-
   return (
     <Box
       sx={{
@@ -75,47 +62,6 @@ export default function ProviderData() {
       }}
     >
       <ProviderDataCards />
-      {/* <Grid container spacing={2} mb={2} columns={{ xs: 12 }}>
-        <Grid style={{ display: 'flex', flexGrow: 1 }} size={{ xs: 12, sm: 12, md: 6, lg: 3 }}>
-          <DashboardCard
-            title='Total Providers'
-            description='Active in [state name]'
-            value='500'
-            descColor={theme.palette.cusp_iron.contrastText}
-            loading={loading}
-          />
-        </Grid>
-        <Grid style={{ display: 'flex', flexGrow: 1 }} size={{ xs: 12, sm: 12, md: 6, lg: 3 }}>
-          <DashboardCard
-            title='High Risk Providers'
-            description='22.8% of 500'
-            value='114'
-            valueColor='error'
-            descColor={theme.palette.cusp_iron.contrastText}
-            loading={loading}
-          />
-        </Grid>
-        <Grid style={{ display: 'flex', flexGrow: 1 }} size={{ xs: 12, sm: 12, md: 6, lg: 3 }}>
-          <DashboardCard
-            title='Flagged for Review'
-            description='50% require immediate attention'
-            value='250'
-            valueColor='warning'
-            descColor={theme.palette.cusp_iron.contrastText}
-            loading={loading}
-          />
-        </Grid>
-        <Grid style={{ display: 'flex', flexGrow: 1 }} size={{ xs: 12, sm: 12, md: 6, lg: 3 }}>
-          <DashboardCard
-            title='Top Risk Factor'
-            description='Same as last month'
-            value='Risk Factor Name'
-            descColor={theme.palette.cusp_iron.contrastText}
-            loading={loading}
-          />
-        </Grid>
-      </Grid> */}
-
       <Tabs value={activeTab} onChange={handleChange}>
         {tabRoutes.map(({ label, id }) => (
           <Tab
@@ -129,7 +75,6 @@ export default function ProviderData() {
           />
         ))}
       </Tabs>
-      {/* <Box sx={{width: 100, background: 'blue', height: 100, display: 'flex', flexGrow: 1}}></Box> */}
       <QueryParamsProvider>
         <Outlet />
       </QueryParamsProvider>
