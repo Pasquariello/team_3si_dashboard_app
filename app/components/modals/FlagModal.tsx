@@ -8,7 +8,7 @@ import CloseIcon from '@mui/icons-material/Close';
 import Typography from '@mui/material/Typography';
 import { Box, TextField } from '@mui/material';
 import OutlinedFlagIcon from '@mui/icons-material/OutlinedFlag';
-import type { Data, MonthlyData } from '~/types';
+import type { Data } from '~/types';
 import { useEffect, useState } from 'react';
 
 type FlagModalProps = Readonly<{
@@ -16,7 +16,7 @@ type FlagModalProps = Readonly<{
   onClose: () => void;
   onSave: (data: Pick<Data, 'comment' | 'flagged' | 'providerLicensingId'>) => void;
   disableRemove: boolean;
-  providerData: Data | MonthlyData;
+  providerData: Data;
 }>;
 
 export default function FlagModal({

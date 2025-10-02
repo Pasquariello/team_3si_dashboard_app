@@ -17,6 +17,7 @@ import { useState } from 'react';
 import { AuthProvider, useAuth } from './contexts/authContext';
 import { env } from './env';
 import { Shell } from './Shell';
+import { QueryParamsProvider } from './contexts/queryParamContext';
 
 export const links: Route.LinksFunction = () => [
   { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
@@ -102,7 +103,9 @@ export default function App() {
           <AuthProvider>
             <Shell>
               {/* <LoginPage /> */}
-              <Outlet />
+              <QueryParamsProvider>
+                <Outlet />
+              </QueryParamsProvider>
             </Shell>
           </AuthProvider>
         </>
