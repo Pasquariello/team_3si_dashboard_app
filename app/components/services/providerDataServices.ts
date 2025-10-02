@@ -83,16 +83,30 @@ export const getMonthlyData = async (
   return result;
 };
 
-export const getAnnualData = async (year: string): Promise<Data2[]> => {
+export const getAnnualData = async (
+  year: string,
+  offset: string,
+  filters?: Partial<ProviderFilters>
+): Promise<AnnualData[]> => {
+  let result: AnnualData[] = [];
+  let url = `${env.VITE_API_ROOT_API_URL}/providerData/annual/${year}`;
+  const offsetMod = new URLSearchParams({ offset }).toString();
+  url += `?${offsetMod}`;
 
-  const authRes = await fetchWithAuth(`${env.VITE_API_ROOT_API_URL}/providerData/annual/${year}`, {
+  const queryString = createQueryStringFromFilters(filters);
+  if (queryString) {
+    url += `&${queryString}`;
+  }
+
+  const authRes = await fetchWithAuth(url, {
     method: 'GET',
   });
-  if (!authRes.ok) {
-    const error = new Error('Failed to fetch');
-    throw error;
+  try {
+    result = (await authRes.json()) as unknown as AnnualData[];
+  } catch {
+    throw new Error('Failed to parse Yearly response.');
   }
-  return authRes.json();
+  return result;
 };
 
 export const getProviderCities = async (cityName: string): Promise<string[]> => {
