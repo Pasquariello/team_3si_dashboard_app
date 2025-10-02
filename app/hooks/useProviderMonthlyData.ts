@@ -15,6 +15,7 @@ export const useProviderMonthlyData = (
   const initOffset = Number(initialOffset) || 0;
   const cityFilters = filters.cities ? filters.cities : [];
   // TODO: as we add filters we should update the with them!!
+  // update the hook query key to match here
   const queryKey = ['monthlyProviderData', date, filters.flagStatus, ...cityFilters];
   return useInfiniteQuery<MonthlyData[]>({
     queryKey: queryKey,

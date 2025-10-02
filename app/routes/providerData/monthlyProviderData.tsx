@@ -204,6 +204,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   };
   const cityFilters = filters.cities ? filters.cities : [];
   // TODO: as we add filters we should update the with them!!
+  // update the loader query key to match here
   const queryKey = ['monthlyProviderData', date, filters.flagStatus, ...cityFilters];
 
   await queryClient.prefetchInfiniteQuery({
@@ -466,7 +467,7 @@ export default function MonthlyProviderData() {
             alignItems: 'center',
             gap: 1,
             flexDirection: 'column',
-            m: 2
+            m: 2,
           }}
         >
           <Box display={'flex'} flex={1} gap={1} width={'100%'}>
