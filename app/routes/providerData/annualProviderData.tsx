@@ -4,15 +4,16 @@ import { CheckboxDataRow, type VirtuosoDataRowProps } from '~/components/table/C
 import { Scroller } from '~/components/table/VirutalTableScroller';
 import { TooltipTableCell } from '~/components/table/TooltipTableCell';
 
-import { useState, forwardRef, Fragment, useMemo } from 'react';
+import { useState, forwardRef, Fragment, useMemo, useEffect } from 'react';
 
 import type { Route } from './+types/annualProviderData';
-import type { Data, Data2, HeadCell, Order } from '~/types';
-import { useQuery } from '@tanstack/react-query';
+import type { AnnualData, HeadCell, Order } from '~/types';
 
 import { useTheme } from '@mui/material/styles';
 import {
+  Backdrop,
   Box,
+  CircularProgress,
   Divider,
   Paper,
   Table,
@@ -22,7 +23,6 @@ import {
   TableRow,
 } from '@mui/material';
 
-
 import EnhancedTableHead from '~/components/table/EnhancedTableHead';
 import EnhancedTableToolbar from '~/components/table/EnhancedTableToolbar';
 import YearOrRangeSelector from '~/components/YearOrRangeSelector';
@@ -30,145 +30,20 @@ import YearOrRangeSelector from '~/components/YearOrRangeSelector';
 import { getVisibleRows } from '~/utils/table';
 import FlagModal from '~/components/modals/FlagModal';
 import NoData from '~/components/NoData';
-import { FETCH_ROW_COUNT, getAnnualData, onSave } from '~/components/services/providerDataServices';
+import {
+  FETCH_ROW_COUNT,
+  getAnnualData,
+  onSave,
+  type ProviderFilters,
+} from '~/components/services/providerDataServices';
 import DescriptionAlerts from '~/components/DescriptionAlerts';
 import { ProviderTableFilterBar } from '~/components/ProviderTableFilterBar';
+import { redirect, useParams } from 'react-router';
+import { queryClient } from '~/queryClient';
+import { useQueryParams } from '~/contexts/queryParamContext';
+import { useAuth } from '~/contexts/authContext';
+import { useProviderYearlyData } from '~/hooks/useProviderYearlyData';
 
-export function meta({}: Route.MetaArgs) {
-  return [
-    { title: 'Annual Provider Data' },
-    { name: 'description', content: 'Annual Provider Data' },
-  ];
-}
-
-// id: 'id',
-// id: 'providerName',
-// id: 'overallRiskScore',
-// id: 'childrenBilledOverCapacity',
-// id: 'childrenPlacedOverCapacity',
-// id: 'distanceTraveled',
-// id: 'providersWithSameAddress',
-
-function createData(
-  id: string,
-  flagged: boolean,
-  providerName: string,
-  overallRiskScore: number,
-  childrenBilledOverCapacity: number,
-  childrenPlacedOverCapacity: number,
-  distanceTraveled: number,
-  providersWithSameAddress: number
-): Data {
-  return {
-    providerLicensingId: id,
-    flagged,
-    providerName,
-    overallRiskScore,
-    childrenBilledOverCapacity,
-    childrenPlacedOverCapacity,
-    distanceTraveled,
-    providersWithSameAddress,
-  };
-}
-
-// Temporary sample data
-// const foo_data: Data2[] = [
-//   {
-//     providerLicensingId: '1',
-//     flagged: true,
-//     providerName: 'Little Stars Childcare',
-//     overallRiskScore: 100,
-//     childrenBilledOverCapacity: 12,
-//     childrenPlacedOverCapacity: 12,
-//     distanceTraveled: 12,
-//     providersWithSameAddress: 12,
-//     comment: '',
-//   },
-//   {
-//     providerLicensingId: '2',
-//     flagged: false,
-//     providerName: 'Bright Futures Academy',
-//     overallRiskScore: 89,
-//     childrenBilledOverCapacity: 12,
-//     childrenPlacedOverCapacity: 11,
-//     distanceTraveled: 10,
-//     providersWithSameAddress: 12,
-//     comment: '',
-//   },
-
-//   {
-//     providerLicensingId: '3',
-//     flagged: false,
-//     providerName: 'Happy Hearts Daycare',
-//     overallRiskScore: 90,
-//     childrenBilledOverCapacity: 6,
-//     childrenPlacedOverCapacity: 6,
-//     distanceTraveled: 6,
-//     providersWithSameAddress: 6,
-//     comment: '',
-//   },
-
-//   {
-//     providerLicensingId: '4',
-//     flagged: false,
-//     providerName: 'Sunshine Learning Center',
-//     overallRiskScore: 80,
-//     childrenBilledOverCapacity: 4,
-//     childrenPlacedOverCapacity: 11,
-//     distanceTraveled: 1,
-//     providersWithSameAddress: 5,
-//     comment: '',
-//   },
-
-//   {
-//     providerLicensingId: '5',
-//     flagged: true,
-//     providerName: 'Kiddie Cove',
-//     overallRiskScore: 50,
-//     childrenBilledOverCapacity: 1,
-//     childrenPlacedOverCapacity: 1,
-//     distanceTraveled: 1,
-//     providersWithSameAddress: 1,
-//     comment: '',
-//   },
-
-//   {
-//     providerLicensingId: '6',
-//     flagged: false,
-//     providerName: 'Tiny Tots Academy',
-//     overallRiskScore: 10,
-//     childrenBilledOverCapacity: 0,
-//     childrenPlacedOverCapacity: 0,
-//     distanceTraveled: 1,
-//     providersWithSameAddress: 0,
-//     comment: '',
-//   },
-// ];
-
-const rows1 = [
-  createData('1', true, 'Little Stars Childcare', 100, 12, 12, 12, 12),
-  createData('2', false, 'Bright Futures Academy', 89, 12, 11, 10, 12),
-  createData('3', false, 'Happy Hearts Daycare', 90, 6, 6, 6, 6),
-  createData('4', false, 'Sunshine Learning Center', 80, 4, 11, 1, 5),
-  createData('5', true, 'Kiddie Cove', 50, 1, 1, 1, 1),
-  createData('6', false, 'Tiny Tots Academy', 10, 0, 0, 1, 0),
-];
-
-// Provider ID
-// Provider Name
-// Overall Risk Score ("s"um of the next four annualized columns)
-// Children Billed Over Capacity (integer: number of months with value 1, range: 0–12)
-// Children Placed Over Capacity (integer: number of months with value 1, range: 0–12)
-// Distance Traveled (integer: number of months with value 1, range: 0–12)
-// Providers with Same Address (integer: number of months with value 1, range: 0–12)
-
-// c.provider_licensing_id,
-// pa.provider_name,
-// c.total_billed_over_capacity,
-// c.total_placed_over_capacity,
-// c.total_distance_traveled,
-// c.total_same_address,
-// c.overall_risk_score
 const headCells: readonly HeadCell[] = [
   {
     id: 'flagged',
@@ -177,43 +52,43 @@ const headCells: readonly HeadCell[] = [
     label: 'Flagged',
   },
   {
-    id: 'provider_licensing_id',
+    id: 'providerLicensingId',
     numeric: false,
     disablePadding: true,
     label: 'ID',
   },
   {
-    id: 'provider_name', //'providerName',
+    id: 'providerName', //'providerName',
     numeric: false,
     disablePadding: false,
     label: 'Provider Name',
   },
   {
-    id: 'overall_risk_score', // 'overallRiskScore',
+    id: 'overallRiskScore', // 'overallRiskScore',
     numeric: true,
     disablePadding: false,
     label: 'Overall Risk Score',
   },
   {
-    id: 'total_billed_over_capacity', // 'childrenBilledOverCapacity',
+    id: 'childrenBilledOverCapacity', // 'childrenBilledOverCapacity',
     numeric: true,
     disablePadding: false,
     label: 'Children Billed Over',
   },
   {
-    id: 'total_placed_over_capacity', // 'childrenPlacedOverCapacity',
+    id: 'childrenPlacedOverCapacity', // 'childrenPlacedOverCapacity',
     numeric: true,
     disablePadding: false,
     label: 'Children Placed Over Capacity',
   },
   {
-    id: 'total_distance_traveled', //'distanceTraveled',
+    id: 'distanceTraveled', //'distanceTraveled',
     numeric: true,
     disablePadding: false,
     label: 'Distance Traveled',
   },
   {
-    id: 'total_same_address', //'providersWithSameAddress',
+    id: 'providersWithSameAddress', //'providersWithSameAddress',
     numeric: true,
     disablePadding: false,
     label: 'Providers with Same Address',
@@ -256,66 +131,66 @@ function getColor(value: number) {
 }
 
 const renderCellContent = (
-  row: Data2,
+  row: AnnualData,
   columnId: HeadCell['id'],
   isItemSelected: boolean,
   labelId: string,
   key: string
 ): React.ReactNode => {
   switch (columnId) {
-    case 'provider_licensing_id':
+    case 'providerLicensingId':
       return (
         <TooltipTableCell
-          tooltipTitle={row.provider_licensing_id}
+          tooltipTitle={row.providerLicensingId}
           key={key}
           id={labelId}
           scope='row'
           padding='none'
         >
-          {row.provider_licensing_id}
+          {row.providerLicensingId}
         </TooltipTableCell>
       );
-    case 'provider_name':
+    case 'providerName':
       return (
-        <TooltipTableCell tooltipTitle={row.provider_name} key={key}>
-          {row.provider_name}
+        <TooltipTableCell tooltipTitle={row.providerName} key={key} subtext={row.city} align='left'>
+          {row.providerName}
         </TooltipTableCell>
       );
-    case 'overall_risk_score':
+    case 'overallRiskScore':
       return (
         <TooltipTableCell
           key={key}
-          tooltipTitle={row.overall_risk_score}
+          tooltipTitle={row.overallRiskScore}
           align='center'
           sx={{
-            color: getColor(row.overall_risk_score),
+            color: getColor(row.overallRiskScore),
           }}
         >
-          {row.overall_risk_score}
+          {row.overallRiskScore}
         </TooltipTableCell>
       );
-    case 'total_billed_over_capacity':
+    case 'childrenBilledOverCapacity':
       return (
-        <TooltipTableCell tooltipTitle={row.total_billed_over_capacity} key={key} align='center'>
-          {row.total_billed_over_capacity}
+        <TooltipTableCell tooltipTitle={row.childrenBilledOverCapacity} key={key} align='center'>
+          {row.childrenBilledOverCapacity}
         </TooltipTableCell>
       );
-    case 'total_distance_traveled':
+    case 'distanceTraveled':
       return (
-        <TooltipTableCell tooltipTitle={row.total_distance_traveled} key={key} align='center'>
-          {row.total_distance_traveled}
+        <TooltipTableCell tooltipTitle={row.distanceTraveled} key={key} align='center'>
+          {row.distanceTraveled}
         </TooltipTableCell>
       );
-    case 'total_placed_over_capacity':
+    case 'childrenPlacedOverCapacity':
       return (
-        <TooltipTableCell tooltipTitle={row.total_placed_over_capacity} key={key} align='center'>
-          {row.total_placed_over_capacity}
+        <TooltipTableCell tooltipTitle={row.childrenPlacedOverCapacity} key={key} align='center'>
+          {row.childrenPlacedOverCapacity}
         </TooltipTableCell>
       );
-    case 'total_same_address':
+    case 'providersWithSameAddress':
       return (
-        <TooltipTableCell tooltipTitle={row.total_same_address} key={key} align='center'>
-          {row.total_same_address}
+        <TooltipTableCell tooltipTitle={row.providersWithSameAddress} key={key} align='center'>
+          {row.providersWithSameAddress}
         </TooltipTableCell>
       );
     default:
@@ -323,117 +198,88 @@ const renderCellContent = (
   }
 };
 
-export default function AnnualProviderData() {
-  const theme = useTheme();
-  const [order, setOrder] = React.useState<Order>('desc');
-  const [alert, setAlert] = React.useState<{ success: string; message: string } | null>(null);
-  const [flagModalOpenId, setFlagModalOpenId] = React.useState<string | null>(null);
+export async function loader({ params, request }: Route.LoaderArgs) {
+  let year = params?.year;
+  if (!year) {
+    year = '2024'; // getCurrentDate()
+    return redirect(`${year}`);
+  }
+  const url = new URL(request.url);
+  const offset = url.searchParams.get('offset') ?? '0';
+  const flagStatus = url.searchParams.get('flagStatus') || undefined;
+  const cities = url.searchParams.getAll('cities') || undefined;
+  // ensure we don't send undefined as a filter value
+  const filters = {
+    ...(flagStatus !== undefined ? { flagStatus } : {}),
+    ...(cities !== undefined ? { cities } : {}),
+  };
+  const cityFilters = filters.cities ? filters.cities : [];
+  // TODO: as we add filters we should update the with them!!
+  // update the hook query key to match here
+  const queryKey = ['annualProviderData', year, filters.flagStatus, ...cityFilters];
 
-  const [orderBy, setOrderBy] = React.useState<keyof Data2>('overall_risk_score');
-  const [selected, setSelected] = React.useState<readonly string[]>([]);
-  const [selectedPeriod, setSelectedPeriod] = React.useState<string>('2024');
-  const [searchValue, setSearchValue] = useState<string>('');
-
-  // const [rows, setRows] = React.useState<Data[]>([]);
-
-  const {
-    data: rows = [],
-    isLoading,
-    isFetching,
-    refetch,
-  } = useQuery({
-    queryKey: ['annualData', selectedPeriod],
-    queryFn: () => getAnnualData(selectedPeriod),
-    staleTime: 5 * 60 * 1000, // 5 minutes cache
+  await queryClient.prefetchInfiniteQuery({
+    initialPageParam: offset,
+    queryKey: queryKey,
+    queryFn: () => getAnnualData(year, offset, filters),
   });
 
-  console.log('rows', rows);
+  return null;
+}
 
-  //  const getData = async () => {
-  //     try {
-  //       const res = await getAnnualData(selectedPeriod);
-  //       console.log('data', res);
-  //       setRows(res);
-  //       // optionally set state here with res
-  //     } catch (error) {
-  //       console.error('Error fetching data:', error);
-  //     }
-  // };
+export default function AnnualProviderData() {
+  const theme = useTheme();
+  const [isLoadingOverlayActive, setIsLoadingOverlayActive] = useState(false);
+  const [order, setOrder] = useState<Order>('desc');
+  const [alert, setAlert] = useState<{ success: string; message: string } | null>(null);
+  const [flagModalOpenId, setFlagModalOpenId] = useState<string | null>(null);
 
-  // React.useEffect(() => {
-  //   const getData = async () => {
-  //     try {
-  //       const res = await getAnnualData(selectedPeriod);
-  //       console.log('data', res);
-  //       setRows(res);
-  //       // optionally set state here with res
-  //     } catch (error) {
-  //       console.error('Error fetching data:', error);
-  //     }
-  //   };
+  const [orderBy, setOrderBy] = useState<keyof AnnualData>('overallRiskScore');
+  const [selected, setSelected] = useState<readonly string[]>([]);
+  const [localFlags, setLocalFlags] = useState<string[]>([]);
+  const [searchValue, setSearchValue] = useState<string>('');
 
-  //   getData();
-  // }, []);
+  let params = useParams();
+  const [queryParams, updateQuery] = useQueryParams();
+  const offset = queryParams?.get('offset') || '0';
+  const flagStatus = queryParams?.get('flagStatus') || undefined;
+  // Memo for cities?
+  const cities = queryParams.getAll('cities') || undefined;
+  const { setToken } = useAuth();
 
-  const handlePeriodChange = (event: any) => {
-    setSelectedPeriod(event.target.value);
+  const filters: Partial<ProviderFilters> = useMemo(() => {
+    return {
+      flagStatus,
+      cities,
+    };
+  }, [flagStatus, cities]);
 
-    refetch();
+  // const [rows, setRows] = React.useState<Data[]>([]);
+  const {
+    data: rows,
+    fetchNextPage,
+    isFetching,
+    isLoading,
+    error,
+    refetch,
+  } = useProviderYearlyData(
+    params.year!, // the loader ensures this will be here via redirect
+    offset,
+    filters,
+    offset
+  );
 
-    // You could also trigger a data reload here
-  };
-
-  const handleRequestSort = (event: React.MouseEvent<unknown>, property: keyof Data2) => {
-    const isAsc = orderBy === property && order === 'asc';
-    setOrder(isAsc ? 'desc' : 'asc');
-    setOrderBy(property);
-  };
-
-  const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.checked) {
-      const newSelected = rows.map(n => n.provider_licensing_id);
-      setSelected(newSelected);
-      return;
+  useEffect(() => {
+    if (error) {
+      setToken('');
     }
-    setSelected([]);
-  };
+  }, [error]);
 
-  const handleClick = (event: React.MouseEvent<unknown>, id: string) => {
-    const selectedIndex = selected.indexOf(id);
-    let newSelected: readonly string[] = [];
-
-    if (selectedIndex === -1) {
-      newSelected = newSelected.concat(selected, id);
-    } else if (selectedIndex === 0) {
-      newSelected = newSelected.concat(selected.slice(1));
-    } else if (selectedIndex === selected.length - 1) {
-      newSelected = newSelected.concat(selected.slice(0, -1));
-    } else if (selectedIndex > 0) {
-      newSelected = newSelected.concat(
-        selected.slice(0, selectedIndex),
-        selected.slice(selectedIndex + 1)
-      );
-    }
-    setSelected(newSelected);
-  };
-
-  // function getColor(value: number) {
-  //   const valPercent = (value / 48 ) * 100;
-  //   const match = riskThresholds.find(
-  //     // threshold => value <= threshold.max && value >= threshold.min
-  //     threshold => valPercent  <= threshold.max && valPercent >= threshold.min
-
-  //     // threshold => value <= (threshold.max / 48 ) * 100 && value >= (threshold.min / 48 ) * 100
-
-  //   );
-  //   return match ? match.color : 'defaultColor';
-  // }
-
-  const visibleRows = useMemo(() => {
+  const visibleRows = useMemo<AnnualData[]>(() => {
     const items =
-      rows.filter(dataRow => {
-        const providerName = dataRow.provider_name.toLocaleLowerCase();
-        const providerId = dataRow.provider_licensing_id.toLocaleLowerCase();
+      rows?.pages?.flat().filter(dataRow => {
+        const providerName = dataRow.providerName.toLocaleLowerCase();
+        const providerId = dataRow.providerLicensingId.toLocaleLowerCase();
         const searchTerm = searchValue.toLocaleLowerCase();
         if (providerName.includes(searchTerm) || providerId.includes(searchTerm)) {
           return true;
@@ -441,24 +287,75 @@ export default function AnnualProviderData() {
         return false;
       }) || [];
 
+    setLocalFlags(() =>
+      items.reduce((acc, curr) => {
+        if (curr.flagged) {
+          acc.push(curr.providerLicensingId);
+        }
+
+        if (acc.includes(curr.providerLicensingId) && !curr.flagged) {
+          return acc.filter(id => curr.providerLicensingId !== id);
+        }
+
+        return acc;
+      }, localFlags)
+    );
+
     return getVisibleRows(items, order, orderBy);
   }, [rows, orderBy, order, searchValue]);
 
-  const handleCloseModal = () => {
+  const handleRequestSort = (event: React.MouseEvent<unknown>, property: keyof AnnualData) => {
+    const isAsc = orderBy === property && order === 'asc';
+    setOrder(isAsc ? 'desc' : 'asc');
+    setOrderBy(property);
+  };
+
+  const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
+    if (event.target.checked) {
+      const newSelected = visibleRows.map(n => n.providerLicensingId);
+      setSelected(newSelected);
+      return;
+    }
+    setSelected([]);
+  };
+
+  const handleClick = (event: React.MouseEvent<unknown>, id: string) => {
+    if (selected.includes(id)) {
+      // If it's already selected, remove it
+      setSelected(selected.filter(item => item !== id));
+    } else {
+      // If it's not selected, add it
+      setSelected([...selected, id]);
+    }
+  };
+
+  const handleCloseModal = (isFlagged?: boolean, rowId?: string) => {
+    if (isFlagged !== undefined && rowId) {
+      setLocalFlags(prev => {
+        return isFlagged ? [...prev, rowId] : prev.filter(id => id !== rowId);
+      });
+    }
     setFlagModalOpenId(null);
   };
-  // TODO: get comments and flags from API
-  const handleOnSave = async (
-    row_data: Pick<Data2, 'comment' | 'flagged' | 'provider_licensing_id'>
-  ) => {
-    const res = await onSave(row_data);
 
+  const handleOnSave = async (
+    row_data: Pick<AnnualData, 'comment' | 'flagged' | 'providerLicensingId'>
+  ) => {
+    setIsLoadingOverlayActive(true);
+    const res = await onSave(row_data);
+    setIsLoadingOverlayActive(false);
     if (res.ok) {
       setAlert({
         success: 'success',
         message: 'Successfully updated record!',
       });
-      handleCloseModal();
+      // this is ran after we get a success from out local payload
+      handleCloseModal(row_data.flagged, row_data.providerLicensingId);
+      // data has changed in the DB
+      queryClient.invalidateQueries({
+        queryKey: ['annualProviderData', params.date],
+      });
+      updateQuery({ type: 'SET', key: 'offset', value: '0' });
     } else {
       setAlert({
         success: 'error',
@@ -468,38 +365,35 @@ export default function AnnualProviderData() {
   };
 
   // newVirtuoso functions
-  const [localFlags, setLocalFlags] = useState<string[]>([]);
+  const updateOffset = () => {
+    if (isFetching || isLoading) {
+      return;
+    }
+    // Our scroll offset is tracked by our cache :)
+    const items = rows?.pages.flat().length;
+    updateQuery({ type: 'SET', key: 'offset', value: String(items) });
+  };
 
-  const handleEndScroll = (arg: any) => {
-    // fix for when we request a page that immediately shows the end row
-    if ((arg + 1) % 200 === 0) {
+  const handleEndScroll = (_rowCount: number) => {
+    // rowCount is the visible rows in the table
+    // since we can locally filter we need to check the results from cache
+    if ((rows?.pages?.flat().length || 0 + 1) % 200 === 0) {
       fetchNextPage().then(() => updateOffset());
     }
   };
 
-  const rowContent = (index: number, row: Data2) => {
-    const isItemSelected = selected.includes(row.provider_licensing_id);
+  const rowContent = (index: number, row: AnnualData) => {
+    const isItemSelected = selected.includes(row.providerLicensingId);
     const labelId = `enhanced-table-checkbox-${index}`;
     return (
       <Fragment>
         {headCells.map((column, index) => {
-          const key = `${index}-${column.id}-${row.provider_licensing_id}`;
+          const key = `${index}-${column.id}-${row.providerLicensingId}`;
           return renderCellContent(row, column.id, isItemSelected, labelId, key);
         })}
       </Fragment>
     );
   };
-
-  //  MORE new stuff - taylor
-
-  // const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
-  //   if (event.target.checked) {
-  //     const newSelected = visibleRows.map(n => n.providerLicensingId);
-  //     setSelected(newSelected);
-  //     return;
-  //   }
-  //   setSelected([]);
-  // };
 
   const handleCheck = (event: React.MouseEvent<unknown>, id: string) => {
     setFlagModalOpenId(id);
@@ -513,7 +407,7 @@ export default function AnnualProviderData() {
     }
   };
 
-  const VirtuosoTableComponents: TableComponents<Data2> = {
+  const VirtuosoTableComponents: TableComponents<AnnualData> = {
     Scroller,
     Table: props => (
       <Table stickyHeader aria-label='sticky table' sx={{ tableLayout: 'auto' }} {...props} />
@@ -546,7 +440,6 @@ export default function AnnualProviderData() {
     )),
   };
 
-  console.log('visibleRows', visibleRows);
   const renderTable = () => (
     <TableContainer component={Paper} sx={{ height: '97vh', flexGrow: 1, overflow: 'auto' }}>
       <TableVirtuoso
@@ -567,91 +460,29 @@ export default function AnnualProviderData() {
                     display: 'block',
                   }}
                 >
-                  {/* <CircularProgress size={24} /> */}
+                  <CircularProgress size={24} />
                 </Box>
               </TableCell>
             </TableRow>
           ) : null
         }
       />
-
-      {/* <Table stickyHeader aria-label='sticky table'>
-        <EnhancedTableHead
-          numSelected={selected.length}
-          order={order}
-          orderBy={orderBy}
-          onSelectAllClick={handleSelectAllClick}
-          onRequestSort={handleRequestSort}
-          rowCount={rows.length}
-          headCells={headCells}
-        />
-        <TableBody>
-          {visibleRows.map((row, index) => {
-            const isItemSelected = selected.includes(row.providerLicensingId);
-            const labelId = `enhanced-table-checkbox-${index}`;
-
-            return (
-              <TableRow
-                hover
-                onClick={event => handleClick(event, row.providerLicensingId)}
-                role='checkbox'
-                aria-checked={isItemSelected}
-                tabIndex={-1}
-                key={row.providerLicensingId}
-                selected={isItemSelected}
-                sx={{ cursor: 'pointer' }}
-              >
-                <TableCell padding='checkbox'>
-                  <Checkbox
-                    color='primary'
-                    // checked={isItemSelected}
-                    onClick={() => setFlagModalOpenId(row.providerLicensingId)}
-                    checked={row.flagged}
-                    inputProps={{
-                      'aria-labelledby': labelId,
-                    }}
-                    name={labelId}
-                    icon={<OutlinedFlagIcon sx={{ color: theme.palette.cusp_iron.main }} />} // unchecked state
-                    checkedIcon={<FlagIcon sx={{ color: theme.palette.cusp_orange.main }} />} // checked state
-                  />
-                </TableCell>
-                <TableCell
-                  // component="th"
-                  id={labelId}
-                  scope='row'
-                  padding='none'
-                >
-                  {row.providerLicensingId}
-                </TableCell>
-                <TableCell align='left'>{row.provider_name}</TableCell>
-                <TableCell
-                  align='center'
-                  sx={{
-                    color: getColor(row.overall_risk_score),
-                  }}
-                >
-                  {row.overall_risk_score}
-                </TableCell>
-                <TableCell align='center'>
-                  {renderTableCellContent(row.total_billed_over_capacity)}
-                </TableCell>
-                <TableCell align='center'>
-                  {renderTableCellContent(row.total_placed_over_capacity)}
-                </TableCell>
-                <TableCell align='center'>{renderTableCellContent(row.total_distance_traveled)}</TableCell>
-                <TableCell align='center'>
-                  {renderTableCellContent(row.total_same_address)}
-                </TableCell>
-              </TableRow>
-            );
-          })}
-        </TableBody>
-      </Table> */}
     </TableContainer>
   );
 
   return (
     <>
+      {isLoadingOverlayActive && (
+        <Backdrop
+          open={true}
+          sx={theme => ({
+            color: '#fff',
+            zIndex: 100000, // ensure it's on top
+          })}
+        >
+          <CircularProgress color='inherit' />
+        </Backdrop>
+      )}
       {/* TODO: Probably should refactor so checking a flag just sets the entire dataset we need not just an id, that way we can reduce the props being passed and remove a .find() */}
       <FlagModal
         open={!!flagModalOpenId}
@@ -659,7 +490,8 @@ export default function AnnualProviderData() {
         onSave={(data: any) => handleOnSave(data)}
         disableRemove={false}
         providerData={
-          visibleRows.find(data => data.provider_licensing_id === flagModalOpenId) || ({} as Data2)
+          visibleRows.find(data => data.providerLicensingId === flagModalOpenId) ||
+          ({} as AnnualData)
         }
       />
 
@@ -691,13 +523,30 @@ export default function AnnualProviderData() {
         >
           {/* ^ that line added  height: '100vh', display: 'flex', flexDirection: 'column' */}
           <Box sx={{ my: 3 }} display={'flex'} flex={1} gap={1} width={'100%'}>
-            <YearOrRangeSelector value={selectedPeriod} onChange={handlePeriodChange} />
+            <YearOrRangeSelector />
             <EnhancedTableToolbar searchHandler={setSearchValue} />
           </Box>
           <Divider orientation='horizontal' flexItem />
           <ProviderTableFilterBar />
         </Box>
-        {visibleRows.length ? renderTable() : <NoData />}
+        {visibleRows.length ? (
+          renderTable()
+        ) : isFetching || isLoading ? (
+          <Box
+            sx={{
+              display: 'flex',
+              flexGrow: 1,
+              height: '100%',
+              justifyContent: 'center',
+              alignItems: 'center',
+              backgroundColor: theme.palette.primary.contrastText,
+            }}
+          >
+            <CircularProgress size={24} />
+          </Box>
+        ) : (
+          <NoData />
+        )}
       </Box>
     </>
   );
