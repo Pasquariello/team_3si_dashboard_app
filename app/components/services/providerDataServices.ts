@@ -33,7 +33,7 @@ export const onSave = async (
 
 export const FETCH_ROW_COUNT = 200;
 
-const createQueryStringFromFilters = (filters?: Partial<ProviderFilters>) => {
+export const createQueryStringFromFilters = (filters?: Partial<ProviderFilters>): string | null => {
   if (!filters) return null;
 
   const params = new URLSearchParams();

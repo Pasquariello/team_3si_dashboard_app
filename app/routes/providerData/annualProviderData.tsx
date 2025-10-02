@@ -276,16 +276,17 @@ export default function AnnualProviderData() {
   }, [error]);
 
   const visibleRows = useMemo<AnnualData[]>(() => {
-    const items =
-      rows?.pages?.flat().filter(dataRow => {
-        const providerName = dataRow.providerName.toLocaleLowerCase();
-        const providerId = dataRow.providerLicensingId.toLocaleLowerCase();
-        const searchTerm = searchValue.toLocaleLowerCase();
-        if (providerName.includes(searchTerm) || providerId.includes(searchTerm)) {
-          return true;
-        }
-        return false;
-      }) || [];
+    const items = !error
+      ? rows?.pages?.flat().filter(dataRow => {
+          const providerName = dataRow?.providerName.toLocaleLowerCase() || '';
+          const providerId = dataRow?.providerLicensingId.toLocaleLowerCase() || '';
+          const searchTerm = searchValue?.toLocaleLowerCase() || '';
+          if (providerName?.includes(searchTerm) || providerId?.includes(searchTerm)) {
+            return true;
+          }
+          return false;
+        }) || []
+      : [];
 
     setLocalFlags(() =>
       items.reduce((acc, curr) => {
