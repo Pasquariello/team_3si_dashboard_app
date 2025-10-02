@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { FormControl, InputLabel, Select, MenuItem } from '@mui/material';
 import { useNavigate, useParams } from 'react-router';
+import { useQueryParams } from '~/contexts/queryParamContext';
+import { createQueryStringFromFilters } from './services/providerDataServices';
 
 const YearOrRangeSelector: React.FC<{}> = () => {
   const { year } = useParams();
   const navigate = useNavigate();
+  const [queryParams, updateQuery] = useQueryParams();
 
   const [value, setValue] = useState<string | null>(year || null);
 
@@ -30,9 +33,33 @@ const YearOrRangeSelector: React.FC<{}> = () => {
         .split('/')
         .map(segment => (segment === year ? String(newDate) : segment))
         .join('/');
-      console.log(updatedPath, newDate);
+        
+      // -- Begin prep to persist filters on option change --
+      updateQuery({
+        key: 'offset',
+        value: '0',
+        type: 'SET',
+      });
 
-      navigate(updatedPath);
+      const offset = queryParams?.get('offset') || '0';
+      const flagStatus = queryParams?.get('flagStatus') || undefined;
+      const cities = queryParams.getAll('cities') || undefined;
+      let searchParams = '';
+
+      const offsetMod = new URLSearchParams({ offset }).toString();
+      searchParams += `?${offsetMod}`;
+
+      const filters = {
+        flagStatus,
+        cities,
+      };
+
+      const queryString = createQueryStringFromFilters(filters);
+      if (queryString) {
+        searchParams += `&${queryString}`;
+      }
+      // TODO: persisting filters between navigation could be extracted, we have plenty of use cases for it.
+      navigate(`${updatedPath}${searchParams}`);
     }
   };
 
