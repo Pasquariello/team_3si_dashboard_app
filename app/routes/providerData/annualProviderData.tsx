@@ -161,7 +161,7 @@ const renderCellContent = (
         <TooltipTableCell
           key={key}
           tooltipTitle={row.overallRiskScore}
-          align='center'
+          align='right'
           sx={{
             color: getColor(row.overallRiskScore),
           }}
@@ -171,25 +171,25 @@ const renderCellContent = (
       );
     case 'childrenBilledOverCapacity':
       return (
-        <TooltipTableCell tooltipTitle={row.childrenBilledOverCapacity} key={key} align='center'>
+        <TooltipTableCell tooltipTitle={row.childrenBilledOverCapacity} key={key} align='right'>
           {row.childrenBilledOverCapacity}
         </TooltipTableCell>
       );
     case 'distanceTraveled':
       return (
-        <TooltipTableCell tooltipTitle={row.distanceTraveled} key={key} align='center'>
+        <TooltipTableCell tooltipTitle={row.distanceTraveled} key={key} align='right'>
           {row.distanceTraveled}
         </TooltipTableCell>
       );
     case 'childrenPlacedOverCapacity':
       return (
-        <TooltipTableCell tooltipTitle={row.childrenPlacedOverCapacity} key={key} align='center'>
+        <TooltipTableCell tooltipTitle={row.childrenPlacedOverCapacity} key={key} align='right'>
           {row.childrenPlacedOverCapacity}
         </TooltipTableCell>
       );
     case 'providersWithSameAddress':
       return (
-        <TooltipTableCell tooltipTitle={row.providersWithSameAddress} key={key} align='center'>
+        <TooltipTableCell tooltipTitle={row.providersWithSameAddress} key={key} align='right'>
           {row.providersWithSameAddress}
         </TooltipTableCell>
       );
@@ -276,17 +276,19 @@ export default function AnnualProviderData() {
   }, [error]);
 
   const visibleRows = useMemo<AnnualData[]>(() => {
-    const items = !error
-      ? rows?.pages?.flat().filter(dataRow => {
-          const providerName = dataRow?.providerName.toLocaleLowerCase() || '';
-          const providerId = dataRow?.providerLicensingId.toLocaleLowerCase() || '';
-          const searchTerm = searchValue?.toLocaleLowerCase() || '';
-          if (providerName?.includes(searchTerm) || providerId?.includes(searchTerm)) {
-            return true;
-          }
+    const items =
+      rows?.pages?.flat().filter(dataRow => {
+        if (dataRow?.error) {
           return false;
-        }) || []
-      : [];
+        }
+        const providerName = dataRow?.providerName.toLocaleLowerCase() || '';
+        const providerId = dataRow?.providerLicensingId.toLocaleLowerCase() || '';
+        const searchTerm = searchValue?.toLocaleLowerCase() || '';
+        if (providerName?.includes(searchTerm) || providerId?.includes(searchTerm)) {
+          return true;
+        }
+        return false;
+      }) || [];
 
     setLocalFlags(() =>
       items.reduce((acc, curr) => {
