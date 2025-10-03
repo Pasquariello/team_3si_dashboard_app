@@ -21,13 +21,14 @@ export interface Data {
 }
 
 export interface AnnualData extends Data {
+  error?: string;
   postalAddress: string;
   city: string;
   zip: string;
 }
 
-
 export interface MonthlyData extends Data {
+  error?: string;
   startOfMonth?: string;
   postalAddress: string;
   city: string;
