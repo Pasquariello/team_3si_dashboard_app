@@ -238,6 +238,7 @@ export default function AnnualProviderData() {
   const [selected, setSelected] = useState<readonly string[]>([]);
   const [localFlags, setLocalFlags] = useState<string[]>([]);
   const [searchValue, setSearchValue] = useState<string>('');
+  const [rows, setRows] = useState<AnnualData[]>([]);
 
   let params = useParams();
   const [queryParams, updateQuery] = useQueryParams();
@@ -255,14 +256,7 @@ export default function AnnualProviderData() {
   }, [flagStatus, cities]);
 
   // const [rows, setRows] = React.useState<Data[]>([]);
-  const {
-    data: rows,
-    fetchNextPage,
-    isFetching,
-    isLoading,
-    error,
-    refetch,
-  } = useProviderYearlyData(
+  const { data, fetchNextPage, isFetching, isLoading, error, refetch } = useProviderYearlyData(
     params.year!, // the loader ensures this will be here via redirect
     offset,
     filters,
@@ -270,14 +264,8 @@ export default function AnnualProviderData() {
   );
 
   useEffect(() => {
-    if (error) {
-      setToken('');
-    }
-  }, [error]);
-
-  const visibleRows = useMemo<AnnualData[]>(() => {
     const items =
-      rows?.pages?.flat().filter(dataRow => {
+      data?.pages?.flat().filter(dataRow => {
         if (dataRow?.error) {
           return false;
         }
@@ -290,8 +278,18 @@ export default function AnnualProviderData() {
         return false;
       }) || [];
 
+    setRows(items);
+  }, [searchValue, data]);
+
+  useEffect(() => {
+    if (error) {
+      setToken('');
+    }
+  }, [error]);
+
+  const visibleRows = useMemo<AnnualData[]>(() => {
     setLocalFlags(() =>
-      items.reduce((acc, curr) => {
+      rows.reduce((acc, curr) => {
         if (curr.flagged) {
           acc.push(curr.providerLicensingId);
         }
@@ -304,8 +302,43 @@ export default function AnnualProviderData() {
       }, localFlags)
     );
 
-    return getVisibleRows(items, order, orderBy);
-  }, [rows, orderBy, order, searchValue]);
+    return getVisibleRows(rows, order, orderBy);
+  }, [rows, orderBy, order]);
+
+  const rowContent = (index: number, row: AnnualData) => {
+    const isItemSelected = selected.includes(row.providerLicensingId);
+    const labelId = `enhanced-table-checkbox-${index}`;
+    return (
+      <Fragment>
+        {headCells.map((column, index) => {
+          const key = `${index}-${column.id}-${row.providerLicensingId}`;
+          return renderCellContent(row, column.id, isItemSelected, labelId, key);
+        })}
+      </Fragment>
+    );
+  };
+
+  const handleClick = (event: React.MouseEvent<unknown>, id: string) => {
+    if (selected.includes(id)) {
+      // If it's already selected, remove it
+      setSelected(selected.filter(item => item !== id));
+    } else {
+      // If it's not selected, add it
+      setSelected([...selected, id]);
+    }
+  };
+
+  const handleCheck = (event: React.MouseEvent<unknown>, id: string) => {
+    setFlagModalOpenId(id);
+
+    if (selected.includes(id)) {
+      // If it's already selected, remove it
+      setSelected(selected.filter(item => item !== id));
+    } else {
+      // If it's not selected, add it
+      setSelected([...selected, id]);
+    }
+  };
 
   const handleRequestSort = (event: React.MouseEvent<unknown>, property: keyof AnnualData) => {
     const isAsc = orderBy === property && order === 'asc';
@@ -320,16 +353,6 @@ export default function AnnualProviderData() {
       return;
     }
     setSelected([]);
-  };
-
-  const handleClick = (event: React.MouseEvent<unknown>, id: string) => {
-    if (selected.includes(id)) {
-      // If it's already selected, remove it
-      setSelected(selected.filter(item => item !== id));
-    } else {
-      // If it's not selected, add it
-      setSelected([...selected, id]);
-    }
   };
 
   const handleCloseModal = (isFlagged?: boolean, rowId?: string) => {
@@ -373,40 +396,19 @@ export default function AnnualProviderData() {
       return;
     }
     // Our scroll offset is tracked by our cache :)
-    const items = rows?.pages.flat().length;
+    const items = rows.length;
     updateQuery({ type: 'SET', key: 'offset', value: String(items) });
   };
 
   const handleEndScroll = (_rowCount: number) => {
+    // prevent query when local searching
+    if (searchValue.length > 0) {
+      return;
+    }
     // rowCount is the visible rows in the table
     // since we can locally filter we need to check the results from cache
-    if ((rows?.pages?.flat().length || 0 + 1) % 200 === 0) {
+    if ((rows?.length || 0 + 1) % 200 === 0) {
       fetchNextPage().then(() => updateOffset());
-    }
-  };
-
-  const rowContent = (index: number, row: AnnualData) => {
-    const isItemSelected = selected.includes(row.providerLicensingId);
-    const labelId = `enhanced-table-checkbox-${index}`;
-    return (
-      <Fragment>
-        {headCells.map((column, index) => {
-          const key = `${index}-${column.id}-${row.providerLicensingId}`;
-          return renderCellContent(row, column.id, isItemSelected, labelId, key);
-        })}
-      </Fragment>
-    );
-  };
-
-  const handleCheck = (event: React.MouseEvent<unknown>, id: string) => {
-    setFlagModalOpenId(id);
-
-    if (selected.includes(id)) {
-      // If it's already selected, remove it
-      setSelected(selected.filter(item => item !== id));
-    } else {
-      // If it's not selected, add it
-      setSelected([...selected, id]);
     }
   };
 
