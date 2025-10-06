@@ -67,18 +67,9 @@ export const getMonthlyData = async (
     url += `&${queryString}`;
   }
 
-  const authRes = await fetchWithAuth(url, {
+  result = await fetchWithAuth(url, {
     method: 'GET',
   });
-  if (!authRes.ok) {
-    const error = new Error('Failed to fetch');
-    throw error;
-  }
-  try {
-    result = (await authRes.json()) as unknown as MonthlyData[];
-  } catch {
-    throw new Error('Failed to parse Monthly response.');
-  }
 
   return result;
 };
@@ -98,14 +89,10 @@ export const getAnnualData = async (
     url += `&${queryString}`;
   }
 
-  const authRes = await fetchWithAuth(url, {
+  result = await fetchWithAuth(url, {
     method: 'GET',
   });
-  try {
-    result = (await authRes.json()) as unknown as AnnualData[];
-  } catch {
-    throw new Error('Failed to parse Yearly response.');
-  }
+
   return result;
 };
 
@@ -118,17 +105,9 @@ export const getProviderCities = async (cityName: string): Promise<string[]> => 
     url += `?${queryString}`;
   }
 
-  try {
-    const authRes = await fetchWithAuth(url, { method: 'GET' });
-    if (!authRes.ok) {
-      const error = new Error('Failed to fetch');
-      throw error;
-    }
+  
+  result = await fetchWithAuth(url, { method: 'GET' });
 
-    result = await authRes.json();
-  } catch (error) {
-    throw error;
-  }
 
   return result;
 };
