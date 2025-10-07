@@ -1,29 +1,14 @@
 import * as React from 'react';
-import { TableVirtuoso, type TableComponents } from 'react-virtuoso';
-import { CheckboxDataRow, type VirtuosoDataRowProps } from '~/components/table/CheckBoxDataRow';
-import { Scroller } from '~/components/table/VirutalTableScroller';
 import { TooltipTableCell } from '~/components/table/TooltipTableCell';
 
-import { useState, forwardRef, Fragment, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 
 import type { Route } from './+types/annualProviderData';
 import type { AnnualData, HeadCell, Order } from '~/types';
 
 import { useTheme } from '@mui/material/styles';
-import {
-  Backdrop,
-  Box,
-  CircularProgress,
-  Divider,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableRow,
-} from '@mui/material';
+import { Backdrop, Box, CircularProgress, Divider } from '@mui/material';
 
-import EnhancedTableHead from '~/components/table/EnhancedTableHead';
 import EnhancedTableToolbar from '~/components/table/EnhancedTableToolbar';
 import YearOrRangeSelector from '~/components/YearOrRangeSelector';
 
@@ -31,7 +16,6 @@ import { getVisibleRows } from '~/utils/table';
 import FlagModal from '~/components/modals/FlagModal';
 import NoData from '~/components/NoData';
 import {
-  FETCH_ROW_COUNT,
   getAnnualData,
   onSave,
   type ProviderFilters,
@@ -43,6 +27,7 @@ import { queryClient } from '~/queryClient';
 import { useQueryParams } from '~/contexts/queryParamContext';
 import { useAuth } from '~/contexts/authContext';
 import { useProviderYearlyData } from '~/hooks/useProviderYearlyData';
+import { ProviderInfiniteScrollTable } from '~/components/table/ProviderInfiniteScrollTable';
 
 const headCells: readonly HeadCell[] = [
   {
@@ -95,24 +80,6 @@ const headCells: readonly HeadCell[] = [
   },
 ];
 
-const fixedHeaderContent = () => {
-  return (
-    <TableRow>
-      {headCells.map((column, index) => (
-        <TableCell
-          key={`${column.id}+${index}`}
-          variant='head'
-          align={column.numeric || false ? 'right' : 'left'}
-          style={{}}
-          sx={{ backgroundColor: 'background.paper' }}
-        >
-          {column.label}
-        </TableCell>
-      ))}
-    </TableRow>
-  );
-};
-
 const riskThresholds = [
   { max: 100, min: 90, color: 'red' },
   { max: 90, min: 80, color: 'orange' },
@@ -133,7 +100,6 @@ function getColor(value: number) {
 const renderCellContent = (
   row: AnnualData,
   columnId: HeadCell['id'],
-  isItemSelected: boolean,
   labelId: string,
   key: string
 ): React.ReactNode => {
@@ -231,11 +197,9 @@ export default function AnnualProviderData() {
   const theme = useTheme();
   const [isLoadingOverlayActive, setIsLoadingOverlayActive] = useState(false);
   const [order, setOrder] = useState<Order>('desc');
+  const [orderBy, setOrderBy] = useState<keyof AnnualData>('overallRiskScore');
   const [alert, setAlert] = useState<{ success: string; message: string } | null>(null);
   const [flagModalOpenId, setFlagModalOpenId] = useState<string | null>(null);
-
-  const [orderBy, setOrderBy] = useState<keyof AnnualData>('overallRiskScore');
-  const [selected, setSelected] = useState<readonly string[]>([]);
   const [localFlags, setLocalFlags] = useState<string[]>([]);
   const [searchValue, setSearchValue] = useState<string>('');
   const [rows, setRows] = useState<AnnualData[]>([]);
@@ -255,7 +219,6 @@ export default function AnnualProviderData() {
     };
   }, [flagStatus, cities]);
 
-  // const [rows, setRows] = React.useState<Data[]>([]);
   const { data, fetchNextPage, isFetching, isLoading, error, refetch } = useProviderYearlyData(
     params.year!, // the loader ensures this will be here via redirect
     offset,
@@ -264,21 +227,39 @@ export default function AnnualProviderData() {
   );
 
   useEffect(() => {
-    const items =
-      data?.pages?.flat().filter(dataRow => {
-        if (dataRow?.error) {
-          return false;
-        }
-        const providerName = dataRow?.providerName.toLocaleLowerCase() || '';
-        const providerId = dataRow?.providerLicensingId.toLocaleLowerCase() || '';
-        const searchTerm = searchValue?.toLocaleLowerCase() || '';
-        if (providerName?.includes(searchTerm) || providerId?.includes(searchTerm)) {
-          return true;
-        }
-        return false;
-      }) || [];
+    if (!data) return;
+    const newItems = data.pages.flat();
 
-    setRows(items);
+    setRows(() => {
+      const seen = new Set(newItems.map(r => r.providerLicensingId));
+      const merged = [];
+      // de-dupe for virtualization in table
+      for (const item of newItems) {
+        if (seen.has(item.providerLicensingId)) {
+          merged.push(item);
+          seen.delete(item.providerLicensingId);
+        }
+      }
+      // our local filter on the table
+      const filteredItems =
+        merged.filter(dataRow => {
+          if (dataRow?.error) {
+            return false;
+          }
+          const searchTerm = searchValue?.toLocaleLowerCase() || '';
+          if (searchTerm === '') {
+            return true;
+          }
+          const providerName = dataRow?.providerName.toLocaleLowerCase() || '';
+          const providerId = dataRow?.providerLicensingId.toLocaleLowerCase() || '';
+          if (providerName?.includes(searchTerm) || providerId?.includes(searchTerm)) {
+            return true;
+          }
+          return false;
+        }) || [];
+
+      return filteredItems;
+    });
   }, [searchValue, data]);
 
   useEffect(() => {
@@ -305,54 +286,14 @@ export default function AnnualProviderData() {
     return getVisibleRows(rows, order, orderBy);
   }, [rows, orderBy, order]);
 
-  const rowContent = (index: number, row: AnnualData) => {
-    const isItemSelected = selected.includes(row.providerLicensingId);
-    const labelId = `enhanced-table-checkbox-${index}`;
-    return (
-      <Fragment>
-        {headCells.map((column, index) => {
-          const key = `${index}-${column.id}-${row.providerLicensingId}`;
-          return renderCellContent(row, column.id, isItemSelected, labelId, key);
-        })}
-      </Fragment>
-    );
-  };
-
-  const handleClick = (event: React.MouseEvent<unknown>, id: string) => {
-    if (selected.includes(id)) {
-      // If it's already selected, remove it
-      setSelected(selected.filter(item => item !== id));
-    } else {
-      // If it's not selected, add it
-      setSelected([...selected, id]);
-    }
-  };
-
   const handleCheck = (event: React.MouseEvent<unknown>, id: string) => {
     setFlagModalOpenId(id);
-
-    if (selected.includes(id)) {
-      // If it's already selected, remove it
-      setSelected(selected.filter(item => item !== id));
-    } else {
-      // If it's not selected, add it
-      setSelected([...selected, id]);
-    }
   };
 
   const handleRequestSort = (event: React.MouseEvent<unknown>, property: keyof AnnualData) => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
     setOrderBy(property);
-  };
-
-  const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.checked) {
-      const newSelected = visibleRows.map(n => n.providerLicensingId);
-      setSelected(newSelected);
-      return;
-    }
-    setSelected([]);
   };
 
   const handleCloseModal = (isFlagged?: boolean, rowId?: string) => {
@@ -412,69 +353,6 @@ export default function AnnualProviderData() {
     }
   };
 
-  const VirtuosoTableComponents: TableComponents<AnnualData> = {
-    Scroller,
-    Table: props => (
-      <Table stickyHeader aria-label='sticky table' sx={{ tableLayout: 'auto' }} {...props} />
-    ),
-    TableHead: forwardRef<HTMLTableSectionElement>((props, ref) => (
-      <EnhancedTableHead
-        {...props}
-        numSelected={selected.length}
-        order={order}
-        orderBy={orderBy}
-        onSelectAllClick={handleSelectAllClick}
-        onRequestSort={handleRequestSort}
-        rowCount={visibleRows?.length || 0}
-        headCells={headCells}
-        ref={ref}
-      />
-    )),
-    TableRow: forwardRef<HTMLTableRowElement, VirtuosoDataRowProps>((props, ref) => (
-      <CheckboxDataRow
-        ref={ref}
-        {...props}
-        handleClickRow={handleClick}
-        handleCheckBox={handleCheck}
-        isSelected={(id: string) => selected.includes(id)}
-        isChecked={(id: string) => localFlags.includes(id)}
-      />
-    )),
-    TableBody: forwardRef<HTMLTableSectionElement>((props, ref) => (
-      <TableBody {...props} ref={ref} />
-    )),
-  };
-
-  const renderTable = () => (
-    <TableContainer component={Paper} sx={{ height: '97vh', flexGrow: 1, overflow: 'auto' }}>
-      <TableVirtuoso
-        data={visibleRows}
-        endReached={handleEndScroll}
-        fixedHeaderContent={fixedHeaderContent}
-        increaseViewportBy={FETCH_ROW_COUNT}
-        itemContent={rowContent}
-        components={VirtuosoTableComponents}
-        fixedFooterContent={() =>
-          isFetching || isLoading ? (
-            <TableRow sx={{ backgroundColor: 'lightgray' }}>
-              <TableCell colSpan={headCells.length} sx={{ textAlign: 'center' }} align='center'>
-                <Box
-                  sx={{
-                    width: '100%',
-                    textAlign: 'center',
-                    display: 'block',
-                  }}
-                >
-                  <CircularProgress size={24} />
-                </Box>
-              </TableCell>
-            </TableRow>
-          ) : null
-        }
-      />
-    </TableContainer>
-  );
-
   return (
     <>
       {isLoadingOverlayActive && (
@@ -492,8 +370,8 @@ export default function AnnualProviderData() {
       <FlagModal
         open={!!flagModalOpenId}
         onClose={handleCloseModal}
-        onSave={(data: any) => handleOnSave(data)}
-        disableRemove={false}
+        onSave={handleOnSave}
+        disableRemove={flagModalOpenId ? !localFlags.includes(flagModalOpenId) : false}
         providerData={
           visibleRows.find(data => data.providerLicensingId === flagModalOpenId) ||
           ({} as AnnualData)
@@ -526,7 +404,6 @@ export default function AnnualProviderData() {
             m: 2,
           }}
         >
-          {/* ^ that line added  height: '100vh', display: 'flex', flexDirection: 'column' */}
           <Box sx={{ my: 3 }} display={'flex'} flex={1} gap={1} width={'100%'}>
             <YearOrRangeSelector />
             <EnhancedTableToolbar searchHandler={setSearchValue} />
@@ -535,7 +412,20 @@ export default function AnnualProviderData() {
           <ProviderTableFilterBar />
         </Box>
         {visibleRows.length ? (
-          renderTable()
+          <Box height={'97vh'} sx={{ backgroundColor: theme.palette.primary.contrastText }}>
+            <ProviderInfiniteScrollTable
+              data={visibleRows}
+              headCells={headCells}
+              renderCellContent={renderCellContent}
+              fetchMore={handleEndScroll}
+              isLoading={isFetching || isLoading}
+              order={order}
+              orderBy={orderBy}
+              handleRequestSort={handleRequestSort}
+              onCheck={handleCheck}
+              localFlags={localFlags}
+            />
+          </Box>
         ) : isFetching || isLoading ? (
           <Box
             sx={{

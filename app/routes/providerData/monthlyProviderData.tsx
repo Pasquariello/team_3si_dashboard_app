@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { Backdrop, Box, CircularProgress, Divider, useTheme } from '@mui/material';
 
-import type { HeadCell, MonthlyData } from '~/types';
+import type { HeadCell, MonthlyData, Order } from '~/types';
 import DatePickerViews from '~/components/DatePickerViews';
 import EnhancedTableToolbar from '~/components/table/EnhancedTableToolbar';
 import type { Route } from './+types/monthlyProviderData';
@@ -185,15 +185,15 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 }
 
 export default function MonthlyProviderData() {
+  const theme = useTheme();
   const [isLoadingOverlayActive, setIsLoadingOverlayActive] = useState(false);
+  const [order, setOrder] = useState<Order>('desc');
+  const [orderBy, setOrderBy] = useState<keyof MonthlyData>('overallRiskScore');
   const [alert, setAlert] = useState<{ success: string; message: string } | null>(null);
   const [flagModalOpenId, setFlagModalOpenId] = useState<string | null>(null);
   const [localFlags, setLocalFlags] = useState<string[]>([]);
   const [searchValue, setSearchValue] = useState<string>('');
   const [rows, setRows] = useState<MonthlyData[]>([]);
-  const [order, setOrder] = useState<'asc' | 'desc'>('desc');
-  const [orderBy, setOrderBy] = useState<keyof MonthlyData>('overallRiskScore');
-  const theme = useTheme();
 
   let params = useParams();
   const [queryParams, updateQuery] = useQueryParams();
@@ -220,34 +220,19 @@ export default function MonthlyProviderData() {
   useEffect(() => {
     if (!data) return;
 
-    const newItems =
-      data.pages.flat().filter(dataRow => {
-        if (dataRow?.error) {
-          return false;
-        }
-        const searchTerm = searchValue?.toLocaleLowerCase() || '';
-        if (searchTerm === '') {
-          return true;
-        }
+    const newItems = data.pages.flat();
 
-        const providerName = dataRow?.providerName.toLocaleLowerCase() || '';
-        const providerId = dataRow?.providerLicensingId.toLocaleLowerCase() || '';
-
-        if (providerName?.includes(searchTerm) || providerId?.includes(searchTerm)) {
-          return true;
-        }
-        return false;
-      }) || [];
-
-    setRows(prev => {
-      // dedupe, we must manage this since TableVirtuoso doesn't
-      const seen = new Set(prev.map(r => r.providerLicensingId));
-      const merged = [...prev];
-
+    setRows(() => {
+      const seen = new Set(newItems.map(r => r.providerLicensingId));
+      const merged = [];
+      // de-dupe for virtualization in table
       for (const item of newItems) {
-        if (!seen.has(item.providerLicensingId)) merged.push(item);
+        if (seen.has(item.providerLicensingId)) {
+          merged.push(item);
+          seen.delete(item.providerLicensingId);
+        }
       }
-
+      // our local filter on the table
       const filteredItems =
         merged.filter(dataRow => {
           if (dataRow?.error) {
@@ -269,6 +254,12 @@ export default function MonthlyProviderData() {
     });
   }, [searchValue, data]);
 
+  useEffect(() => {
+    if (error) {
+      setToken('');
+    }
+  }, [error]);
+
   const visibleRows = useMemo<MonthlyData[]>(() => {
     setLocalFlags(() =>
       rows.reduce((acc, curr) => {
@@ -287,20 +278,14 @@ export default function MonthlyProviderData() {
     return getVisibleRows(rows, order, orderBy);
   }, [rows, orderBy, order]);
 
+  const handleCheck = (event: React.MouseEvent<unknown>, id: string) => {
+    setFlagModalOpenId(id);
+  };
+
   const handleRequestSort = (event: React.MouseEvent<unknown>, property: keyof MonthlyData) => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
     setOrderBy(property);
-  };
-
-  useEffect(() => {
-    if (error) {
-      setToken('');
-    }
-  }, [error]);
-
-  const handleCheck = (event: React.MouseEvent<unknown>, id: string) => {
-    setFlagModalOpenId(id);
   };
 
   const handleCloseModal = (isFlagged?: boolean, rowId?: string) => {
