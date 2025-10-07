@@ -107,18 +107,6 @@ export function ProviderInfiniteScrollTable<T extends Data>({
     );
   };
 
-  const rowContent = (index: number, row: T) => {
-    const labelId = `enhanced-table-checkbox-${row.providerLicensingId}`;
-    return (
-      <Fragment>
-        {headCells.map((column, index) => {
-          const key = `${column.id}-${row.providerLicensingId}`;
-          return renderCellContent(row, column.id, labelId, key);
-        })}
-      </Fragment>
-    );
-  };
-
   const VirtuosoTableComponents: TableComponents<T> = {
     Scroller,
     Table: props => (
