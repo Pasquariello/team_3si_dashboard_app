@@ -97,10 +97,10 @@ const DrawerFooter = styled('div')(({ theme }) => ({
 export const Shell = ({ children }: { children: ReactNode }) => {
   const theme = useTheme();
   const location = useLocation();
-  const [open, setOpen] = useState(false);
+  const [open, setOpen] = useState(true);
 
   // TODO: Open the group that is match to the URL by default
-  const [openServices, setOpenServices] = useState(false);
+  const [openServices, setOpenServices] = useState(true);
   const handleClick = () => {
     setOpenServices(prev => !prev);
   };
