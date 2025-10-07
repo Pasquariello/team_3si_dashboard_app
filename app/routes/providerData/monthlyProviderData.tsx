@@ -1,31 +1,15 @@
-import { TableVirtuoso, type TableComponents } from 'react-virtuoso';
-import { useState, forwardRef, Fragment, useMemo, useEffect } from 'react';
-import EnhancedTableHead from '~/components/table/EnhancedTableHead';
-import {
-  Backdrop,
-  Box,
-  CircularProgress,
-  Divider,
-  Table,
-  TableBody,
-  TableCell,
-  TableRow,
-  useTheme,
-} from '@mui/material';
+import { useState, useMemo, useEffect } from 'react';
+import { Backdrop, Box, CircularProgress, Divider, useTheme } from '@mui/material';
 
 import type { HeadCell, MonthlyData, Order } from '~/types';
 import DatePickerViews from '~/components/DatePickerViews';
 import EnhancedTableToolbar from '~/components/table/EnhancedTableToolbar';
-import { getVisibleRows } from '~/utils/table';
 import type { Route } from './+types/monthlyProviderData';
 import FlagModal from '~/components/modals/FlagModal';
 import NoData from '~/components/NoData';
 import { useProviderMonthlyData } from '~/hooks/useProviderMonthlyData';
-import { CheckboxDataRow, type VirtuosoDataRowProps } from '~/components/table/CheckBoxDataRow';
-import { Scroller } from '~/components/table/VirutalTableScroller';
 import { TooltipTableCell } from '~/components/table/TooltipTableCell';
 import {
-  FETCH_ROW_COUNT,
   getMonthlyData,
   onSave,
   type ProviderFilters,
@@ -36,6 +20,8 @@ import DescriptionAlerts from '~/components/DescriptionAlerts';
 import { redirect, useParams } from 'react-router';
 import { ProviderTableFilterBar } from '~/components/ProviderTableFilterBar';
 import { useQueryParams } from '~/contexts/queryParamContext';
+import { ProviderInfiniteScrollTable } from '~/components/table/ProviderInfiniteScrollTable';
+import { getVisibleRows } from '~/utils/table';
 
 const riskThresholds = [
   { max: 4, min: 3, color: 'red' },
@@ -100,24 +86,6 @@ const headCells: readonly HeadCell[] = [
     label: 'Providers with Same Address',
   },
 ];
-
-const fixedHeaderContent = () => {
-  return (
-    <TableRow>
-      {headCells.map((column, index) => (
-        <TableCell
-          key={`${column.id}+${index}`}
-          variant='head'
-          align={column.numeric || false ? 'right' : 'left'}
-          style={{}}
-          sx={{ backgroundColor: 'background.paper' }}
-        >
-          {column.label}
-        </TableCell>
-      ))}
-    </TableRow>
-  );
-};
 
 const renderCellContent = (
   row: MonthlyData,
@@ -217,15 +185,15 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 }
 
 export default function MonthlyProviderData() {
+  const theme = useTheme();
   const [isLoadingOverlayActive, setIsLoadingOverlayActive] = useState(false);
-  const [selected, setSelected] = useState<readonly string[]>([]);
   const [order, setOrder] = useState<Order>('desc');
-  const [alert, setAlert] = useState<{ success: string; message: string } | null>(null);
   const [orderBy, setOrderBy] = useState<keyof MonthlyData>('overallRiskScore');
+  const [alert, setAlert] = useState<{ success: string; message: string } | null>(null);
   const [flagModalOpenId, setFlagModalOpenId] = useState<string | null>(null);
   const [localFlags, setLocalFlags] = useState<string[]>([]);
   const [searchValue, setSearchValue] = useState<string>('');
-  const theme = useTheme();
+  const [rows, setRows] = useState<MonthlyData[]>([]);
 
   let params = useParams();
   const [queryParams, updateQuery] = useQueryParams();
@@ -250,25 +218,51 @@ export default function MonthlyProviderData() {
   );
 
   useEffect(() => {
+    if (!data) return;
+
+    const newItems = data.pages.flat();
+
+    setRows(() => {
+      const seen = new Set(newItems.map(r => r.providerLicensingId));
+      const merged = [];
+      // de-dupe for virtualization in table
+      for (const item of newItems) {
+        if (seen.has(item.providerLicensingId)) {
+          merged.push(item);
+          seen.delete(item.providerLicensingId);
+        }
+      }
+      // our local filter on the table
+      const filteredItems =
+        merged.filter(dataRow => {
+          if (dataRow?.error) {
+            return false;
+          }
+          const searchTerm = searchValue?.toLocaleLowerCase() || '';
+          if (searchTerm === '') {
+            return true;
+          }
+          const providerName = dataRow?.providerName.toLocaleLowerCase() || '';
+          const providerId = dataRow?.providerLicensingId.toLocaleLowerCase() || '';
+          if (providerName?.includes(searchTerm) || providerId?.includes(searchTerm)) {
+            return true;
+          }
+          return false;
+        }) || [];
+
+      return filteredItems;
+    });
+  }, [searchValue, data]);
+
+  useEffect(() => {
     if (error) {
       setToken('');
     }
   }, [error]);
 
-  const visibleRows = useMemo<MonthlyData[]>((): MonthlyData[] => {
-    const items =
-      data?.pages.flat().filter(dataRow => {
-        const providerName = dataRow.providerName.toLocaleLowerCase();
-        const providerId = dataRow.providerLicensingId.toLocaleLowerCase();
-        const searchTerm = searchValue.toLocaleLowerCase();
-        if (providerName.includes(searchTerm) || providerId.includes(searchTerm)) {
-          return true;
-        }
-        return false;
-      }) || [];
-
+  const visibleRows = useMemo<MonthlyData[]>(() => {
     setLocalFlags(() =>
-      items.reduce((acc, curr) => {
+      rows.reduce((acc, curr) => {
         if (curr.flagged) {
           acc.push(curr.providerLicensingId);
         }
@@ -281,99 +275,17 @@ export default function MonthlyProviderData() {
       }, localFlags)
     );
 
-    return getVisibleRows<MonthlyData>(items, order, orderBy);
-  }, [order, orderBy, data, searchValue]);
-
-  const rowContent = (index: number, row: MonthlyData) => {
-    const labelId = `enhanced-table-checkbox-${index}`;
-    return (
-      <Fragment>
-        {headCells.map((column, index) => {
-          const key = `${index}-${column.id}-${row.providerLicensingId}`;
-          return renderCellContent(row, column.id, labelId, key);
-        })}
-      </Fragment>
-    );
-  };
-
-  const handleClick = (event: React.MouseEvent<unknown>, id: string) => {
-    if (selected.includes(id)) {
-      // If it's already selected, remove it
-      setSelected(selected.filter(item => item !== id));
-    } else {
-      // If it's not selected, add it
-      setSelected([...selected, id]);
-    }
-  };
+    return getVisibleRows(rows, order, orderBy);
+  }, [rows, orderBy, order]);
 
   const handleCheck = (event: React.MouseEvent<unknown>, id: string) => {
     setFlagModalOpenId(id);
-
-    if (selected.includes(id)) {
-      // If it's already selected, remove it
-      setSelected(selected.filter(item => item !== id));
-    } else {
-      // If it's not selected, add it
-      setSelected([...selected, id]);
-    }
   };
 
-  // will eventually requery
   const handleRequestSort = (event: React.MouseEvent<unknown>, property: keyof MonthlyData) => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
     setOrderBy(property);
-  };
-
-  const handleSelectAllClick = (event: React.ChangeEvent<HTMLInputElement>) => {
-    if (event.target.checked) {
-      const newSelected = visibleRows.map(n => n.providerLicensingId);
-      setSelected(newSelected);
-      return;
-    }
-    setSelected([]);
-  };
-
-  const VirtuosoTableComponents: TableComponents<MonthlyData> = {
-    Scroller,
-    Table: props => (
-      <Table stickyHeader aria-label='sticky table' sx={{ tableLayout: 'auto' }} {...props} />
-    ),
-    TableHead: forwardRef<HTMLTableSectionElement>((props, ref) => (
-      <EnhancedTableHead
-        {...props}
-        numSelected={selected.length}
-        order={order}
-        orderBy={orderBy}
-        onSelectAllClick={handleSelectAllClick}
-        onRequestSort={handleRequestSort}
-        rowCount={visibleRows?.length || 0}
-        headCells={headCells}
-        ref={ref}
-      />
-    )),
-    TableRow: forwardRef<HTMLTableRowElement, VirtuosoDataRowProps>((props, ref) => (
-      <CheckboxDataRow
-        ref={ref}
-        {...props}
-        handleClickRow={handleClick}
-        handleCheckBox={handleCheck}
-        isSelected={(id: string) => selected.includes(id)}
-        isChecked={(id: string) => localFlags.includes(id)}
-      />
-    )),
-    TableBody: forwardRef<HTMLTableSectionElement>((props, ref) => (
-      <TableBody {...props} ref={ref} />
-    )),
-  };
-
-  const updateOffset = () => {
-    if (isFetching || isLoading) {
-      return;
-    }
-    // Our scroll offset is tracked by our cache :)
-    const items = data?.pages.flat().length;
-    updateQuery({ type: 'SET', key: 'offset', value: String(items) });
   };
 
   const handleCloseModal = (isFlagged?: boolean, rowId?: string) => {
@@ -411,10 +323,23 @@ export default function MonthlyProviderData() {
     }
   };
 
+  const updateOffset = () => {
+    if (isFetching || isLoading) {
+      return;
+    }
+    // Our scroll offset is tracked by our cache :)
+    const items = rows.length;
+    updateQuery({ type: 'SET', key: 'offset', value: String(items) });
+  };
+
   const handleEndScroll = (_rowCount: number) => {
+    // prevent query when local searching
+    if (searchValue.length > 0) {
+      return;
+    }
     // rowCount is the visible rows in the table
     // since we can locally filter we need to check the results from cache
-    if ((data?.pages?.flat().length || 0 + 1) % 200 === 0) {
+    if ((rows.length || 0 + 1) % 200 === 0) {
       fetchNextPage().then(() => updateOffset());
     }
   };
@@ -439,8 +364,7 @@ export default function MonthlyProviderData() {
         onSave={handleOnSave}
         disableRemove={flagModalOpenId ? !localFlags.includes(flagModalOpenId) : false}
         providerData={
-          visibleRows.find(data => data.providerLicensingId === flagModalOpenId) ||
-          ({} as MonthlyData)
+          rows?.find(data => data.providerLicensingId === flagModalOpenId) || ({} as MonthlyData)
         }
       />
 
@@ -478,37 +402,22 @@ export default function MonthlyProviderData() {
           <ProviderTableFilterBar />
         </Box>
         {visibleRows.length ? (
-          <Box height={'97vh'} sx={{ backgroundColor: theme.palette.primary.contrastText }}>
-            <TableVirtuoso
-              data={visibleRows}
-              endReached={handleEndScroll}
-              fixedHeaderContent={fixedHeaderContent}
-              increaseViewportBy={FETCH_ROW_COUNT}
-              itemContent={rowContent}
-              components={VirtuosoTableComponents}
-              fixedFooterContent={() =>
-                isFetching || isLoading ? (
-                  <TableRow sx={{ backgroundColor: 'lightgray' }}>
-                    <TableCell
-                      colSpan={headCells.length}
-                      sx={{ textAlign: 'center' }}
-                      align='center'
-                    >
-                      <Box
-                        sx={{
-                          width: '100%',
-                          textAlign: 'center',
-                          display: 'block',
-                        }}
-                      >
-                        <CircularProgress size={24} />
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                ) : null
-              }
-            />
-          </Box>
+          <>
+            <Box height={'97vh'} sx={{ backgroundColor: theme.palette.primary.contrastText }}>
+              <ProviderInfiniteScrollTable
+                data={visibleRows}
+                headCells={headCells}
+                renderCellContent={renderCellContent}
+                fetchMore={handleEndScroll}
+                isLoading={isFetching || isLoading}
+                order={order}
+                orderBy={orderBy}
+                handleRequestSort={handleRequestSort}
+                onCheck={handleCheck}
+                localFlags={localFlags}
+              />
+            </Box>
+          </>
         ) : isFetching || isLoading ? (
           <Box
             sx={{

@@ -10,28 +10,33 @@ import {
 import { visuallyHidden } from '@mui/utils';
 import type { Data, HeadCell, Order } from '~/types';
 
-interface EnhancedTableProps {
+interface EnhancedTableProps<T> {
   numSelected: number;
-  onRequestSort: (event: React.MouseEvent<unknown>, property: keyof Data) => void;
+  onRequestSort: (event: React.MouseEvent<unknown>, property: keyof T) => void;
   onSelectAllClick: (event: React.ChangeEvent<HTMLInputElement>) => void;
   order: Order;
-  orderBy: string;
+  orderBy: keyof T;
   rowCount: number;
   headCells: readonly HeadCell[];
   ref?: React.ForwardedRef<HTMLTableSectionElement>;
 }
 
-function EnhancedTableHead(props: EnhancedTableProps) {
+function EnhancedTableHead<T extends Data>({
+  headCells,
+  onSelectAllClick,
+  order,
+  orderBy,
+  numSelected,
+  rowCount,
+  onRequestSort,
+  ref,
+}: EnhancedTableProps<T>) {
   const theme = useTheme();
-
-  const { headCells, onSelectAllClick, order, orderBy, numSelected, rowCount, onRequestSort } =
-    props;
   const createSortHandler = (property: keyof Data) => (event: React.MouseEvent<unknown>) => {
     onRequestSort(event, property);
   };
-
   return (
-    <TableHead ref={props.ref ? props.ref : undefined}>
+    <TableHead ref={ref ? ref : undefined}>
       <TableRow>
         {/* <TableCell padding="checkbox">
           <Checkbox

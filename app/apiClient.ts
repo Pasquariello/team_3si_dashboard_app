@@ -7,8 +7,19 @@ export async function fetchWithAuth(input: RequestInfo, init: RequestInit = {}) 
     ...(token && { Authorization: `Bearer ${token}` }),
     'Content-Type': 'application/json',
   };
+  let response = null;
+  try {
+    const data = await fetch(input, { ...init, headers });
 
-  const response = await fetch(input, { ...init, headers });
+    if (!data.ok) {
+      const error = new Error('failed to fetch');
+      throw error;
+    }
+
+    response = await data.json();
+  } catch (error) {
+    throw error;
+  }
 
   return response;
 }
