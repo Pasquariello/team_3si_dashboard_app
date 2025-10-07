@@ -73,9 +73,9 @@ export default function ProviderData() {
       }
       // checking the param and appending or removing the day depending on yearly or monthly tab
       // allows filters to carry over between tabs
-      const param = !Object.hasOwn(params, 'year')
+      const param = !Object.hasOwn(params, 'selectedYear')
         ? params?.date?.slice(0, params.date?.length - 3)
-        : params.year + '-01';
+        : params.selectedYear + '-01';
 
       navigate(`${tabRoutes[activeTab].path}/${param}${searchParams}`);
     }
