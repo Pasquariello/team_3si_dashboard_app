@@ -5,24 +5,24 @@ import { useQueryParams } from '~/contexts/queryParamContext';
 import { createQueryStringFromFilters } from './services/providerDataServices';
 
 const YearOrRangeSelector: React.FC<{}> = () => {
-  const { year } = useParams();
+  const { selectedYear } = useParams();
   const navigate = useNavigate();
   const [queryParams, updateQuery] = useQueryParams();
 
-  const [value, setValue] = useState<string | null>(year || null);
+  const [value, setValue] = useState<string | null>(selectedYear || null);
 
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 5 }, (_, i) => (currentYear - i).toString());
 
   // Load initial year from path param
   useEffect(() => {
-    if (year) {
-      const parsed = years.includes(year);
+    if (selectedYear) {
+      const parsed = years.includes(selectedYear);
       if (parsed) {
-        setValue(year);
+        setValue(selectedYear);
       }
     }
-  }, [year]);
+  }, [selectedYear]);
 
   const handleChange = (event: any) => {
     const newDate = event.target.value;
@@ -31,7 +31,7 @@ const YearOrRangeSelector: React.FC<{}> = () => {
       const pathname = location.pathname;
       const updatedPath = pathname
         .split('/')
-        .map(segment => (segment === year ? String(newDate) : segment))
+        .map(segment => (segment === selectedYear ? String(newDate) : segment))
         .join('/');
         
       // -- Begin prep to persist filters on option change --

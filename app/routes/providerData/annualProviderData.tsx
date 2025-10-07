@@ -165,7 +165,7 @@ const renderCellContent = (
 };
 
 export async function loader({ params, request }: Route.LoaderArgs) {
-  let year = params?.year;
+  let year = params?.selectedYear;
   if (!year) {
     year = '2024'; // getCurrentDate()
     return redirect(`${year}`);
@@ -219,8 +219,8 @@ export default function AnnualProviderData() {
     };
   }, [flagStatus, cities]);
 
-  const { data, fetchNextPage, isFetching, isLoading, error, refetch } = useProviderYearlyData(
-    params.year!, // the loader ensures this will be here via redirect
+  const { data, fetchNextPage, isFetching, isLoading, error } = useProviderYearlyData(
+    params.selectedYear!, // the loader ensures this will be here via redirect
     offset,
     filters,
     offset
