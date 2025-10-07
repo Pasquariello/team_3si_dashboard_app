@@ -199,7 +199,7 @@ const renderCellContent = (
 };
 
 export async function loader({ params, request }: Route.LoaderArgs) {
-  let year = params?.year;
+  let year = params?.selectedYear;
   if (!year) {
     year = '2024'; // getCurrentDate()
     return redirect(`${year}`);
@@ -263,7 +263,7 @@ export default function AnnualProviderData() {
     error,
     refetch,
   } = useProviderYearlyData(
-    params.year!, // the loader ensures this will be here via redirect
+    params.selectedYear!, // the loader ensures this will be here via redirect
     offset,
     filters,
     offset

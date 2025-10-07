@@ -11,7 +11,7 @@ export default [
   layout('./routes/providerData/providerData.tsx', [
     ...prefix('providerData', [
       index('routes/providerData/redirect.tsx'), // 👈 redirect from /providerData
-      route('annual/:year?', './routes/providerData/annualProviderData.tsx'),
+      route('annual/:selectedYear?', './routes/providerData/annualProviderData.tsx'),
       route('monthly/:date?', './routes/providerData/monthlyProviderData.tsx'),
     ]),
   ]),

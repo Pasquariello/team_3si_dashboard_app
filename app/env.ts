@@ -4,7 +4,7 @@ import { z } from 'zod/v4';
 const envSchema = z.object({
   ENV: z.enum(['development', 'production', 'test']).default('development'),
   VITE_API_ROOT_API_URL: z.string().nonempty(),
-  STATE_NAME: z.string().nonempty(),
+  VITE_STATE_NAME: z.string().nonempty(),
 });
 
 try {
