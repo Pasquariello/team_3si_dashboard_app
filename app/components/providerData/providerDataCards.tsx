@@ -7,7 +7,7 @@ import { useEffect } from "react";
 
 export default function ProviderDataCards() {
 
-    const { selectedYear } = useParams();
+    const params = useParams();
 
     const riskScoreStrings = {
         total_billed_over_capacity: "Children Billed Over",
@@ -21,7 +21,7 @@ export default function ProviderDataCards() {
 
     const getProviderCount = async () => {
 
-        const response = await fetch(`${env.VITE_API_ROOT_API_URL}/providerData/providerCount/${selectedYear}`)
+        const response = await fetch(`${env.VITE_API_ROOT_API_URL}/providerData/providerCount`)
     
         if (!response.ok) {
             throw new Error('Network response was not ok');
@@ -31,7 +31,10 @@ export default function ProviderDataCards() {
 
     const getProvidersWithHighRiskCount = async () => {
 
-        const response = await fetch(`${env.VITE_API_ROOT_API_URL}/providerData/highRiskScoreCount/${selectedYear}`)
+        const param = !Object.hasOwn(params, 'selectedYear')
+            ? params?.date?.slice(0, params.date?.length - 3)
+              : params.selectedYear;
+        const response = await fetch(`${env.VITE_API_ROOT_API_URL}/providerData/highRiskScore/${param}`);
        
 
         if (!response.ok) {
@@ -41,8 +44,10 @@ export default function ProviderDataCards() {
     }
 
     const getHighestRiskScore = async () => {
-
-        const response = await fetch(`${env.VITE_API_ROOT_API_URL}/providerData/highRiskScore/${selectedYear}`)
+        const param = !Object.hasOwn(params, 'selectedYear')
+            ? params?.date?.slice(0, params.date?.length - 3)
+              : params.selectedYear;
+        const response = await fetch(`${env.VITE_API_ROOT_API_URL}/providerData/highRiskScore/${param}`);
         console.log(' getHighestRiskScore response', response)
         console.log('env.VITE_API_ROOT_API_URL', env.VITE_API_ROOT_API_URL)
 
@@ -54,7 +59,7 @@ export default function ProviderDataCards() {
 
     const getFlaggedCount = async () => {
 
-        const response = await fetch(`${env.VITE_API_ROOT_API_URL}/providerData/flaggedCount/${selectedYear}`)
+        const response = await fetch(`${env.VITE_API_ROOT_API_URL}/providerData/flaggedCount`)
         if (!response.ok) {
             throw new Error('Network response was not ok');
         }
@@ -74,7 +79,9 @@ export default function ProviderDataCards() {
         // }
         // return response.json();
         // },
-        queryKey: ['selectedYear', selectedYear],
+        queryKey: ['selectedYear', !Object.hasOwn(params, 'selectedYear')
+            ? params?.date?.slice(0, params.date?.length - 3)
+              : params.selectedYear],
         queryFn: async () => {
             const [unique_provider_count, dashboardStats, count_over_44, foo] = await Promise.all([
             getProviderCount(),
@@ -128,13 +135,16 @@ export default function ProviderDataCards() {
   }
 
 //   let baz = [{ year: 2023, metric: "total_placed_over_capacity", total_value: 55659 }, { year: 2023, metric: "total_distance_traveled", total_value: 55659 }, { year: 2024, metric: "total_billed_over_capacity", total_value: 56028 }]
-  let baz = [{ year: 2023, metric: "total_billed_over_capacity", total_value: 55659 },{ year: 2024, metric: "total_billed_over_capacity", total_value: 56028 }]
+//   let baz = [{ year: 2023, metric: "total_billed_over_capacity", total_value: 55659 },{ year: 2024, metric: "total_billed_over_capacity", total_value: 56028 }]
 
   const highestRiskScoreDesc = () => {
+    const currentYear = !Object.hasOwn(params, 'selectedYear')
+        ? params?.date?.slice(0, params.date?.length - 3)
+            : params.selectedYear;
     const riskScores =  data?.[3]; 
 
-    let thisYear = riskScores?.filter(riskScore => riskScore.year === Number(selectedYear));
-    let lastYear = baz?.filter(riskScore => riskScore.year === (Number(selectedYear) - 1));
+    let thisYear = riskScores?.filter(riskScore => riskScore.year === Number(currentYear));
+    let lastYear = riskScores?.filter(riskScore => riskScore.year === (Number(currentYear) - 1));
 
     let foo = highestRiskScoreTitle(thisYear);
     let bar = highestRiskScoreTitle(lastYear)
@@ -154,7 +164,9 @@ export default function ProviderDataCards() {
     // let title = highestRiskScoreTitle(data?.[3])
   }, [ data?.[3]])
   
-    let currentYearArr = data?.[3].filter(riskScore => riskScore.year === Number(selectedYear));
+    let currentYearArr = data?.[3].filter(riskScore => riskScore.year === Number(!Object.hasOwn(params, 'selectedYear')
+        ? params?.date?.slice(0, params.date?.length - 3)
+            : params.selectedYear));
     let title = highestRiskScoreTitle(currentYearArr)
     
     return (
@@ -183,7 +195,7 @@ export default function ProviderDataCards() {
             <DashboardCard
                 title='Flagged for Review'
                 description='50% require immediate attention'
-                value='250'
+                value={data?.[1].unique_provider_count}
                 valueColor='warning'
                 descColor={theme.palette.cusp_iron.contrastText}
                 loading={isLoading}
