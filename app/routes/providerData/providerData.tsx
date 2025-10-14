@@ -46,14 +46,17 @@ export default function ProviderData() {
   let params = useParams();
   const [queryParams, updateQuery] = useQueryParams();
 
-  React.useEffect(() => {
+  const theme = useTheme();
+  
+  const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
     if (!onMatchingRoute) {
       updateQuery({
         key: 'offset',
         value: '0',
         type: 'SET',
       });
-
+    }
+    setActiveTab(() => {
       const offset = queryParams?.get('offset') || '0';
       const flagStatus = queryParams?.get('flagStatus') || undefined;
       const cities = queryParams.getAll('cities') || undefined;
@@ -76,14 +79,9 @@ export default function ProviderData() {
       const param = !Object.hasOwn(params, 'selectedYear')
         ? params?.date?.slice(0, params.date?.length - 3)
         : params.selectedYear + '-01';
-
-      navigate(`${tabRoutes[activeTab].path}/${param}${searchParams}`);
-    }
-  }, [activeTab, params]);
-
-  const theme = useTheme();
-  const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
-    setActiveTab(() => newValue);
+      navigate(`${tabRoutes[newValue].path}/${param}${searchParams}`, { replace: true });
+      return newValue;
+    });
   };
 
   return (
