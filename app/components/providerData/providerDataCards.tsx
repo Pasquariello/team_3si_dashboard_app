@@ -34,7 +34,7 @@ export default function ProviderDataCards() {
         const param = !Object.hasOwn(params, 'selectedYear')
             ? params?.date?.slice(0, params.date?.length - 3)
               : params.selectedYear;
-        const response = await fetch(`${env.VITE_API_ROOT_API_URL}/providerData/highRiskScore/${param}`);
+        const response = await fetch(`${env.VITE_API_ROOT_API_URL}/providerData/highRiskScoreCount/${param}`);
        
 
         if (!response.ok) {
