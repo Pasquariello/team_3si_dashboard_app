@@ -36,6 +36,7 @@ function EnhancedTableToolbar({ searchHandler }: { searchHandler: (val: string) 
   let params = useParams();
   const [queryParams] = useQueryParams();
   const [open, setOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const offset = queryParams?.get('offset') || '0';
   const flagStatus = queryParams?.get('flagStatus') || undefined;
@@ -50,16 +51,19 @@ function EnhancedTableToolbar({ searchHandler }: { searchHandler: (val: string) 
   }, [flagStatus, cities]);
 
   const exportProviderData = async () => {
+    setLoading(true);
     const tab = getTabValue(location?.pathname);
     if (tab === 'year') {
-      getYearlyExportData(
+      await getYearlyExportData(
         params.selectedYear!, // the loader ensures this will be here via redirect
         offset,
         filters
       );
     } else {
-      getMonthlyExportData(params.date!, offset, filters);
+      await getMonthlyExportData(params.date!, offset, filters);
     }
+    setLoading(false);
+    handleClose();
   };
 
   const handleClose = () => {
@@ -88,7 +92,7 @@ function EnhancedTableToolbar({ searchHandler }: { searchHandler: (val: string) 
           <Button onClick={handleClose} color='inherit'>
             Cancel
           </Button>
-          <Button onClick={exportProviderData} color='primary' variant='contained'>
+          <Button onClick={exportProviderData} disabled={loading} color='primary' variant='contained'>
             Export Data
           </Button>
         </DialogActions>
