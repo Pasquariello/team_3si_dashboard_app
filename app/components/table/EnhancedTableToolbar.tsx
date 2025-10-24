@@ -20,6 +20,7 @@ import {
 } from '../services/providerDataServices';
 import { useQueryParams } from '~/contexts/queryParamContext';
 import { useMemo, useState } from 'react';
+import DescriptionAlerts from '../DescriptionAlerts';
 
 const getTabValue = (pathName: string) => {
   if (pathName.includes('annual')) {
@@ -37,6 +38,7 @@ function EnhancedTableToolbar({ searchHandler }: { searchHandler: (val: string) 
   const [queryParams] = useQueryParams();
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [alert, setAlert] = useState<{ success: string; message: string } | null>(null);
 
   const offset = queryParams?.get('offset') || '0';
   const flagStatus = queryParams?.get('flagStatus') || undefined;
@@ -53,15 +55,26 @@ function EnhancedTableToolbar({ searchHandler }: { searchHandler: (val: string) 
   const exportProviderData = async () => {
     setLoading(true);
     const tab = getTabValue(location?.pathname);
-    if (tab === 'year') {
-      await getYearlyExportData(
-        params.selectedYear!, // the loader ensures this will be here via redirect
-        offset,
-        filters
-      );
-    } else {
-      await getMonthlyExportData(params.date!, offset, filters);
+    try {
+      if (tab === 'year') {
+        await getYearlyExportData(
+          params.selectedYear!, // the loader ensures this will be here via redirect
+          offset,
+          filters
+        );
+      } else {
+        await getMonthlyExportData(params.date!, offset, filters);
+      }
+    } catch (error) {
+      setAlert({
+        success: 'error',
+        message: 'An Error Occurred',
+      });
     }
+    setAlert({
+      success: 'success',
+      message: 'Export Completed!',
+    });
     setLoading(false);
     handleClose();
   };
@@ -76,6 +89,12 @@ function EnhancedTableToolbar({ searchHandler }: { searchHandler: (val: string) 
 
   return (
     <>
+      <DescriptionAlerts
+        severity={alert?.success}
+        message={alert?.message}
+        open={alert !== null}
+        handleClose={() => setAlert(null)}
+      />
       <Dialog open={open} onClose={handleClose} aria-labelledby='confirm-dialog-title'>
         <DialogTitle id='confirm-dialog-title' fontWeight={'bold'}>
           Reminder:
@@ -92,7 +111,12 @@ function EnhancedTableToolbar({ searchHandler }: { searchHandler: (val: string) 
           <Button onClick={handleClose} color='inherit'>
             Cancel
           </Button>
-          <Button onClick={exportProviderData} disabled={loading} color='primary' variant='contained'>
+          <Button
+            onClick={exportProviderData}
+            disabled={loading}
+            color='primary'
+            variant='contained'
+          >
             Export Data
           </Button>
         </DialogActions>
