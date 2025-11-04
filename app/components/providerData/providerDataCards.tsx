@@ -5,12 +5,15 @@ import DashboardCard from "~/routes/providerData/DashboardCard"
 import { useParams } from "react-router";
 import { useEffect } from "react";
 
+import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+
 export default function ProviderDataCards() {
 
     const params = useParams();
 
     const { selectedYear } = params;
-    console.log('params', params)
+    // console.log('params', params)
 
     const riskScoreStrings = {
         total_billed_over_capacity: "Children Billed Over",
@@ -27,7 +30,7 @@ export default function ProviderDataCards() {
         : params.selectedYear;
 
 
-    console.log('selectedDate', selectedDate)
+    // console.log('selectedDate', selectedDate)
 
     const getProviderCount = async () => {
 
@@ -97,7 +100,7 @@ export default function ProviderDataCards() {
 
  
 
-  console.log('my data', data || 'nothing!');
+//   console.log('my data', data || 'nothing!');
 
   const highRiskPercentage = Math.round((data?.[2]?.count_over_44 / data?.[0]?.unique_provider_count) * 100);
 
@@ -144,6 +147,24 @@ export default function ProviderDataCards() {
     let thisYear = riskScores?.filter((riskScore: { year: number; }) => riskScore.year === Number(currentYear));
     let lastYear = riskScores?.filter((riskScore: { year: number; }) => riskScore.year === (Number(currentYear) - 1));
 
+
+
+    const percentChange = (((thisYear?.[0]?.total_value - lastYear?.[0]?.total_value) / lastYear?.[0]?.total_value ) * 100).toFixed(2);
+
+    const Icon = Number(percentChange) > 0 ? ArrowDropUpIcon : ArrowDropDownIcon;
+
+    // const text = <Icon/> Math.abs(Number(percentChange))%
+    return (
+        <div>
+        <p>
+            <Icon/> 
+            {Math.abs(Number(percentChange))}%
+        </p>
+        <p>One year ago</p>
+        </div>
+    );
+    
+
     let foo = highestRiskScoreTitle(thisYear);
     let bar = highestRiskScoreTitle(lastYear)
     // console.log('thisyear', thisYear, foo)
@@ -157,12 +178,13 @@ export default function ProviderDataCards() {
   }
 
 
+
   useEffect(() => {
     highestRiskScoreDesc()
     // let title = highestRiskScoreTitle(data?.[3])
   }, [ data?.[3]])
 
-    console.log('data?.[1]')
+    // console.log('data?.[1]')
   
     let currentYearArr = data?.[3].filter((riskScore: { year: number; }) => riskScore.year === Number(!Object.hasOwn(params, 'selectedYear')
         ? params?.date?.slice(0, params.date?.length - 3)
