@@ -48,8 +48,6 @@ export default function ProviderDataCards() {
             ? params?.date?.slice(0, params.date?.length - 3)
               : params.selectedYear;
         const response = await fetch(`${env.VITE_API_ROOT_API_URL}/providerData/highRiskScore/${param}`);
-        console.log(' getHighestRiskScore response', response)
-        console.log('env.VITE_API_ROOT_API_URL', env.VITE_API_ROOT_API_URL)
 
         if (!response.ok) {
             throw new Error('Network response was not ok');
@@ -71,8 +69,6 @@ export default function ProviderDataCards() {
         // queryKey: ['cardData'], // Unique key for this query
         // queryFn: async () => { // Async function to fetch data
         // const response = await fetch(`${env.VITE_API_ROOT_API_URL}/providerData/providerCount`)
-        // console.log('response', response)
-        // console.log('env.VITE_API_ROOT_API_URL', env.VITE_API_ROOT_API_URL)
 
         // if (!response.ok) {
         //     throw new Error('Network response was not ok');
@@ -96,10 +92,9 @@ export default function ProviderDataCards() {
  
 
     //   const [unique_provider_count, dashboardStats] = data;
-  console.log(data || 'nothing!');
 
   const highRiskPercentage = Math.round((data?.[2]?.count_over_44 / data?.[0]?.unique_provider_count) * 100);
-  console.log('data?.[3]', data?.[3]);
+
 //   const highestRiskScore = riskScores[data?.[3]?.metric];
 
   const sortScores = (arr) => {
@@ -124,7 +119,6 @@ export default function ProviderDataCards() {
 
   const highestRiskScoreTitle = (riskScores: any) => {
     const arr = sortScores(riskScores);
-    console.log('arr', arr)
     // let metric = arr?.filter(riskScore => riskScore.year === Number(selectedYear));
     if (arr?.length > 1) {
         const [metric1, metric2] = arr;
@@ -148,8 +142,7 @@ export default function ProviderDataCards() {
 
     let foo = highestRiskScoreTitle(thisYear);
     let bar = highestRiskScoreTitle(lastYear)
-    console.log('thisyear', thisYear, foo)
-    console.log('lastyear', lastYear, bar)
+ 
 
     if (foo === bar) {
         return 'same as last year'
