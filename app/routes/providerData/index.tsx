@@ -1,5 +1,5 @@
 import * as React from 'react';
-import type { Route } from './+types/providerData';
+import type { Route } from './+types';
 
 import { Outlet, useLocation, useMatch, useParams } from 'react-router';
 import { Tabs, Tab, Box, useTheme } from '@mui/material';
