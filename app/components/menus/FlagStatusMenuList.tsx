@@ -5,6 +5,7 @@ export const FlagStatusMenuList = ({ queryKey }: { queryKey: string }) => {
   const [params, updateQuery] = useQueryParams();
 
   const flaggedStatus = params?.get(queryKey) || null;
+  console.log('queryKey', queryKey)
 
   const handleFlagged = () => {
     updateQuery({ type: 'SET', key: 'offset', value: '0' });
@@ -25,17 +26,32 @@ export const FlagStatusMenuList = ({ queryKey }: { queryKey: string }) => {
     updateQuery({ type: 'SET', key: queryKey, value: 'false' });
   };
 
+  const handleToggleRadio = (value: string)  => {
+    
+    if (value === 'all') {
+      updateQuery({ type: 'DELETE', key: queryKey });
+    }
+    else { 
+        updateQuery({ type: 'SET', key: queryKey, value });
+    }
+
+  }
+
   const isFlaggedChecked = flaggedStatus === 'true';
   const isUnflaggedChecked = flaggedStatus === 'false';
 
   return (
     <MenuList dense>
-      <MenuItem onClick={handleFlagged}>
-        <Radio checked={isFlaggedChecked} onChange={handleFlagged} name='Flagged Providers' />
+      <MenuItem onClick={() => handleToggleRadio('all')}>
+        <Radio checked={!isFlaggedChecked && !isUnflaggedChecked} onChange={() => handleToggleRadio('all')} name='All Providers' />
+        <Typography>All</Typography>
+      </MenuItem>
+      <MenuItem onClick={() => handleToggleRadio('true')}>
+        <Radio checked={isFlaggedChecked} onChange={() => handleToggleRadio('true')} name='Flagged Providers' />
         <Typography>Flagged Providers</Typography>
       </MenuItem>
-      <MenuItem onClick={handleUnflagged}>
-        <Radio checked={isUnflaggedChecked} onChange={handleUnflagged} name='Flagged Providers' />
+      <MenuItem onClick={() => handleToggleRadio('false')}>
+        <Radio checked={isUnflaggedChecked} onChange={() => handleToggleRadio('false')} name='Flagged Providers' />
         <Typography>Unflagged Providers</Typography>
       </MenuItem>
     </MenuList>
