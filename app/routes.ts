@@ -8,11 +8,13 @@ export default [
     route('settings/:id', './routes/settings.tsx'),
   ]),
 
-  layout('./routes/providerData/providerData.tsx', [
+  layout('./routes/providerData/index.tsx', [
     ...prefix('providerData', [
       index('routes/providerData/redirect.tsx'), // 👈 redirect from /providerData
       route('annual/:selectedYear?', './routes/providerData/annualProviderData.tsx'),
       route('monthly/:date?', './routes/providerData/monthlyProviderData.tsx'),
     ]),
   ]),
+  route('providerData/:id', 'routes/providerData/providerDetails.tsx'),
+
 ] satisfies RouteConfig;
