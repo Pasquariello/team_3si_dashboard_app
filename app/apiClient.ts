@@ -1,6 +1,10 @@
 // used same way as fetch, just includes the auth header and single token value for you
+function getWindow() {
+  return typeof window === 'undefined' ? undefined : window;
+}
+
 export async function fetchWithAuth(input: RequestInfo, init: RequestInit = {}) {
-  const token = window.localStorage.getItem('auth_token');
+  const token = getWindow()?.localStorage?.getItem('auth_token') || null;
 
   const headers = {
     ...init.headers,
