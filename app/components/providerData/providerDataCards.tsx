@@ -78,8 +78,6 @@ export default function ProviderDataCards() {
         // queryKey: ['cardData'], // Unique key for this query
         // queryFn: async () => { // Async function to fetch data
         // const response = await fetch(`${env.VITE_API_ROOT_API_URL}/providerData/providerCount`)
-        // console.log('response', response)
-        // console.log('env.VITE_API_ROOT_API_URL', env.VITE_API_ROOT_API_URL)
 
         // if (!response.ok) {
         //     throw new Error('Network response was not ok');

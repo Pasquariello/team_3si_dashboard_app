@@ -70,7 +70,7 @@ export default function FlagModal({
         <Box display={'flex'} gap={2}>
           <OutlinedFlagIcon sx={{ color: theme.palette.cusp_orange.main }} />
           {/* <Box  gap={2} display="flex" alignItems="center"> */}
-          <Typography variant='h6'>Provider Flag {providerData.providerLicensingId}</Typography>
+          <Typography variant='h6'>Provider Flag {providerData.providerName}</Typography>
           {/* <Typography color="error" variant='body2'>
                             An Error Occured!
                         </Typography> */}

@@ -19,7 +19,7 @@ import Cusp from './assets/CUSP.png';
 import { Collapse } from '@mui/material';
 import { ExpandLess, ExpandMore } from '@mui/icons-material';
 import { generatePath, matchPath, useLocation, useNavigate } from 'react-router';
-import { ROUTE_PATTERNS, routeOptions } from './routeConfigs';
+import { ROUTE_PATTERNS, sidebarItem } from './routeConfigs';
 import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
 
 const drawerWidth = 280;
@@ -121,7 +121,7 @@ export const Shell = ({ children }: { children: ReactNode }) => {
   const getIsSelected = (option: string) => {
     return (
       ROUTE_PATTERNS.find((patterns, i) => {
-        if (routeOptions[i].label !== option) return false;
+        if (sidebarItem[i].label !== option) return false;
         return patterns.some(pattern =>
           matchPath({ path: pattern, end: false }, location.pathname)
         );
@@ -195,7 +195,7 @@ export const Shell = ({ children }: { children: ReactNode }) => {
             </ListItemButton>
             <Collapse in={openServices} unmountOnExit>
               <List dense disablePadding sx={{ paddingLeft: 6, marginRight: 2 }}>
-                {routeOptions.map((route, index) => {
+                {sidebarItem.map((route, index) => {
                   const isSelected = getIsSelected(route.label);
                   return (
                     <ListItem

@@ -9,12 +9,12 @@ export default [
   ]),
 
   layout('./routes/providerData/index.tsx', [
-    ...prefix('providerData', [
-      index('routes/providerData/redirect.tsx'), // 👈 redirect from /providerData
+    ...prefix('provider/risk-audit', [
+      index('routes/providerData/redirect.tsx'), // 👈 redirect from /provider
       route('annual/:selectedYear?', './routes/providerData/annualProviderData.tsx'),
       route('monthly/:date?', './routes/providerData/monthlyProviderData.tsx'),
     ]),
   ]),
-  route('providerData/:id', 'routes/providerData/providerDetails.tsx'),
+  route('provider/risk-audit/:providerId', 'routes/providerData/providerDetails.tsx'),
 
 ] satisfies RouteConfig;

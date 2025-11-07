@@ -7,7 +7,7 @@ import type { Route } from './+types/annualProviderData';
 import type { AnnualData, HeadCell, Order } from '~/types';
 
 import { useTheme } from '@mui/material/styles';
-import { Backdrop, Box, CircularProgress, Divider } from '@mui/material';
+import { Backdrop, Box, CircularProgress, Divider, Link } from '@mui/material';
 
 import EnhancedTableToolbar from '~/components/table/EnhancedTableToolbar';
 import YearOrRangeSelector from '~/components/YearOrRangeSelector';
@@ -113,7 +113,13 @@ const renderCellContent = (
           scope='row'
           padding='none'
         >
-          {row.providerLicensingId}
+          <Link
+            rel='noopener noreferrer'
+            target='_blank'
+            href={`/provider/risk-audit/${row.providerLicensingId}`}
+          >
+            {row.providerLicensingId}
+          </Link>
         </TooltipTableCell>
       );
     case 'providerName':

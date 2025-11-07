@@ -16,11 +16,11 @@ export function meta({}: Route.MetaArgs) {
 // const currentDate = getCurrentDate();
 
 const tabRoutes = [
-  { id: 0, label: 'Annual Provider Data', path: 'providerData/annual' },
+  { id: 0, label: 'Annual Provider Data', path: 'provider/risk-audit/annual' },
   {
     id: 1,
     label: 'Monthly Provider Data',
-    path: `providerData/monthly`,
+    path: `provider/risk-audit/monthly`,
   },
   // {
   //   id: 2,
@@ -47,7 +47,11 @@ export default function ProviderData() {
   const [queryParams, updateQuery] = useQueryParams();
 
   const theme = useTheme();
-  
+
+  React.useEffect(() => {
+    setActiveTab(getActiveTabByPath(location.pathname) || 0)
+  }, [location.pathname]);
+
   const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
     if (!onMatchingRoute) {
       updateQuery({

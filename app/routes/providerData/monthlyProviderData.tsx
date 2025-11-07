@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Backdrop, Box, CircularProgress, Divider, useTheme } from '@mui/material';
+import { Backdrop, Box, CircularProgress, Divider, Link, useTheme } from '@mui/material';
 
 import type { HeadCell, MonthlyData, Order } from '~/types';
 import DatePickerViews from '~/components/DatePickerViews';
@@ -8,6 +8,7 @@ import type { Route } from './+types/monthlyProviderData';
 import FlagModal from '~/components/modals/FlagModal';
 import NoData from '~/components/NoData';
 import { useProviderMonthlyData } from '~/hooks/useProviderMonthlyData';
+
 import { TooltipTableCell } from '~/components/table/TooltipTableCell';
 import {
   getMonthlyData,
@@ -104,7 +105,13 @@ const renderCellContent = (
           scope='row'
           padding='none'
         >
-          {row.providerLicensingId}
+          <Link
+            rel='noopener noreferrer'
+            target='_blank'
+            href={`/provider/risk-audit/${row.providerLicensingId}`}
+          >
+            {row.providerLicensingId}
+          </Link>
         </TooltipTableCell>
       );
     case 'providerName':

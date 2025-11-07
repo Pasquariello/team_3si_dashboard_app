@@ -9,7 +9,7 @@ import {
   CircularProgress,
   Box,
 } from '@mui/material';
-import { Scroller } from '~/components/table/VirutalTableScroller';
+import { Scroller } from '~/components/table/Scroller';
 import { TableVirtuoso, type TableComponents } from 'react-virtuoso';
 import { CheckboxDataRow, type VirtuosoDataRowProps } from './CheckBoxDataRow';
 
