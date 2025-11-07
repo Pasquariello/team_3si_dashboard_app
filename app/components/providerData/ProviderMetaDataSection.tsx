@@ -17,11 +17,7 @@ const SkeletonContentLoader = ({
   return (
     <>
       {isLoading ? (
-        <Skeleton
-          animation='wave'
-          height={dimensions.height}
-          width={dimensions.width}
-        />
+        <Skeleton animation='wave' height={dimensions.height} width={dimensions.width} />
       ) : (
         <>{children}</>
       )}
@@ -32,6 +28,9 @@ const SkeletonContentLoader = ({
 export const ProviderMetaDataSection = () => {
   let params = useParams();
   const { data, isLoading } = useProviderDetails(params.providerId!);
+  if (!isLoading && !data) {
+    return null;
+  }
   console.log(data);
   return (
     <Card
@@ -47,9 +46,9 @@ export const ProviderMetaDataSection = () => {
     >
       <SkeletonContentLoader isLoading={isLoading} dimensions={{ height: 50, width: '80%' }}>
         <Box>
-          <Typography variant='h5'>Little Stars Childcare</Typography>
+          <Typography variant='h5'>{data?.providerName}</Typography>
           <Typography variant='body1' color={theme.palette.cusp_iron.contrastText}>
-            PRV12345
+            {data?.providerLicensingId}
           </Typography>
         </Box>
       </SkeletonContentLoader>
@@ -59,13 +58,13 @@ export const ProviderMetaDataSection = () => {
             <Typography variant='subtitle1' color={theme.palette.cusp_iron.contrastText}>
               Provider Type
             </Typography>
-            <Typography variant='body1'>Home Health Agency</Typography>
+            <Typography variant='body1'>{data?.providerType}</Typography>
           </Box>
           <Box>
             <Typography variant='subtitle1' color={theme.palette.cusp_iron.contrastText}>
               Phone
             </Typography>
-            <Typography variant='body1'>(555) 123-4567</Typography>
+            <Typography variant='body1'>{data?.providerPhone}</Typography>
           </Box>
           <Box>
             <Typography variant='subtitle1' color={theme.palette.cusp_iron.contrastText}>
@@ -80,7 +79,7 @@ export const ProviderMetaDataSection = () => {
           <Typography variant='subtitle1' color={theme.palette.cusp_iron.contrastText}>
             Address
           </Typography>
-          <Typography variant='body1'>123 Medical Parkway, Springfield, IL 62704</Typography>
+          <Typography variant='body1'>{`${data?.postalAddress}, ${data?.city}, ${data?.zip}`}</Typography>
         </Box>
       </SkeletonContentLoader>
     </Card>
