@@ -5,9 +5,15 @@ import DashboardCard from "~/routes/providerData/DashboardCard"
 import { useParams } from "react-router";
 import { useEffect } from "react";
 
+import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+
 export default function ProviderDataCards() {
 
     const params = useParams();
+
+    const { selectedYear } = params;
+    // console.log('params', params)
 
     const riskScoreStrings = {
         total_billed_over_capacity: "Children Billed Over",
@@ -19,9 +25,16 @@ export default function ProviderDataCards() {
     const theme = useTheme();
 
 
+    const selectedDate = !Object.hasOwn(params, 'selectedYear')
+    ? params?.date?.slice(0, params.date?.length - 3)
+        : params.selectedYear;
+
+
+    // console.log('selectedDate', selectedDate)
+
     const getProviderCount = async () => {
 
-        const response = await fetch(`${env.VITE_API_ROOT_API_URL}/providerData/providerCount`)
+        const response = await fetch(`${env.VITE_API_ROOT_API_URL}/providerData/providerCount/${selectedDate}`)
     
         if (!response.ok) {
             throw new Error('Network response was not ok');
@@ -31,10 +44,7 @@ export default function ProviderDataCards() {
 
     const getProvidersWithHighRiskCount = async () => {
 
-        const param = !Object.hasOwn(params, 'selectedYear')
-            ? params?.date?.slice(0, params.date?.length - 3)
-              : params.selectedYear;
-        const response = await fetch(`${env.VITE_API_ROOT_API_URL}/providerData/highRiskScoreCount/${param}`);
+        const response = await fetch(`${env.VITE_API_ROOT_API_URL}/providerData/highRiskScoreCount/${selectedDate}`);
        
 
         if (!response.ok) {
@@ -44,20 +54,19 @@ export default function ProviderDataCards() {
     }
 
     const getHighestRiskScore = async () => {
-        const param = !Object.hasOwn(params, 'selectedYear')
-            ? params?.date?.slice(0, params.date?.length - 3)
-              : params.selectedYear;
-        const response = await fetch(`${env.VITE_API_ROOT_API_URL}/providerData/highRiskScore/${param}`);
 
+        const response = await fetch(`${env.VITE_API_ROOT_API_URL}/providerData/highRiskScore/${selectedDate}`);
+        
         if (!response.ok) {
             throw new Error('Network response was not ok');
         }
+ 
         return await response.json();
     }
 
     const getFlaggedCount = async () => {
 
-        const response = await fetch(`${env.VITE_API_ROOT_API_URL}/providerData/flaggedCount`)
+        const response = await fetch(`${env.VITE_API_ROOT_API_URL}/providerData/flaggedCount/${selectedDate}`)
         if (!response.ok) {
             throw new Error('Network response was not ok');
         }
@@ -75,33 +84,29 @@ export default function ProviderDataCards() {
         // }
         // return response.json();
         // },
-        queryKey: ['selectedYear', !Object.hasOwn(params, 'selectedYear')
-            ? params?.date?.slice(0, params.date?.length - 3)
-              : params.selectedYear],
+        queryKey: ['selectedYear', selectedDate],
         queryFn: async () => {
-            const [unique_provider_count, dashboardStats, count_over_44, foo] = await Promise.all([
+            const [unique_provider_count, flagged_provider_count, count_over_44, highest_risk_score] = await Promise.all([
             getProviderCount(),
             getFlaggedCount(),  // another request
             getProvidersWithHighRiskCount(),
             getHighestRiskScore()
             ]);
-            return [unique_provider_count, dashboardStats, count_over_44, foo];
+            return [unique_provider_count, flagged_provider_count, count_over_44, highest_risk_score];
         },
     });
 
  
 
-    //   const [unique_provider_count, dashboardStats] = data;
+//   console.log('my data', data || 'nothing!');
 
   const highRiskPercentage = Math.round((data?.[2]?.count_over_44 / data?.[0]?.unique_provider_count) * 100);
 
-//   const highestRiskScore = riskScores[data?.[3]?.metric];
-
-  const sortScores = (arr) => {
+  const sortScores = (arr: any[]) => {
     if (!arr) {
         return;
     }
-    arr.sort((a, b) => {
+    arr.sort((a: { metric: string; }, b: { metric: string; }) => {
         const nameA = a.metric.toUpperCase(); // Convert to uppercase for case-insensitive sorting
         const nameB = b.metric.toUpperCase(); // Convert to uppercase for case-insensitive sorting
 
@@ -137,12 +142,31 @@ export default function ProviderDataCards() {
             : params.selectedYear;
     const riskScores =  data?.[3]; 
 
-    let thisYear = riskScores?.filter(riskScore => riskScore.year === Number(currentYear));
-    let lastYear = riskScores?.filter(riskScore => riskScore.year === (Number(currentYear) - 1));
+    let thisYear = riskScores?.filter((riskScore: { year: number; }) => riskScore.year === Number(currentYear));
+    let lastYear = riskScores?.filter((riskScore: { year: number; }) => riskScore.year === (Number(currentYear) - 1));
+
+
+
+    const percentChange = (((thisYear?.[0]?.total_value - lastYear?.[0]?.total_value) / lastYear?.[0]?.total_value ) * 100).toFixed(2);
+
+    const Icon = Number(percentChange) > 0 ? ArrowDropUpIcon : ArrowDropDownIcon;
+
+    // const text = <Icon/> Math.abs(Number(percentChange))%
+    return (
+        <div>
+        <p>
+            <Icon/> 
+            {Math.abs(Number(percentChange))}%
+        </p>
+        <p>One year ago</p>
+        </div>
+    );
+    
 
     let foo = highestRiskScoreTitle(thisYear);
     let bar = highestRiskScoreTitle(lastYear)
- 
+    // console.log('thisyear', thisYear, foo)
+    // console.log('lastyear', lastYear, bar)
 
     if (foo === bar) {
         return 'same as last year'
@@ -152,22 +176,35 @@ export default function ProviderDataCards() {
   }
 
 
+
   useEffect(() => {
     highestRiskScoreDesc()
     // let title = highestRiskScoreTitle(data?.[3])
   }, [ data?.[3]])
+
+    // console.log('data?.[1]')
   
-    let currentYearArr = data?.[3].filter(riskScore => riskScore.year === Number(!Object.hasOwn(params, 'selectedYear')
+    let currentYearArr = data?.[3].filter((riskScore: { year: number; }) => riskScore.year === Number(!Object.hasOwn(params, 'selectedYear')
         ? params?.date?.slice(0, params.date?.length - 3)
             : params.selectedYear));
     let title = highestRiskScoreTitle(currentYearArr)
+
+    const renderFlaggedPercent = () => {
+        const percent = (data?.[1].flagged_provider_count / data?.[0]?.unique_provider_count) * 100;
+
+        const displayText = percent < 1 ? 'less than 1' :  Math.round(percent);
     
+        return  `${displayText}% require attention`;
+    }
+    // const flaggedPercent = data?.[1].flagged_provider_count / data?.[0]?.unique_provider_count 
+    // Math.round((data?.[1]?.flagged_provider_count / data?.[0]?.unique_provider_count) * 100);
     return (
         <Grid container spacing={2} m={2} columns={{ xs: 12 }}>
             <Grid style={{ display: 'flex', flexGrow: 1 }} size={{ xs: 12, sm: 12, md: 6, lg: 3 }}>
             <DashboardCard
                 title='Total Providers'
-                description={`Active in ${env.VITE_STATE_NAME || 'State Name'}`}
+                // description={`Active in ${env.VITE_STATE_NAME || 'State Name'}`}
+                description={`Active in ${env.VITE_STATE_NAME || 'State Name'} during ${selectedYear}`}
                 value={data?.[0]?.unique_provider_count}
                 descColor={theme.palette.cusp_iron.contrastText}
                 loading={isLoading}
@@ -187,8 +224,8 @@ export default function ProviderDataCards() {
             <Grid style={{ display: 'flex', flexGrow: 1 }} size={{ xs: 12, sm: 12, md: 6, lg: 3 }}>
             <DashboardCard
                 title='Flagged for Review'
-                description='50% require immediate attention'
-                value={data?.[1].unique_provider_count}
+                description={`${renderFlaggedPercent()}`}
+                value={data?.[1].flagged_provider_count}
                 valueColor='warning'
                 descColor={theme.palette.cusp_iron.contrastText}
                 loading={isLoading}
