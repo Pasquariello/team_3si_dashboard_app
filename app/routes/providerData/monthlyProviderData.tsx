@@ -67,26 +67,47 @@ const headCells: readonly HeadCell[] = [
     numeric: true,
     disablePadding: false,
     label: 'Children Billed Over Capacity',
+        selectable: true,
+
   },
   {
     id: 'childrenPlacedOverCapacity',
     numeric: true,
     disablePadding: false,
     label: 'Children Placed Over Capacity',
+        selectable: true,
+
   },
   {
     id: 'distanceTraveled',
     numeric: true,
     disablePadding: false,
     label: 'Distance Traveled',
+        selectable: true,
+
   },
   {
     id: 'providersWithSameAddress',
     numeric: true,
     disablePadding: false,
     label: 'Providers with Same Address',
+        selectable: true,
+
   },
 ];
+
+const toggleableColumns = headCells.filter(cell => cell.selectable).map(({ id, label }) => ({ id, label, display: true }));
+
+
+const initialVisibility = headCells
+  .filter(col => col.selectable)
+  .reduce((acc, col) => {
+    acc[col.id] = {
+      label: col.label,
+      display: true, // or false depending on default behavior
+    };
+    return acc;
+  }, {} as Record<string, { label: string; display: boolean }>);
 
 const renderCellContent = (
   row: MonthlyData,
@@ -201,6 +222,32 @@ export default function MonthlyProviderData() {
   const [localFlags, setLocalFlags] = useState<string[]>([]);
   const [searchValue, setSearchValue] = useState<string>('');
   const [rows, setRows] = useState<MonthlyData[]>([]);
+
+    const [riskScoreColumns, setRiskScoreColumns] = useState(initialVisibility);
+
+      const handleChangeRiskScores = (event) => {
+            const {
+              target: { value, name },
+            } = event;
+    
+            setRiskScoreColumns(prev => ({
+              ...prev,
+              [name]: {
+                ...prev[name],
+                display: !prev[name].display
+              }
+            }));
+      };
+    
+      const displayedColumns = useMemo(() => {
+        return headCells.filter(col => {
+          // Always show non-toggleable columns
+          if (!col.selectable) return true;
+          // Show only if riskScoreColumns says display = true
+          return riskScoreColumns[col.id]?.display;
+        });
+      }, [headCells, riskScoreColumns]);
+  
 
   let params = useParams();
   const [queryParams, updateQuery] = useQueryParams();
@@ -403,7 +450,9 @@ export default function MonthlyProviderData() {
         >
           <Box display={'flex'} flex={1} gap={1} width={'100%'}>
             <DatePickerViews label={'"month" and "year"'} views={['year', 'month']} />
-            <EnhancedTableToolbar searchHandler={setSearchValue} />
+            {/* <EnhancedTableToolbar searchHandler={setSearchValue} /> */}
+            <EnhancedTableToolbar searchHandler={setSearchValue} riskScoreColumns={riskScoreColumns} toggleableColumns={toggleableColumns} handleChangeRiskScores={handleChangeRiskScores}  />
+
           </Box>
           <Divider orientation='horizontal' flexItem />
           <ProviderTableFilterBar />
@@ -413,7 +462,7 @@ export default function MonthlyProviderData() {
             <Box height={'97vh'} sx={{ backgroundColor: theme.palette.primary.contrastText }}>
               <ProviderInfiniteScrollTable
                 data={visibleRows}
-                headCells={headCells}
+                headCells={displayedColumns}
                 renderCellContent={renderCellContent}
                 fetchMore={handleEndScroll}
                 isLoading={isFetching || isLoading}
