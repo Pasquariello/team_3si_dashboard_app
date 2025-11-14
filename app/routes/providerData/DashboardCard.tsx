@@ -1,18 +1,18 @@
 import * as React from 'react';
-import { Card } from '@mui/material';
+import { Box, Card } from '@mui/material';
 import Typography from '@mui/material/Typography';
 import Skeleton from '@mui/material/Skeleton';
 
 type DashboardCardProps = Readonly<{
    title: string; 
    description: string; 
-   value: string; 
+   value: any; 
    valueColor?: string;
    descColor?: string; 
    loading: boolean; 
 }>;
 
-export default function DashboardCard({title, value, description, valueColor, descColor, loading,}: DashboardCardProps) { 
+export default function DashboardCard({title, value, description, descColor, loading,}: DashboardCardProps) { 
   return (
     <Card
       sx={{
@@ -20,7 +20,8 @@ export default function DashboardCard({title, value, description, valueColor, de
         justifyContent: 'center',
         display: 'flex',
         flexDirection: 'column',
-        p: 6,
+        p: 3,
+        borderRadius:  3,
       }}
       variant='outlined'
     >
@@ -29,14 +30,14 @@ export default function DashboardCard({title, value, description, valueColor, de
         height={10}
         width="80%"
         style={{ marginBottom: 6 }}
-      /> :   <Typography variant='h6'>{title}</Typography> }
+      /> : <Box sx={{display: 'flex', justifyContent: 'space-between', mb: 1}}>{title}</Box>}
 
         { loading ?  <Skeleton
         animation="wave"
         height={60}
         width="80%"
         style={{ marginBottom: 6 }}
-      /> :    <Typography variant='h4' color={valueColor}>{value}</Typography> }
+      /> :    value }
     
           
             { loading ?  <Skeleton
