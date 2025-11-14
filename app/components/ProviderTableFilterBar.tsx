@@ -1,4 +1,4 @@
-import { Tune } from '@mui/icons-material';
+import FilterAltOutlinedIcon from '@mui/icons-material/FilterAltOutlined';
 import { Box, Button, MenuItem, Typography, useTheme } from '@mui/material';
 import { FilterChips } from './FilterChips';
 import { FlagStatusMenuList } from './menus/FlagStatusMenuList';
@@ -30,7 +30,7 @@ export const ProviderTableFilterBar = () => {
     >
       <Box display={'flex'} flex={1} flexDirection={'row'} justifyContent={'space-between'}>
         <Box gap={0.5} display={'flex'} padding={1}>
-          <Tune sx={{ alignSelf: 'center' }} />
+          <FilterAltOutlinedIcon sx={{ alignSelf: 'center' }} />
           <Typography fontSize={'.8em'} fontWeight={'bold'} sx={{ alignSelf: 'center' }}>
             FILTERS:
           </Typography>
