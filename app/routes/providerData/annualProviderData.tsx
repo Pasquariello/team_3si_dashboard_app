@@ -7,7 +7,7 @@ import type { Route } from './+types/annualProviderData';
 import type { AnnualData, HeadCell, Order } from '~/types';
 
 import { useTheme } from '@mui/material/styles';
-import { Box, CircularProgress, Divider, Link } from '@mui/material';
+import { Backdrop, Box, Button, CircularProgress, Divider, Link } from '@mui/material';
 
 import EnhancedTableToolbar from '~/components/table/EnhancedTableToolbar';
 import YearOrRangeSelector from '~/components/YearOrRangeSelector';
@@ -23,6 +23,7 @@ import { useQueryParams } from '~/contexts/queryParamContext';
 import { useAuth } from '~/contexts/authContext';
 import { useProviderYearlyData } from '~/hooks/useProviderYearlyData';
 import { ProviderInfiniteScrollTable } from '~/components/table/ProviderInfiniteScrollTable';
+import ConfigureRiskScoreSelect from '~/components/ConfigureRiskScoreSelect';
 
 const headCells: readonly HeadCell[] = [
   {
@@ -54,26 +55,45 @@ const headCells: readonly HeadCell[] = [
     numeric: true,
     disablePadding: false,
     label: 'Children Billed Over',
+    selectable: true,
   },
   {
     id: 'childrenPlacedOverCapacity', // 'childrenPlacedOverCapacity',
     numeric: true,
     disablePadding: false,
     label: 'Children Placed Over Capacity',
+    selectable: true,
   },
   {
     id: 'distanceTraveled', //'distanceTraveled',
     numeric: true,
     disablePadding: false,
     label: 'Distance Traveled',
+    selectable: true,
   },
   {
     id: 'providersWithSameAddress', //'providersWithSameAddress',
     numeric: true,
     disablePadding: false,
     label: 'Providers with Same Address',
+    selectable: true,
   },
 ];
+
+const toggleableColumns = headCells.filter(cell => cell.selectable).map(({ id, label }) => ({ id, label, display: true }));
+
+
+const initialVisibility = headCells
+  .filter(col => col.selectable)
+  .reduce((acc, col) => {
+    acc[col.id] = {
+      label: col.label,
+      display: true, // or false depending on default behavior
+    };
+    return acc;
+  }, {} as Record<string, { label: string; display: boolean }>);
+
+
 
 const riskThresholds = [
   { max: 100, min: 90, color: 'red' },
@@ -81,8 +101,8 @@ const riskThresholds = [
   { max: 80, min: 0, color: 'green' },
 ];
 
-function getColor(value: number) {
-  const valPercent = (value / 48) * 100; // 48 is highest possible value so this calcs percentage
+function getColor(value: number, max = 48) {
+  const valPercent = (value / max) * 100; // 48 is highest possible value so this calcs percentage
   const match = riskThresholds.find(
     // threshold => value <= threshold.max && value >= threshold.min
     threshold => valPercent <= threshold.max && valPercent >= threshold.min
@@ -92,12 +112,20 @@ function getColor(value: number) {
   return match ? match.color : 'defaultColor';
 }
 
-const renderCellContent = (
-  row: AnnualData,
-  columnId: HeadCell['id'],
-  labelId: string,
-  key: string
-): React.ReactNode => {
+const createRenderCellContent = (riskScoreColumns) => 
+  (row: AnnualData, columnId: HeadCell['id'], labelId: string, key: string): React.ReactNode => {
+
+  
+  const overallRiskScore = Object.entries(riskScoreColumns).reduce((sum, [key, cfg]) => {
+    if (!cfg.display) return sum; // Only sum fields that are toggled ON
+    const value = Number(row[key] ?? 0);
+    return sum + value;
+  }, 0);
+
+  const activeCount = Object.values(riskScoreColumns)
+  .filter(v => v.display)
+  .length;
+
   switch (columnId) {
     case 'providerLicensingId':
       return (
@@ -130,10 +158,11 @@ const renderCellContent = (
           tooltipTitle={row.overallRiskScore}
           align='right'
           sx={{
-            color: getColor(row.overallRiskScore),
+            color: getColor(overallRiskScore, activeCount * 12 ),
           }}
         >
-          {row.overallRiskScore}
+          {/* {row.overallRiskScore} */}
+          {overallRiskScore}
         </TooltipTableCell>
       );
     case 'childrenBilledOverCapacity':
@@ -163,7 +192,8 @@ const renderCellContent = (
     default:
       return null;
   }
-};
+}
+
 
 export async function loader({ params, request }: Route.LoaderArgs) {
   let year = params?.selectedYear;
@@ -202,6 +232,32 @@ export default function AnnualProviderData() {
   const [searchValue, setSearchValue] = useState<string>('');
   const [rows, setRows] = useState<AnnualData[]>([]);
 
+  const [riskScoreColumns, setRiskScoreColumns] = useState(initialVisibility);
+
+  const handleChangeRiskScores = (event) => {
+        const {
+          target: { value, name },
+        } = event;
+
+        setRiskScoreColumns(prev => ({
+          ...prev,
+          [name]: {
+            ...prev[name],
+            display: !prev[name].display
+          }
+        }));
+  };
+
+  const displayedColumns = useMemo(() => {
+    return headCells.filter(col => {
+      // Always show non-toggleable columns
+      if (!col.selectable) return true;
+      // Show only if riskScoreColumns says display = true
+      return riskScoreColumns[col.id]?.display;
+    });
+  }, [headCells, riskScoreColumns]);
+
+  
   let params = useParams();
   const navigate = useNavigate();
   const [queryParams, updateQuery] = useQueryParams();
@@ -299,6 +355,11 @@ export default function AnnualProviderData() {
     }
   };
 
+  const renderCellContent = useMemo(
+  () => createRenderCellContent(riskScoreColumns),
+  [riskScoreColumns]
+);
+
   return (
     <>
       <DescriptionAlerts
@@ -327,18 +388,20 @@ export default function AnnualProviderData() {
             m: 2,
           }}
         >
-          <Box sx={{ my: 3 }} display={'flex'} flex={1} gap={1} width={'100%'}>
+          <Box sx={{ my: 3 }} display={'flex'} gap={1} width={'100%'}>
             <YearOrRangeSelector />
-            <EnhancedTableToolbar searchHandler={setSearchValue} />
+            <EnhancedTableToolbar searchHandler={setSearchValue} riskScoreColumns={riskScoreColumns} toggleableColumns={toggleableColumns} handleChangeRiskScores={handleChangeRiskScores}  />
           </Box>
           <Divider orientation='horizontal' flexItem />
+    
           <ProviderTableFilterBar />
         </Box>
         {visibleRows.length ? (
           <Box height={'97vh'} sx={{ backgroundColor: theme.palette.primary.contrastText }}>
             <ProviderInfiniteScrollTable
               data={visibleRows}
-              headCells={headCells}
+              // headCells={headCells}
+              headCells={displayedColumns}
               renderCellContent={renderCellContent}
               fetchMore={handleEndScroll}
               isLoading={isFetching || isLoading}

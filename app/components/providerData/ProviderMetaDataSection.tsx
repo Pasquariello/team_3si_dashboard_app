@@ -43,6 +43,7 @@ export const ProviderMetaDataSection = ({
         flexDirection: 'column',
         p: 3,
         gap: 2,
+        borderRadius: 2,
       }}
       variant='outlined'
     >

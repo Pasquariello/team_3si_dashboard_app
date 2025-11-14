@@ -6,6 +6,7 @@ export interface HeadCell {
   label: string;
   numeric: boolean;
   width?: string;
+  selectable?: boolean;
 }
 
 export interface Data {

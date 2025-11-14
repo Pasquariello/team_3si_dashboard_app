@@ -38,7 +38,7 @@ export const onSave = async ({ insightData, action }: SaveInsightPayload): Promi
 
   const data = await res.json();
   return {
-    ok: data.ok,
+    ok: res.ok,
     data,
   };
 };
@@ -121,14 +121,14 @@ export const getAnnualData = async (
 };
 
 export const getProviderCities = async (cityName: string): Promise<string[]> => {
+  console.log('get city');
   let result = [];
-  const queryString = new URLSearchParams({ cityName }).toString();
   let url = `${env.VITE_API_ROOT_API_URL}/providerData/cities`;
 
-  if (queryString) {
-    url += `/${queryString}`;
+  if (cityName) {
+    url += `?${new URLSearchParams({ cityName }).toString()}`;
   }
-
+  
   result = await fetchWithAuth(url, { method: 'GET' });
 
   return result;
