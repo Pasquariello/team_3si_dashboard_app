@@ -1,25 +1,37 @@
 import { fetchWithAuth } from '~/apiClient';
 import { env } from '~/env';
-import type { AnnualData, Data, MonthlyData, ProviderDetails } from '~/types';
+import type { AnnualData, MonthlyData, ProviderDetails, ProviderInsightWithHistory } from '~/types';
 
 export type ProviderFilters = {
   flagStatus: string | undefined;
   cities: string[] | undefined;
 };
 
-export const onSave = async (
-  provider_data: Pick<Data, 'comment' | 'flagged' | 'providerLicensingId'>
-): Promise<any> => {
-  const { providerLicensingId, comment, flagged } = provider_data;
+export type SaveInsightPayload = {
+  insightData: {
+    providerLicensingId: string;
+    comment: string;
+    isFlagged?: boolean;
+    createdAt?: string;
+    resolvedOn?: string;
+  };
+  action: 'CREATE' | 'UPDATE' | 'RESOLVE';
+};
+
+export const onSave = async ({ insightData, action }: SaveInsightPayload): Promise<any> => {
   const res = await fetch(
-    `${env.VITE_API_ROOT_API_URL}/providerData/insights/${providerLicensingId}`,
+    `${env.VITE_API_ROOT_API_URL}/providerData/insights/${insightData.providerLicensingId}`,
     {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        provider_licensing_id: providerLicensingId,
-        is_flagged: flagged,
-        comment: comment,
+        is_flagged: insightData.isFlagged,
+        provider_licensing_id: insightData.providerLicensingId,
+        comment: insightData.comment,
+        created_at: insightData.createdAt,
+        resolved_on: insightData.resolvedOn,
+        // created_by
+        actionType: action,
       }),
     }
   );
@@ -29,6 +41,18 @@ export const onSave = async (
     ok: res.ok,
     data,
   };
+};
+
+export const getProviderInsights = async (
+  providerId: string
+): Promise<ProviderInsightWithHistory> => {
+  let result = {} as ProviderInsightWithHistory;
+  let url = `${env.VITE_API_ROOT_API_URL}/providerData/insights/${providerId}`;
+  result = await fetchWithAuth(url, {
+    method: 'GET',
+  });
+
+  return result;
 };
 
 export const FETCH_ROW_COUNT = 200;
@@ -97,14 +121,14 @@ export const getAnnualData = async (
 };
 
 export const getProviderCities = async (cityName: string): Promise<string[]> => {
+  console.log('get city');
   let result = [];
-  const queryString = new URLSearchParams({ cityName }).toString();
   let url = `${env.VITE_API_ROOT_API_URL}/providerData/cities`;
 
-  if (queryString) {
-    url += `?${queryString}`;
+  if (cityName) {
+    url += `?${new URLSearchParams({ cityName }).toString()}`;
   }
-
+  
   result = await fetchWithAuth(url, { method: 'GET' });
 
   return result;

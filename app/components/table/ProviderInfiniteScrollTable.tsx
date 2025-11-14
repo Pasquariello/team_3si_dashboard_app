@@ -34,8 +34,6 @@ interface ProviderInfiniteScrollTableProps<T> {
   handleRequestSort: (event: React.MouseEvent<unknown>, property: keyof T) => void;
 
   onSelectChange?: (selectedIds: string[]) => void;
-  onCheck: (event: React.MouseEvent<unknown>, id: string) => void;
-  localFlags: string[];
 }
 
 export function ProviderInfiniteScrollTable<T extends Data>({
@@ -49,8 +47,6 @@ export function ProviderInfiniteScrollTable<T extends Data>({
   orderBy,
   handleRequestSort,
   onSelectChange,
-  onCheck,
-  localFlags,
 }: ProviderInfiniteScrollTableProps<T>) {
   const [selected, setSelected] = useState<string[]>([]);
 
@@ -130,9 +126,7 @@ export function ProviderInfiniteScrollTable<T extends Data>({
         ref={ref}
         {...props}
         handleClickRow={handleClickRow}
-        handleCheckBox={onCheck}
         isSelected={(id: string) => selected.includes(id)}
-        isChecked={(id: string) => localFlags.includes(id)}
       />
     )),
     TableBody: forwardRef<HTMLTableSectionElement>((props, ref) => (
