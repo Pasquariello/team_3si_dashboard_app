@@ -1,24 +1,23 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Backdrop, Box, CircularProgress, Divider, Link, useTheme } from '@mui/material';
+import { Box, CircularProgress, Divider, Link, useTheme } from '@mui/material';
 
 import type { HeadCell, MonthlyData, Order } from '~/types';
 import DatePickerViews from '~/components/DatePickerViews';
 import EnhancedTableToolbar from '~/components/table/EnhancedTableToolbar';
 import type { Route } from './+types/monthlyProviderData';
-import FlagModal from '~/components/modals/FlagModal';
 import NoData from '~/components/NoData';
 import { useProviderMonthlyData } from '~/hooks/useProviderMonthlyData';
 
 import { TooltipTableCell } from '~/components/table/TooltipTableCell';
 import {
+  createQueryStringFromFilters,
   getMonthlyData,
-  onSave,
   type ProviderFilters,
 } from '~/components/services/providerDataServices';
 import { useAuth } from '~/contexts/authContext';
 import { queryClient } from '~/queryClient';
 import DescriptionAlerts from '~/components/DescriptionAlerts';
-import { redirect, useParams } from 'react-router';
+import { redirect, useNavigate, useParams } from 'react-router';
 import { ProviderTableFilterBar } from '~/components/ProviderTableFilterBar';
 import { useQueryParams } from '~/contexts/queryParamContext';
 import { ProviderInfiniteScrollTable } from '~/components/table/ProviderInfiniteScrollTable';
@@ -193,16 +192,14 @@ export async function loader({ params, request }: Route.LoaderArgs) {
 
 export default function MonthlyProviderData() {
   const theme = useTheme();
-  const [isLoadingOverlayActive, setIsLoadingOverlayActive] = useState(false);
   const [order, setOrder] = useState<Order>('desc');
   const [orderBy, setOrderBy] = useState<keyof MonthlyData>('overallRiskScore');
   const [alert, setAlert] = useState<{ success: string; message: string } | null>(null);
-  const [flagModalOpenId, setFlagModalOpenId] = useState<string | null>(null);
-  const [localFlags, setLocalFlags] = useState<string[]>([]);
   const [searchValue, setSearchValue] = useState<string>('');
   const [rows, setRows] = useState<MonthlyData[]>([]);
 
   let params = useParams();
+  const navigate = useNavigate();
   const [queryParams, updateQuery] = useQueryParams();
   const offset = queryParams?.get('offset') || '0';
   const flagStatus = queryParams?.get('flagStatus') || undefined;
@@ -268,66 +265,13 @@ export default function MonthlyProviderData() {
   }, [error]);
 
   const visibleRows = useMemo<MonthlyData[]>(() => {
-    setLocalFlags(() =>
-      rows.reduce((acc, curr) => {
-        if (curr.flagged) {
-          acc.push(curr.providerLicensingId);
-        }
-
-        if (acc.includes(curr.providerLicensingId) && !curr.flagged) {
-          return acc.filter(id => curr.providerLicensingId !== id);
-        }
-
-        return acc;
-      }, localFlags)
-    );
-
     return getVisibleRows(rows, order, orderBy);
   }, [rows, orderBy, order]);
-
-  const handleCheck = (event: React.MouseEvent<unknown>, id: string) => {
-    setFlagModalOpenId(id);
-  };
 
   const handleRequestSort = (event: React.MouseEvent<unknown>, property: keyof MonthlyData) => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
     setOrderBy(property);
-  };
-
-  const handleCloseModal = (isFlagged?: boolean, rowId?: string) => {
-    if (isFlagged !== undefined && rowId) {
-      setLocalFlags(prev => {
-        return isFlagged ? [...prev, rowId] : prev.filter(id => id !== rowId);
-      });
-    }
-    setFlagModalOpenId(null);
-  };
-
-  const handleOnSave = async (
-    row_data: Pick<MonthlyData, 'comment' | 'flagged' | 'providerLicensingId'>
-  ) => {
-    setIsLoadingOverlayActive(true);
-    const res = await onSave(row_data);
-    setIsLoadingOverlayActive(false);
-    if (res.ok) {
-      setAlert({
-        success: 'success',
-        message: 'Successfully updated record!',
-      });
-      // this is ran after we get a success from out local payload
-      handleCloseModal(row_data.flagged, row_data.providerLicensingId);
-      // data has changed in the DB
-      queryClient.invalidateQueries({
-        queryKey: ['monthlyProviderData', params.date],
-      });
-      updateQuery({ type: 'SET', key: 'offset', value: '0' });
-    } else {
-      setAlert({
-        success: 'error',
-        message: 'An Error Occurred',
-      });
-    }
   };
 
   const updateOffset = () => {
@@ -350,31 +294,45 @@ export default function MonthlyProviderData() {
       fetchNextPage().then(() => updateOffset());
     }
   };
+  const handleDateSelection = (newDate: Date) => {
+    const year = newDate.getFullYear();
+    const month = String(newDate.getMonth() + 1).padStart(2, '0');
+
+    const pathname = location.pathname;
+    const updatedPath = pathname
+      .split('/')
+      .map(segment => (segment === params.date ? `${year}-${month}` : segment))
+      .join('/');
+
+    updateQuery({
+      key: 'offset',
+      value: '0',
+      type: 'SET',
+    });
+
+    const offset = queryParams?.get('offset') || '0';
+    const flagStatus = queryParams?.get('flagStatus') || undefined;
+    const cities = queryParams.getAll('cities') || undefined;
+    let searchParams = '';
+
+    const offsetMod = new URLSearchParams({ offset }).toString();
+    searchParams += `?${offsetMod}`;
+
+    const filters = {
+      flagStatus,
+      cities,
+    };
+
+    const queryString = createQueryStringFromFilters(filters);
+    if (queryString) {
+      searchParams += `&${queryString}`;
+    }
+
+    navigate(`${updatedPath}${searchParams}`);
+  };
 
   return (
     <>
-      {isLoadingOverlayActive && (
-        <Backdrop
-          open={true}
-          sx={theme => ({
-            color: '#fff',
-            zIndex: 100000, // ensure it's on top
-          })}
-        >
-          <CircularProgress color='inherit' />
-        </Backdrop>
-      )}
-
-      <FlagModal
-        open={!!flagModalOpenId}
-        onClose={handleCloseModal}
-        onSave={handleOnSave}
-        disableRemove={flagModalOpenId ? !localFlags.includes(flagModalOpenId) : false}
-        providerData={
-          rows?.find(data => data.providerLicensingId === flagModalOpenId) || ({} as MonthlyData)
-        }
-      />
-
       <DescriptionAlerts
         severity={alert?.success}
         message={alert?.message}
@@ -402,7 +360,12 @@ export default function MonthlyProviderData() {
           }}
         >
           <Box display={'flex'} flex={1} gap={1} width={'100%'}>
-            <DatePickerViews label={'"month" and "year"'} views={['year', 'month']} />
+            <DatePickerViews
+              initialDate={params.date!}
+              label={'"month" and "year"'}
+              views={['year', 'month']}
+              handler={handleDateSelection}
+            />
             <EnhancedTableToolbar searchHandler={setSearchValue} />
           </Box>
           <Divider orientation='horizontal' flexItem />
@@ -420,8 +383,6 @@ export default function MonthlyProviderData() {
                 order={order}
                 orderBy={orderBy}
                 handleRequestSort={handleRequestSort}
-                onCheck={handleCheck}
-                localFlags={localFlags}
               />
             </Box>
           </>
