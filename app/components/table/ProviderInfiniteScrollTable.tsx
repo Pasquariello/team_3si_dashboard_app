@@ -8,6 +8,7 @@ import {
   Paper,
   CircularProgress,
   Box,
+  NoSsr,
 } from '@mui/material';
 import { Scroller } from '~/components/table/Scroller';
 import { TableVirtuoso, type TableComponents } from 'react-virtuoso';
@@ -34,8 +35,6 @@ interface ProviderInfiniteScrollTableProps<T> {
   handleRequestSort: (event: React.MouseEvent<unknown>, property: keyof T) => void;
 
   onSelectChange?: (selectedIds: string[]) => void;
-  onCheck: (event: React.MouseEvent<unknown>, id: string) => void;
-  localFlags: string[];
 }
 
 export function ProviderInfiniteScrollTable<T extends Data>({
@@ -49,8 +48,6 @@ export function ProviderInfiniteScrollTable<T extends Data>({
   orderBy,
   handleRequestSort,
   onSelectChange,
-  onCheck,
-  localFlags,
 }: ProviderInfiniteScrollTableProps<T>) {
   const [selected, setSelected] = useState<string[]>([]);
 
@@ -97,7 +94,6 @@ export function ProviderInfiniteScrollTable<T extends Data>({
             key={`${column.id}+${index}`}
             variant='head'
             align={column.numeric || false ? 'right' : 'left'}
-            style={{}}
             sx={{ backgroundColor: 'background.paper' }}
           >
             {column.label}
@@ -130,9 +126,7 @@ export function ProviderInfiniteScrollTable<T extends Data>({
         ref={ref}
         {...props}
         handleClickRow={handleClickRow}
-        handleCheckBox={onCheck}
         isSelected={(id: string) => selected.includes(id)}
-        isChecked={(id: string) => localFlags.includes(id)}
       />
     )),
     TableBody: forwardRef<HTMLTableSectionElement>((props, ref) => (

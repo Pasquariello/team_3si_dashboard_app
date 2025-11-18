@@ -7,22 +7,17 @@ import type { Route } from './+types/annualProviderData';
 import type { AnnualData, HeadCell, Order } from '~/types';
 
 import { useTheme } from '@mui/material/styles';
-import { Backdrop, Box, Button, CircularProgress, Divider, Link } from '@mui/material';
+import { Backdrop, Box, Button, CircularProgress, Divider, Link, NoSsr } from '@mui/material';
 
 import EnhancedTableToolbar from '~/components/table/EnhancedTableToolbar';
 import YearOrRangeSelector from '~/components/YearOrRangeSelector';
 
 import { getVisibleRows } from '~/utils/table';
-import FlagModal from '~/components/modals/FlagModal';
 import NoData from '~/components/NoData';
-import {
-  getAnnualData,
-  onSave,
-  type ProviderFilters,
-} from '~/components/services/providerDataServices';
+import { getAnnualData, type ProviderFilters } from '~/components/services/providerDataServices';
 import DescriptionAlerts from '~/components/DescriptionAlerts';
 import { ProviderTableFilterBar } from '~/components/ProviderTableFilterBar';
-import { redirect, useParams } from 'react-router';
+import { redirect, useNavigate, useParams } from 'react-router';
 import { queryClient } from '~/queryClient';
 import { useQueryParams } from '~/contexts/queryParamContext';
 import { useAuth } from '~/contexts/authContext';
@@ -235,12 +230,9 @@ type AnnualProviderDataProps = {
 
 export default function AnnualProviderData({ selectedYear , setAnnualViewData}: AnnualProviderDataProps) {
   const theme = useTheme();
-  const [isLoadingOverlayActive, setIsLoadingOverlayActive] = useState(false);
   const [order, setOrder] = useState<Order>('desc');
   const [orderBy, setOrderBy] = useState<keyof AnnualData>('overallRiskScore');
   const [alert, setAlert] = useState<{ success: string; message: string } | null>(null);
-  const [flagModalOpenId, setFlagModalOpenId] = useState<string | null>(null);
-  const [localFlags, setLocalFlags] = useState<string[]>([]);
   const [searchValue, setSearchValue] = useState<string>('');
   const [rows, setRows] = useState<AnnualData[]>([]);
 
@@ -271,6 +263,7 @@ export default function AnnualProviderData({ selectedYear , setAnnualViewData}: 
 
   
   let params = useParams();
+  const navigate = useNavigate();
   const [queryParams, updateQuery] = useQueryParams();
   const offset = queryParams?.get('offset') || '0';
   const flagStatus = queryParams?.get('flagStatus') || undefined;
@@ -335,66 +328,13 @@ export default function AnnualProviderData({ selectedYear , setAnnualViewData}: 
   }, [error]);
 
   const visibleRows = useMemo<AnnualData[]>(() => {
-    setLocalFlags(() =>
-      rows.reduce((acc, curr) => {
-        if (curr.flagged) {
-          acc.push(curr.providerLicensingId);
-        }
-
-        if (acc.includes(curr.providerLicensingId) && !curr.flagged) {
-          return acc.filter(id => curr.providerLicensingId !== id);
-        }
-
-        return acc;
-      }, localFlags)
-    );
-
     return getVisibleRows(rows, order, orderBy);
   }, [rows, orderBy, order]);
-
-  const handleCheck = (event: React.MouseEvent<unknown>, id: string) => {
-    setFlagModalOpenId(id);
-  };
 
   const handleRequestSort = (event: React.MouseEvent<unknown>, property: keyof AnnualData) => {
     const isAsc = orderBy === property && order === 'asc';
     setOrder(isAsc ? 'desc' : 'asc');
     setOrderBy(property);
-  };
-
-  const handleCloseModal = (isFlagged?: boolean, rowId?: string) => {
-    if (isFlagged !== undefined && rowId) {
-      setLocalFlags(prev => {
-        return isFlagged ? [...prev, rowId] : prev.filter(id => id !== rowId);
-      });
-    }
-    setFlagModalOpenId(null);
-  };
-
-  const handleOnSave = async (
-    row_data: Pick<AnnualData, 'comment' | 'flagged' | 'providerLicensingId'>
-  ) => {
-    setIsLoadingOverlayActive(true);
-    const res = await onSave(row_data);
-    setIsLoadingOverlayActive(false);
-    if (res.ok) {
-      setAlert({
-        success: 'success',
-        message: 'Successfully updated record!',
-      });
-      // this is ran after we get a success from out local payload
-      handleCloseModal(row_data.flagged, row_data.providerLicensingId);
-      // data has changed in the DB
-      queryClient.invalidateQueries({
-        queryKey: ['annualProviderData', params.date],
-      });
-      updateQuery({ type: 'SET', key: 'offset', value: '0' });
-    } else {
-      setAlert({
-        success: 'error',
-        message: 'An Error Occurred',
-      });
-    }
   };
 
   // newVirtuoso functions
@@ -426,29 +366,6 @@ export default function AnnualProviderData({ selectedYear , setAnnualViewData}: 
 
   return (
     <>
-      {isLoadingOverlayActive && (
-        <Backdrop
-          open={true}
-          sx={theme => ({
-            color: '#fff',
-            zIndex: 100000, // ensure it's on top
-          })}
-        >
-          <CircularProgress color='inherit' />
-        </Backdrop>
-      )}
-      {/* TODO: Probably should refactor so checking a flag just sets the entire dataset we need not just an id, that way we can reduce the props being passed and remove a .find() */}
-      <FlagModal
-        open={!!flagModalOpenId}
-        onClose={handleCloseModal}
-        onSave={handleOnSave}
-        disableRemove={flagModalOpenId ? !localFlags.includes(flagModalOpenId) : false}
-        providerData={
-          visibleRows.find(data => data.providerLicensingId === flagModalOpenId) ||
-          ({} as AnnualData)
-        }
-      />
-
       <DescriptionAlerts
         severity={alert?.success}
         message={alert?.message}
@@ -495,24 +412,27 @@ export default function AnnualProviderData({ selectedYear , setAnnualViewData}: 
               order={order}
               orderBy={orderBy}
               handleRequestSort={handleRequestSort}
-              onCheck={handleCheck}
-              localFlags={localFlags}
             />
           </Box>
-        ) : isFetching || isLoading ? (
-          <Box
-            sx={{
-              display: 'flex',
-              flexGrow: 1,
-              height: '100%',
-              justifyContent: 'center',
-              alignItems: 'center',
-              backgroundColor: theme.palette.primary.contrastText,
-            }}
-          >
-            <CircularProgress size={24} />
-          </Box>
-        ) : (
+        ) :
+        //  TODO THis is causing a hydration bug
+        //  isFetching || isLoading ? (
+        //   <Box
+        //     sx={{
+        //       display: 'flex',
+        //       flexGrow: 1,
+        //       height: '100%',
+        //       justifyContent: 'center',
+        //       alignItems: 'center',
+        //       backgroundColor: theme.palette.primary.contrastText,
+        //     }}
+        //   >
+        //     <NoSsr>
+        //     <CircularProgress size={24} />
+        //     </NoSsr>
+        //   </Box>
+        // ) :
+         (
           <NoData />
         )}
       </Box>

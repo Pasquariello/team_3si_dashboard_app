@@ -1,8 +1,7 @@
 import { Box, Card, Skeleton, Stack, Typography } from '@mui/material';
 import type { ReactNode } from 'react';
-import { useParams } from 'react-router';
-import { useProviderDetails } from '~/hooks/useProviderDetails';
 import theme from '~/theme';
+import type { ProviderDetails } from '~/types';
 
 const SkeletonContentLoader = ({
   isLoading,
@@ -25,9 +24,13 @@ const SkeletonContentLoader = ({
   );
 };
 
-export const ProviderMetaDataSection = () => {
-  let params = useParams();
-  const { data, isLoading } = useProviderDetails(params.providerId!);
+export const ProviderMetaDataSection = ({
+  data,
+  isLoading,
+}: {
+  data: ProviderDetails;
+  isLoading: boolean;
+}) => {
   if (!isLoading && !data) {
     return null;
   }

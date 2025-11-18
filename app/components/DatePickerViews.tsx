@@ -1,19 +1,19 @@
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
-import { useParams, useNavigate } from 'react-router';
-import { useState, useEffect } from 'react';
-import { parseISO, isValid } from 'date-fns';
-import { createQueryStringFromFilters } from './services/providerDataServices';
-import { useQueryParams } from '~/contexts/queryParamContext';
+import { useEffect, useState } from 'react';
+import { isValid, parseISO } from 'date-fns';
+import { NoSsr } from '@mui/material';
 
 interface DatePickerViewsProps {
+  // initialDate: string;
   label: string;
   views: Array<'year' | 'month'>;
   date: string;
+  setMonthlyViewData: () => null
 }
 
-export default function DatePickerViews({ label, views, date, setMonthlyViewData }: DatePickerViewsProps) {
+export default function DatePickerViews({label, views, date, setMonthlyViewData }: DatePickerViewsProps) {
 
   const [value, setValue] = useState<Date | null>(null);
   // TODO - decide what we need here
@@ -23,56 +23,23 @@ export default function DatePickerViews({ label, views, date, setMonthlyViewData
   // // Load initial date from path param
   useEffect(() => {
     if (date) {
-      const parsed = parseISO(date);
-      if (isValid(parsed)) {
-        setValue(parsed);
+
+      const [year, month] = date.split("-");
+      let value = new Date(Number(year), Number(month) - 1);
+      // const parsed = parseISO(date);
+      if (isValid(value)) {
+        setValue(value);
       }
     }
   }, [date]);
 
   const handleChange = (newDate: Date | null) => {
-    // clean/verify date before setting
     setValue(newDate);
-    // if (newDate) {
-    //   const year = newDate.getFullYear();
-    //   const month = String(newDate.getMonth() + 1).padStart(2, '0');
-    
-    //   const pathname = location.pathname;
-    //   const updatedPath = pathname
-    //     .split('/')
-    //     .map(segment => (segment === date ? `${year}-${month}` : segment))
-    //     .join('/');
-
-    //   updateQuery({
-    //     key: 'offset',
-    //     value: '0',
-    //     type: 'SET',
-    //   });
-
-    //   const offset = queryParams?.get('offset') || '0';
-    //   const flagStatus = queryParams?.get('flagStatus') || undefined;
-    //   const cities = queryParams.getAll('cities') || undefined;
-    //   let searchParams = '';
-
-    //   const offsetMod = new URLSearchParams({ offset }).toString();
-    //   searchParams += `?${offsetMod}`;
-
-    //   const filters = {
-    //     flagStatus,
-    //     cities,
-    //   };
-
-    //   const queryString = createQueryStringFromFilters(filters);
-    //   if (queryString) {
-    //     searchParams += `&${queryString}`;
-    //   }
-
-    //   navigate(`${updatedPath}${searchParams}`);
-    // }
   };
 
   return (
-    <LocalizationProvider dateAdapter={AdapterDateFns}>
+    <NoSsr>
+      <LocalizationProvider dateAdapter={AdapterDateFns}>
       <DatePicker
         disableFuture
         label={label}
@@ -83,5 +50,26 @@ export default function DatePickerViews({ label, views, date, setMonthlyViewData
         slotProps={{ textField: { size: 'small' } }}
       />
     </LocalizationProvider>
+    </NoSsr>
+
   );
 }
+
+// TODO - Taylor and Justin to resolve
+//   handler?: (newDate: Date) => void;
+// }
+// export default function DatePickerViews({
+//   initialDate,
+//   label,
+//   views,
+//   handler,
+// }: DatePickerViewsProps) {
+//   const [value, setValue] = useState<Date | null>(parseISO(initialDate));
+//   const handleChange = (newDate: Date | null) => {
+//     // clean/verify date before setting
+//     setValue(() => {
+//       if (newDate && handler) {
+//         handler(newDate);
+//       }
+//       return newDate;
+//     });

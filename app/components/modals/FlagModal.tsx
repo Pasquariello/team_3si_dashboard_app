@@ -6,50 +6,84 @@ import DialogActions from '@mui/material/DialogActions';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import Typography from '@mui/material/Typography';
-import { Box, TextField } from '@mui/material';
+import { Box, CircularProgress, NoSsr, TextField } from '@mui/material';
 import OutlinedFlagIcon from '@mui/icons-material/OutlinedFlag';
-import type { Data } from '~/types';
+import type { ProviderInsight } from '~/types';
 import { useEffect, useState } from 'react';
+import DatePickerViews from '../DatePickerViews';
+import { parseISO } from 'date-fns';
+import type { SaveInsightPayload } from '../services/providerDataServices';
 
 type FlagModalProps = Readonly<{
   open: boolean;
   onClose: () => void;
-  onSave: (data: Pick<Data, 'comment' | 'flagged' | 'providerLicensingId'>) => void;
-  disableRemove: boolean;
-  providerData: Data;
+  onSave: (data: SaveInsightPayload) => void;
+  providerData: Awaited<ProviderInsight & { providerName: string }>;
 }>;
-
-export default function FlagModal({
-  providerData,
-  open,
-  onClose,
-  onSave,
-  disableRemove,
-}: FlagModalProps) {
-  const theme = useTheme();
-  const [comment, setComment] = useState('');
-
+// providerData contains up-to-date isFlagged and up-to-date comment
+export default function FlagModal({ providerData, open, onClose, onSave }: FlagModalProps) {
   useEffect(() => {
     setComment(providerData?.comment || '');
   }, [providerData?.comment]);
 
+  useEffect(() => {
+    const createdDate = providerData?.created_at || new Date().toISOString();
+    setFlagDate(parseISO(createdDate));
+  }, [providerData?.created_at]);
+
+  if (!providerData) {
+    return <CircularProgress />;
+  }
+
+  const theme = useTheme();
+  const [comment, setComment] = useState('');
+  const [flagDate, setFlagDate] = useState<Date>(new Date());
+
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setComment(e.target.value);
   };
-  // TODO: clean/limit Comment
+  console.log(providerData);
+
+  // send whole record, just make sure the action is correct
   const handleOnSave = () => {
-    if (providerData) {
-      onSave({
+    // if undefined or a false value we re-write the flag record
+    const isNewFlag = !providerData?.is_flagged;
+
+    if (isNewFlag) {
+      const insightData: SaveInsightPayload['insightData'] = {
         providerLicensingId: providerData?.providerLicensingId,
         comment,
-        flagged: true,
-      });
+        isFlagged: true,
+        // created_by default to "system"
+        createdAt: flagDate.toISOString(),
+      };
+      onSave({ insightData, action: 'CREATE' });
+      return;
+    }
+
+    if (providerData.is_flagged) {
+      const insightData: SaveInsightPayload['insightData'] = {
+        providerLicensingId: providerData?.providerLicensingId,
+        createdAt: flagDate.toISOString(),
+        // created_by default to "system"
+        comment,
+      };
+      onSave({ insightData, action: 'UPDATE' });
+      return;
     }
   };
-  // TODO: clean/limit Comment
+
   const handleRemoveFlag = () => {
     if (providerData) {
-      onSave({ providerLicensingId: providerData?.providerLicensingId, comment, flagged: false });
+      const resolvedDate = new Date().toISOString();
+      const insightData: SaveInsightPayload['insightData'] = {
+        providerLicensingId: providerData?.providerLicensingId,
+        comment,
+        isFlagged: false,
+        // created_by default to "system"
+        resolvedOn: resolvedDate,
+      };
+      onSave({ insightData, action: 'RESOLVE' });
     }
   };
 
@@ -70,7 +104,7 @@ export default function FlagModal({
         <Box display={'flex'} gap={2}>
           <OutlinedFlagIcon sx={{ color: theme.palette.cusp_orange.main }} />
           {/* <Box  gap={2} display="flex" alignItems="center"> */}
-          <Typography variant='h6'>Provider Flag {providerData.providerName}</Typography>
+          <Typography variant='h6'>Flag {providerData.providerName}</Typography>
           {/* <Typography color="error" variant='body2'>
                             An Error Occured!
                         </Typography> */}
@@ -82,6 +116,14 @@ export default function FlagModal({
         >
           Add optional notes about the reasons for flagging this provider.
         </Typography>
+        <Box display={'flex'} justifyContent={'end'}>
+          <DatePickerViews
+            initialDate={flagDate.toISOString()}
+            label={'Flag Date'}
+            views={['year', 'month']}
+            handler={setFlagDate}
+          />
+        </Box>
         <Typography>Notes</Typography>
         <TextField
           fullWidth
@@ -97,7 +139,7 @@ export default function FlagModal({
       <DialogActions sx={{ px: 3, pb: 3, justifyContent: 'space-between' }}>
         <Button
           variant='outlined'
-          disabled={disableRemove}
+          disabled={!providerData.is_flagged}
           onClick={handleRemoveFlag}
           sx={{
             color: theme.palette.error.main, // Sets the text color to white

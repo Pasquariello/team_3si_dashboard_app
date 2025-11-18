@@ -14,12 +14,11 @@ export type VirtuosoDataRowProps = {
 export type CheckboxDataRowProps = VirtuosoDataRowProps & {
   handleClickRow: (event: React.MouseEvent<HTMLTableRowElement>, id: string) => void;
   isSelected: (id: string) => boolean;
-  handleCheckBox: (e: React.MouseEvent<any>, id: string) => void;
-  isChecked: (id: string) => boolean;
+  handleCheckBox?: (e: React.MouseEvent<any>, id: string) => void;
 };
 
 export const CheckboxDataRow = forwardRef<HTMLTableRowElement, CheckboxDataRowProps>(
-  ({ style, item, isSelected, isChecked, handleClickRow, handleCheckBox, ...rest }, ref) => {
+  ({ style, item, isSelected, handleClickRow, handleCheckBox, ...rest }, ref) => {
     const theme = useTheme();
     const labelId = `enhanced-table-checkbox-${rest['data-index']}`;
     return (
@@ -44,9 +43,11 @@ export const CheckboxDataRow = forwardRef<HTMLTableRowElement, CheckboxDataRowPr
             name={item.providerLicensingId}
             onClick={e => {
               e.stopPropagation();
-              handleCheckBox(e, item.providerLicensingId);
+              if (handleCheckBox) {
+                handleCheckBox(e, item.providerLicensingId);
+              }
             }}
-            checked={isChecked(item.providerLicensingId)}
+            checked={item.flagged}
             slotProps={{
               input: {
                 'aria-labelledby': labelId,

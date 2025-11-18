@@ -53,10 +53,11 @@ export default function ProviderData() {
   const [queryParams, updateQuery] = useQueryParams();
   const theme = useTheme();
 
+ const defaultAnnual = (params.mode  === 'annual' && params.date ) ? params.date : '2024'
+ const defaultMonthly = (params.mode  === 'monthly' && params.date ) ? params.date : '2024-01' 
 
-
-  const [annualViewData, setAnnualViewData] = React.useState('2024');
-  const [monthlyViewData, setMonthlyViewData] = React.useState('2024-01');
+  const [annualViewData, setAnnualViewData] = React.useState(defaultAnnual);
+  const [monthlyViewData, setMonthlyViewData] = React.useState(defaultMonthly);
 
   const handleUpdateAnnualViewData = (event) => {
     const newDate = event.target.value;

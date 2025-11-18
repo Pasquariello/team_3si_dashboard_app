@@ -11,7 +11,11 @@ type SidebarItem = Readonly<{
   Breadcrumb;
 
 export const sidebarItem: Array<SidebarItem> = [
-  { route: '/provider/risk-audit', label: 'Risk & Audit', altText: 'Analyze provider risks' },
+  {
+    route: '/provider/risk-audit',
+    label: 'Risk & Audit',
+    altText: 'Analyze provider risks',
+  },
 ];
 
 export const breadcrumbMap = new Map<string, Breadcrumb>([

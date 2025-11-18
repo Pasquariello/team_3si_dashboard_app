@@ -142,10 +142,10 @@ export default function ProviderDataCards() {
   const renderHighestRiskScoreDesc = () => {
 
     return (
-        <p>
+        <>
             <PercentCangeIcon/> 
             { percentChange ? Math.abs(Number(percentChange)) : 0 }% from one year ago
-        </p>
+        </>
     );
   }
 

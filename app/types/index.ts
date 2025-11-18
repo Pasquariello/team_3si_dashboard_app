@@ -49,3 +49,27 @@ export interface ProviderDetails
     providerType: string; // define types
     providerStatus: string; //define statuses
   }> {}
+
+export type ProviderInsightWithHistory = ProviderInsight & {
+  history: ProviderInsightsHistory[];
+};
+
+export interface ProviderInsight
+  extends Readonly<{
+    is_flagged: boolean;
+    providerLicensingId: string;
+    comment: string;
+    created_at: string;
+    resolved_on: string;
+    created_by: string;
+  }> {}
+
+export interface ProviderInsightsHistory
+  extends Readonly<{
+    id: number;
+    is_active: boolean;
+    comment: string;
+    created_by: string;
+    created_at: string;
+    action: string;
+  }> {}

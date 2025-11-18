@@ -13,10 +13,12 @@ const { annual, monthly, setAnnualViewData, setMonthlyViewData } = useOutletCont
   }
 
   if (mode === "annual") {
+    // return <div>HI</div>
     return <AnnualProviderData selectedYear={annual} setAnnualViewData={setAnnualViewData} />;
   }
 
   if (mode === "monthly") {
+    // return <div>HI</div>
     return <MonthlyProviderData selectedDate={monthly} setMonthlyViewData={setMonthlyViewData} />;
   }
 
