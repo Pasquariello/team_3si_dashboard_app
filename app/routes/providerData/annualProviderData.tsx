@@ -200,10 +200,10 @@ const createRenderCellContent = (riskScoreColumns) =>
 }
 
 
-export async function loader({ params, request }: Route.LoaderArgs) {
-  let year = params?.selectedYear;
+export async function loader({ selectedYear, request }: Route.LoaderArgs) {
+  let year = selectedYear;
   if (!year) {
-    year = '2024'; // getCurrentDate()
+    year = '2024'; // getCurrentDate() TODO
     return redirect(`${year}`);
   }
   const url = new URL(request.url);
@@ -229,7 +229,11 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   return null;
 }
 
-export default function AnnualProviderData() {
+type AnnualProviderDataProps = {
+  selectedYear: number | string;
+};
+
+export default function AnnualProviderData({ selectedYear , setAnnualViewData}: AnnualProviderDataProps) {
   const theme = useTheme();
   const [isLoadingOverlayActive, setIsLoadingOverlayActive] = useState(false);
   const [order, setOrder] = useState<Order>('desc');
@@ -282,7 +286,7 @@ export default function AnnualProviderData() {
   }, [flagStatus, cities]);
 
   const { data, fetchNextPage, isFetching, isLoading, error } = useProviderYearlyData(
-    params.selectedYear!, // the loader ensures this will be here via redirect
+    selectedYear!, // the loader ensures this will be here via redirect
     offset,
     filters,
     offset
@@ -472,7 +476,7 @@ export default function AnnualProviderData() {
           }}
         >
           <Box sx={{ my: 3 }} display={'flex'} gap={1} width={'100%'}>
-            <YearOrRangeSelector />
+            <YearOrRangeSelector selectedYear={selectedYear} setAnnualViewData={setAnnualViewData} />
             <EnhancedTableToolbar searchHandler={setSearchValue} riskScoreColumns={riskScoreColumns} toggleableColumns={toggleableColumns} handleChangeRiskScores={handleChangeRiskScores}  />
           </Box>
           <Divider orientation='horizontal' flexItem />

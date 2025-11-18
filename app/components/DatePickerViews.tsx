@@ -10,16 +10,17 @@ import { useQueryParams } from '~/contexts/queryParamContext';
 interface DatePickerViewsProps {
   label: string;
   views: Array<'year' | 'month'>;
+  date: string;
 }
 
-export default function DatePickerViews({ label, views }: DatePickerViewsProps) {
-  const { date } = useParams();
-  const navigate = useNavigate();
+export default function DatePickerViews({ label, views, date, setMonthlyViewData }: DatePickerViewsProps) {
 
   const [value, setValue] = useState<Date | null>(null);
-  const [queryParams, updateQuery] = useQueryParams();
+  // TODO - decide what we need here
+  // const [queryParams, updateQuery] = useQueryParams();
+  // let value = parseISO(date);
 
-  // Load initial date from path param
+  // // Load initial date from path param
   useEffect(() => {
     if (date) {
       const parsed = parseISO(date);
@@ -32,42 +33,42 @@ export default function DatePickerViews({ label, views }: DatePickerViewsProps) 
   const handleChange = (newDate: Date | null) => {
     // clean/verify date before setting
     setValue(newDate);
-    if (newDate) {
-      const year = newDate.getFullYear();
-      const month = String(newDate.getMonth() + 1).padStart(2, '0');
+    // if (newDate) {
+    //   const year = newDate.getFullYear();
+    //   const month = String(newDate.getMonth() + 1).padStart(2, '0');
+    
+    //   const pathname = location.pathname;
+    //   const updatedPath = pathname
+    //     .split('/')
+    //     .map(segment => (segment === date ? `${year}-${month}` : segment))
+    //     .join('/');
 
-      const pathname = location.pathname;
-      const updatedPath = pathname
-        .split('/')
-        .map(segment => (segment === date ? `${year}-${month}` : segment))
-        .join('/');
+    //   updateQuery({
+    //     key: 'offset',
+    //     value: '0',
+    //     type: 'SET',
+    //   });
 
-      updateQuery({
-        key: 'offset',
-        value: '0',
-        type: 'SET',
-      });
+    //   const offset = queryParams?.get('offset') || '0';
+    //   const flagStatus = queryParams?.get('flagStatus') || undefined;
+    //   const cities = queryParams.getAll('cities') || undefined;
+    //   let searchParams = '';
 
-      const offset = queryParams?.get('offset') || '0';
-      const flagStatus = queryParams?.get('flagStatus') || undefined;
-      const cities = queryParams.getAll('cities') || undefined;
-      let searchParams = '';
+    //   const offsetMod = new URLSearchParams({ offset }).toString();
+    //   searchParams += `?${offsetMod}`;
 
-      const offsetMod = new URLSearchParams({ offset }).toString();
-      searchParams += `?${offsetMod}`;
+    //   const filters = {
+    //     flagStatus,
+    //     cities,
+    //   };
 
-      const filters = {
-        flagStatus,
-        cities,
-      };
+    //   const queryString = createQueryStringFromFilters(filters);
+    //   if (queryString) {
+    //     searchParams += `&${queryString}`;
+    //   }
 
-      const queryString = createQueryStringFromFilters(filters);
-      if (queryString) {
-        searchParams += `&${queryString}`;
-      }
-
-      navigate(`${updatedPath}${searchParams}`);
-    }
+    //   navigate(`${updatedPath}${searchParams}`);
+    // }
   };
 
   return (
@@ -78,6 +79,7 @@ export default function DatePickerViews({ label, views }: DatePickerViewsProps) 
         views={views}
         value={value}
         onChange={handleChange}
+        onAccept={setMonthlyViewData}
         slotProps={{ textField: { size: 'small' } }}
       />
     </LocalizationProvider>

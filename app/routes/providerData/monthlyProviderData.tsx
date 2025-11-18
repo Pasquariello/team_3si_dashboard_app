@@ -115,7 +115,6 @@ const renderCellContent = (
   labelId: string,
   key: string
 ): React.ReactNode => {
-  // console.log(columnId, row);
   switch (columnId) {
     case 'providerLicensingId':
       return (
@@ -212,7 +211,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   return null;
 }
 
-export default function MonthlyProviderData() {
+export default function MonthlyProviderData({selectedDate, setMonthlyViewData}) {
   const theme = useTheme();
   const [isLoadingOverlayActive, setIsLoadingOverlayActive] = useState(false);
   const [order, setOrder] = useState<Order>('desc');
@@ -265,7 +264,7 @@ export default function MonthlyProviderData() {
   }, [flagStatus, cities]);
 
   const { data, fetchNextPage, isFetching, isLoading, error } = useProviderMonthlyData(
-    params.date!, // the loader ensures this will be here via redirect
+    selectedDate!, // the loader ensures this will be here via redirect
     offset,
     filters,
     offset
@@ -366,7 +365,7 @@ export default function MonthlyProviderData() {
       handleCloseModal(row_data.flagged, row_data.providerLicensingId);
       // data has changed in the DB
       queryClient.invalidateQueries({
-        queryKey: ['monthlyProviderData', params.date],
+        queryKey: ['monthlyProviderData', selectedDate],
       });
       updateQuery({ type: 'SET', key: 'offset', value: '0' });
     } else {
@@ -449,7 +448,7 @@ export default function MonthlyProviderData() {
           }}
         >
           <Box display={'flex'} flex={1} gap={1} width={'100%'}>
-            <DatePickerViews label={'"month" and "year"'} views={['year', 'month']} />
+            <DatePickerViews label={'"month" and "year"'} views={['year', 'month']} date={selectedDate} setMonthlyViewData={setMonthlyViewData} />
             {/* <EnhancedTableToolbar searchHandler={setSearchValue} /> */}
             <EnhancedTableToolbar searchHandler={setSearchValue} riskScoreColumns={riskScoreColumns} toggleableColumns={toggleableColumns} handleChangeRiskScores={handleChangeRiskScores}  />
 

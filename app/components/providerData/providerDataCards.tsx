@@ -3,19 +3,34 @@ import { useQuery } from "@tanstack/react-query";
 import { env } from "~/env";
 import DashboardCard from "~/routes/providerData/DashboardCard"
 import { useParams } from "react-router";
-import { useEffect } from "react";
 
 import ArrowDropUpIcon from '@mui/icons-material/ArrowDropUp';
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
 import GroupOutlinedIcon from '@mui/icons-material/GroupOutlined';
 import { FlagOutlined, ReportProblemOutlined, TrendingDownOutlined, TrendingUpOutlined, WarningAmberOutlined } from "@mui/icons-material";
 
-export default function ProviderDataCards() {
 
+function formatMonthYear(value) {
+  const date = new Date(value + "-01T00:00:00");
+  return date.toLocaleString("en-US", {
+    month: "long",
+    year: "numeric",
+  });
+}
+
+
+export default function ProviderDataCards() {
+    // TODO - pass year via props remove useParams ?
     const params = useParams();
 
-    const { selectedYear } = params;
-    // console.log('params', params)
+    // const { selectedYear } = params;
+    
+    const map = {
+        annual: params.date,
+        monthly: formatMonthYear(params.date),
+    }
+
+    const dateActiveString = map[params.mode];
 
     const riskScoreStrings = {
         total_billed_over_capacity: "Children Billed Over",
@@ -27,12 +42,9 @@ export default function ProviderDataCards() {
     const theme = useTheme();
 
 
-    const selectedDate = !Object.hasOwn(params, 'selectedYear')
+    const selectedDate = !Object.hasOwn(params, 'date')
     ? params?.date?.slice(0, params.date?.length - 3)
-        : params.selectedYear;
-
-
-    // console.log('selectedDate', selectedDate)
+        : params.date;
 
     const getProviderCount = async () => {
 
@@ -77,7 +89,7 @@ export default function ProviderDataCards() {
     
 
     const { data, isLoading, isError, error } = useQuery({
-        queryKey: ['selectedYear', selectedDate],
+        queryKey: ['date', selectedDate],
         queryFn: async () => {
             const [unique_provider_count, flagged_provider_count, count_over_44, highest_risk_score] = await Promise.all([
             getProviderCount(),
@@ -89,9 +101,6 @@ export default function ProviderDataCards() {
         },
     });
 
- 
-
-//   console.log('my data', data || 'nothing!');
 
   const highRiskPercentage = Math.round((data?.[2]?.count_over_44 / data?.[0]?.unique_provider_count) * 100);
 
@@ -118,7 +127,7 @@ export default function ProviderDataCards() {
   const highestRiskScoreTitle = (riskScores: any) => {
     const arr = sortScores(riskScores);
 
-    let metric = arr?.filter(riskScore => riskScore.year === Number(selectedYear));
+    let metric = arr?.filter(riskScore => riskScore.year === Number(selectedDate));
     if (metric?.length > 1) {
         const [metric1, metric2] = metric;
         return `${riskScoreStrings[metric1?.metric]} and ${riskScoreStrings[metric2?.metric]}` 
@@ -189,7 +198,7 @@ export default function ProviderDataCards() {
                     </>
                 }
                 // description={`Active in ${env.VITE_STATE_NAME || 'State Name'}`}
-                description={`Active in ${env.VITE_STATE_NAME || 'State Name'} during ${selectedYear}`}
+                description={`Active in ${env.VITE_STATE_NAME || 'State Name'} during ${dateActiveString}`}
                 value={
                     <Typography variant='h5' fontWeight={700}>{data?.[0]?.unique_provider_count}</Typography>
                     
@@ -232,7 +241,7 @@ export default function ProviderDataCards() {
             <DashboardCard                
                 title={
                     <>
-                        <Typography variant='h7' fontWeight={500} color="black">Flagged for Review</Typography>
+                        <Typography variant='h7' fontWeight={500} color="black">Top Risk Scenario</Typography>
                          {renderTrendingIcon()}
                     </>
                 }

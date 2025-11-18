@@ -105,7 +105,7 @@ export default function ProviderData() {
         </Card>
       </Box>
 
-      <Box 
+      {/* <Box 
         sx={{
             display: 'flex',
             gap: 2,
@@ -221,7 +221,7 @@ export default function ProviderData() {
         </Card>
 
 
-        </Box>
+        </Box> */}
 
       <Box>
         <Card

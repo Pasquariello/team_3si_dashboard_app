@@ -68,6 +68,7 @@ export default function ConfigureRiskScoreSelect({riskScoreColumns, options, han
                                     value={value.id} 
                                     onChange={handleChangeRiskScores} 
                                     checked={value.display} 
+                                    color="info"
                                 />
                             }
                             label={option.label} 

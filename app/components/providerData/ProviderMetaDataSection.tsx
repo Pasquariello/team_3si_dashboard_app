@@ -31,7 +31,6 @@ export const ProviderMetaDataSection = () => {
   if (!isLoading && !data) {
     return null;
   }
-  console.log(data);
   return (
     <Card
       sx={{
