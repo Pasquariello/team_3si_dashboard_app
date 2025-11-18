@@ -7,7 +7,7 @@ import type { Route } from './+types/annualProviderData';
 import type { AnnualData, HeadCell, Order } from '~/types';
 
 import { useTheme } from '@mui/material/styles';
-import { Backdrop, Box, Button, CircularProgress, Divider, Link } from '@mui/material';
+import { Backdrop, Box, Button, CircularProgress, Divider, Link, NoSsr } from '@mui/material';
 
 import EnhancedTableToolbar from '~/components/table/EnhancedTableToolbar';
 import YearOrRangeSelector from '~/components/YearOrRangeSelector';
@@ -195,10 +195,10 @@ const createRenderCellContent = (riskScoreColumns) =>
 }
 
 
-export async function loader({ params, request }: Route.LoaderArgs) {
-  let year = params?.selectedYear;
+export async function loader({ selectedYear, request }: Route.LoaderArgs) {
+  let year = selectedYear;
   if (!year) {
-    year = '2024'; // getCurrentDate()
+    year = '2024'; // getCurrentDate() TODO
     return redirect(`${year}`);
   }
   const url = new URL(request.url);
@@ -224,7 +224,11 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   return null;
 }
 
-export default function AnnualProviderData() {
+type AnnualProviderDataProps = {
+  selectedYear: number | string;
+};
+
+export default function AnnualProviderData({ selectedYear , setAnnualViewData}: AnnualProviderDataProps) {
   const theme = useTheme();
   const [order, setOrder] = useState<Order>('desc');
   const [orderBy, setOrderBy] = useState<keyof AnnualData>('overallRiskScore');
@@ -275,7 +279,7 @@ export default function AnnualProviderData() {
   }, [flagStatus, cities]);
 
   const { data, fetchNextPage, isFetching, isLoading, error } = useProviderYearlyData(
-    params.selectedYear!, // the loader ensures this will be here via redirect
+    selectedYear!, // the loader ensures this will be here via redirect
     offset,
     filters,
     offset
@@ -389,7 +393,7 @@ export default function AnnualProviderData() {
           }}
         >
           <Box sx={{ my: 3 }} display={'flex'} gap={1} width={'100%'}>
-            <YearOrRangeSelector />
+            <YearOrRangeSelector selectedYear={selectedYear} setAnnualViewData={setAnnualViewData} />
             <EnhancedTableToolbar searchHandler={setSearchValue} riskScoreColumns={riskScoreColumns} toggleableColumns={toggleableColumns} handleChangeRiskScores={handleChangeRiskScores}  />
           </Box>
           <Divider orientation='horizontal' flexItem />
@@ -410,20 +414,25 @@ export default function AnnualProviderData() {
               handleRequestSort={handleRequestSort}
             />
           </Box>
-        ) : isFetching || isLoading ? (
-          <Box
-            sx={{
-              display: 'flex',
-              flexGrow: 1,
-              height: '100%',
-              justifyContent: 'center',
-              alignItems: 'center',
-              backgroundColor: theme.palette.primary.contrastText,
-            }}
-          >
-            <CircularProgress size={24} />
-          </Box>
-        ) : (
+        ) :
+        //  TODO THis is causing a hydration bug
+        //  isFetching || isLoading ? (
+        //   <Box
+        //     sx={{
+        //       display: 'flex',
+        //       flexGrow: 1,
+        //       height: '100%',
+        //       justifyContent: 'center',
+        //       alignItems: 'center',
+        //       backgroundColor: theme.palette.primary.contrastText,
+        //     }}
+        //   >
+        //     <NoSsr>
+        //     <CircularProgress size={24} />
+        //     </NoSsr>
+        //   </Box>
+        // ) :
+         (
           <NoData />
         )}
       </Box>

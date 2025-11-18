@@ -37,20 +37,44 @@ const getActiveTabByPath = (pathName: string) => {
   }
 };
 
+const activeTabOptions = {
+  annual: 0,
+  monthly: 1
+}
+
 export default function ProviderData() {
   const navigate = useNavigate();
   const location = useLocation();
+    let params = useParams();
   // get location and set the active tab
-  const [activeTab, setActiveTab] = React.useState(getActiveTabByPath(location.pathname) || 0);
-  const onMatchingRoute = useMatch(`${tabRoutes[activeTab].path}/*`);
-  let params = useParams();
-  const [queryParams, updateQuery] = useQueryParams();
+  const activeTab = activeTabOptions[params.mode] || 0
 
+  const onMatchingRoute = useMatch(`${tabRoutes[activeTab].path}/*`);
+  const [queryParams, updateQuery] = useQueryParams();
   const theme = useTheme();
 
-  React.useEffect(() => {
-    setActiveTab(getActiveTabByPath(location.pathname) || 0)
-  }, [location.pathname]);
+ const defaultAnnual = (params.mode  === 'annual' && params.date ) ? params.date : '2024'
+ const defaultMonthly = (params.mode  === 'monthly' && params.date ) ? params.date : '2024-01' 
+
+  const [annualViewData, setAnnualViewData] = React.useState(defaultAnnual);
+  const [monthlyViewData, setMonthlyViewData] = React.useState(defaultMonthly);
+
+  const handleUpdateAnnualViewData = (event) => {
+    const newDate = event.target.value;
+
+    setAnnualViewData(newDate)
+    navigate(`/provider/risk-audit/annual/${newDate}`);
+  }
+
+  const handleUpdateMonthlylViewData = (value) => {
+
+    const year = value.getFullYear();
+    const month = String(value.getMonth() + 1).padStart(2, '0');
+    const newDate = `${year}-${month}`;
+
+    setMonthlyViewData(newDate)
+    navigate(`/provider/risk-audit/monthly/${newDate}`);
+  }
 
   const handleChange = (_event: React.SyntheticEvent, newValue: number) => {
     if (!onMatchingRoute) {
@@ -60,32 +84,27 @@ export default function ProviderData() {
         type: 'SET',
       });
     }
-    setActiveTab(() => {
-      const offset = queryParams?.get('offset') || '0';
-      const flagStatus = queryParams?.get('flagStatus') || undefined;
-      const cities = queryParams.getAll('cities') || undefined;
-      let searchParams = '';
 
-      const offsetMod = new URLSearchParams({ offset }).toString();
-      searchParams += `?${offsetMod}`;
+     const nextMode = newValue === 0 ? "annual" : "monthly";
 
-      const filters = {
-        flagStatus,
-        cities,
-      };
+  // Convert date based on nextMode
+  let nextDate;
 
-      const queryString = createQueryStringFromFilters(filters);
-      if (queryString) {
-        searchParams += `&${queryString}`;
-      }
-      // checking the param and appending or removing the day depending on yearly or monthly tab
-      // allows filters to carry over between tabs
-      const param = !Object.hasOwn(params, 'selectedYear')
-        ? params?.date?.slice(0, params.date?.length - 3)
-        : params.selectedYear + '-01';
-      navigate(`${tabRoutes[newValue].path}/${param}${searchParams}`, { replace: true });
-      return newValue;
-    });
+  if (nextMode === "annual") {
+    // Convert YYYY-MM or YYYY-MM-01 → YYYY
+    nextDate = annualViewData
+  } else {
+    // Convert YYYY → YYYY-01
+    // OR YYYY-MM → YYYY-MM
+    // Always store monthly as YYYY-MM
+    nextDate = monthlyViewData
+  }
+
+  // Preserve query params
+  const search = location.search || "";
+
+  // Navigate to new route
+  navigate(`/provider/risk-audit/${nextMode}/${nextDate}${search}`);
   };
 
   return (
@@ -110,7 +129,12 @@ export default function ProviderData() {
           />
         ))}
       </Tabs>
-      <Outlet />
+      <Outlet context={{
+        annual: annualViewData,
+        monthly: monthlyViewData,
+        setAnnualViewData: handleUpdateAnnualViewData,
+        setMonthlyViewData: handleUpdateMonthlylViewData
+      }}/>
     </Box>
   );
 }

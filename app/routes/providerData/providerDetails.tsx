@@ -1,7 +1,7 @@
 import type { Route } from './+types/providerDetails';
 
 import { redirect, useParams } from 'react-router';
-import { Box, useTheme, Card, Typography, Button, CircularProgress, Backdrop } from '@mui/material';
+import { Box, useTheme, Card, Typography, Button, CircularProgress, Backdrop, NoSsr } from '@mui/material';
 import { LineChart } from '@mui/x-charts/LineChart';
 import AuditLogTable from '~/components/providerData/auditTable';
 import AddIcon from '@mui/icons-material/Add';
@@ -108,6 +108,7 @@ export default function ProviderDetails() {
             zIndex: 100000, // ensure it's on top
           })}
         >
+
           <CircularProgress color='inherit' />
         </Backdrop>
       )}
@@ -198,7 +199,7 @@ export default function ProviderDetails() {
         </Box>
       </Box>
 
-      <Box
+      {/* <Box 
         sx={{
           display: 'flex',
           gap: 2,
@@ -402,47 +403,9 @@ export default function ProviderDetails() {
             height={300}
           />
         </Card>
-      </Box>
 
-      <Box>
-        <Card
-          sx={{
-            flex: 1,
-            justifyContent: 'center',
-            display: 'flex',
-            flexDirection: 'column',
-            p: 3,
-            gap: 2,
-            borderRadius: 2,
-          }}
-          variant='outlined'
-        >
-          <Box display='flex' justifyContent='space-between' alignItems='center'>
-            <Box>
-              <Typography variant='h5'>Audit History</Typography>
-              <Typography variant='body1' color={theme.palette.cusp_iron.contrastText}>
-                {' '}
-                Record of previous audits and findings
-              </Typography>
-            </Box>
-            <Button
-              onClick={() => {
-                console.log('Pressed Me!');
-              }}
-              sx={{
-                bgcolor: 'black',
-                color: 'white',
-                textTransform: 'none',
-              }}
-              startIcon={<AddIcon />}
-            >
-              Add Audit Log
-            </Button>
-          </Box>
 
-          <AuditLogTable />
-        </Card>
-      </Box>
+        </Box> */}
     </>
   );
 }

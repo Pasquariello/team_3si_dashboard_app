@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Box, CircularProgress, Divider, Link, useTheme } from '@mui/material';
+import { Box, CircularProgress, Divider, Link, NoSsr, useTheme } from '@mui/material';
 
 import type { HeadCell, MonthlyData, Order } from '~/types';
 import DatePickerViews from '~/components/DatePickerViews';
@@ -114,7 +114,6 @@ const renderCellContent = (
   labelId: string,
   key: string
 ): React.ReactNode => {
-  // console.log(columnId, row);
   switch (columnId) {
     case 'providerLicensingId':
       return (
@@ -211,7 +210,7 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   return null;
 }
 
-export default function MonthlyProviderData() {
+export default function MonthlyProviderData({selectedDate, setMonthlyViewData}) {
   const theme = useTheme();
   const [order, setOrder] = useState<Order>('desc');
   const [orderBy, setOrderBy] = useState<keyof MonthlyData>('overallRiskScore');
@@ -261,7 +260,7 @@ export default function MonthlyProviderData() {
   }, [flagStatus, cities]);
 
   const { data, fetchNextPage, isFetching, isLoading, error } = useProviderMonthlyData(
-    params.date!, // the loader ensures this will be here via redirect
+    selectedDate!, // the loader ensures this will be here via redirect
     offset,
     filters,
     offset
@@ -340,42 +339,43 @@ export default function MonthlyProviderData() {
       fetchNextPage().then(() => updateOffset());
     }
   };
-  const handleDateSelection = (newDate: Date) => {
-    const year = newDate.getFullYear();
-    const month = String(newDate.getMonth() + 1).padStart(2, '0');
+  // TODO - temp comment out Taylor and Justin to Resolve
+  // const handleDateSelection = (newDate: Date) => {
+  //   const year = newDate.getFullYear();
+  //   const month = String(newDate.getMonth() + 1).padStart(2, '0');
 
-    const pathname = location.pathname;
-    const updatedPath = pathname
-      .split('/')
-      .map(segment => (segment === params.date ? `${year}-${month}` : segment))
-      .join('/');
+  //   const pathname = location.pathname;
+  //   const updatedPath = pathname
+  //     .split('/')
+  //     .map(segment => (segment === params.date ? `${year}-${month}` : segment))
+  //     .join('/');
 
-    updateQuery({
-      key: 'offset',
-      value: '0',
-      type: 'SET',
-    });
+  //   updateQuery({
+  //     key: 'offset',
+  //     value: '0',
+  //     type: 'SET',
+  //   });
 
-    const offset = queryParams?.get('offset') || '0';
-    const flagStatus = queryParams?.get('flagStatus') || undefined;
-    const cities = queryParams.getAll('cities') || undefined;
-    let searchParams = '';
+  //   const offset = queryParams?.get('offset') || '0';
+  //   const flagStatus = queryParams?.get('flagStatus') || undefined;
+  //   const cities = queryParams.getAll('cities') || undefined;
+  //   let searchParams = '';
 
-    const offsetMod = new URLSearchParams({ offset }).toString();
-    searchParams += `?${offsetMod}`;
+  //   const offsetMod = new URLSearchParams({ offset }).toString();
+  //   searchParams += `?${offsetMod}`;
 
-    const filters = {
-      flagStatus,
-      cities,
-    };
+  //   const filters = {
+  //     flagStatus,
+  //     cities,
+  //   };
 
-    const queryString = createQueryStringFromFilters(filters);
-    if (queryString) {
-      searchParams += `&${queryString}`;
-    }
+  //   const queryString = createQueryStringFromFilters(filters);
+  //   if (queryString) {
+  //     searchParams += `&${queryString}`;
+  //   }
 
-    navigate(`${updatedPath}${searchParams}`);
-  };
+  //   navigate(`${updatedPath}${searchParams}`);
+  // };
 
   return (
     <>
@@ -406,18 +406,10 @@ export default function MonthlyProviderData() {
           }}
         >
           <Box display={'flex'} flex={1} gap={1} width={'100%'}>
-            <DatePickerViews
-              initialDate={params.date!}
-              label={'"month" and "year"'}
-              views={['year', 'month']}
-              handler={handleDateSelection}
-            />
-            <EnhancedTableToolbar
-              searchHandler={setSearchValue}
-              riskScoreColumns={riskScoreColumns}
-              toggleableColumns={toggleableColumns}
-              handleChangeRiskScores={handleChangeRiskScores}
-            />
+            <DatePickerViews label={'"month" and "year"'} views={['year', 'month']} date={selectedDate} setMonthlyViewData={setMonthlyViewData} />
+            {/* <EnhancedTableToolbar searchHandler={setSearchValue} /> */}
+            <EnhancedTableToolbar searchHandler={setSearchValue} riskScoreColumns={riskScoreColumns} toggleableColumns={toggleableColumns} handleChangeRiskScores={handleChangeRiskScores}  />
+
           </Box>
           <Divider orientation='horizontal' flexItem />
           <ProviderTableFilterBar />
@@ -437,20 +429,25 @@ export default function MonthlyProviderData() {
               />
             </Box>
           </>
-        ) : isFetching || isLoading ? (
-          <Box
-            sx={{
-              display: 'flex',
-              flexGrow: 1,
-              height: '100%',
-              justifyContent: 'center',
-              alignItems: 'center',
-              backgroundColor: theme.palette.primary.contrastText,
-            }}
-          >
-            <CircularProgress size={24} />
-          </Box>
-        ) : (
+        ) 
+        // TODO - this is causing a hydration error
+        // : isFetching || isLoading ? (
+        //   <Box
+        //     sx={{
+        //       display: 'flex',
+        //       flexGrow: 1,
+        //       height: '100%',
+        //       justifyContent: 'center',
+        //       alignItems: 'center',
+        //       backgroundColor: theme.palette.primary.contrastText,
+        //     }}
+        //   >
+        //     <NoSsr>
+        //     <CircularProgress size={24} />
+        //     </NoSsr>
+        //   </Box>
+        // ) 
+        : (
           <NoData />
         )}
       </Box>

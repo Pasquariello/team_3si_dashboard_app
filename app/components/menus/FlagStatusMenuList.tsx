@@ -5,7 +5,6 @@ export const FlagStatusMenuList = ({ queryKey }: { queryKey: string }) => {
   const [params, updateQuery] = useQueryParams();
 
   const flaggedStatus = params?.get(queryKey) || null;
-  console.log('queryKey', queryKey)
 
   const handleFlagged = () => {
     updateQuery({ type: 'SET', key: 'offset', value: '0' });

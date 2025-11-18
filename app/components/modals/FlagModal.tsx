@@ -6,7 +6,7 @@ import DialogActions from '@mui/material/DialogActions';
 import IconButton from '@mui/material/IconButton';
 import CloseIcon from '@mui/icons-material/Close';
 import Typography from '@mui/material/Typography';
-import { Box, CircularProgress, TextField } from '@mui/material';
+import { Box, CircularProgress, NoSsr, TextField } from '@mui/material';
 import OutlinedFlagIcon from '@mui/icons-material/OutlinedFlag';
 import type { ProviderInsight } from '~/types';
 import { useEffect, useState } from 'react';

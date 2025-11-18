@@ -8,6 +8,7 @@ import {
   Paper,
   CircularProgress,
   Box,
+  NoSsr,
 } from '@mui/material';
 import { Scroller } from '~/components/table/Scroller';
 import { TableVirtuoso, type TableComponents } from 'react-virtuoso';
@@ -93,7 +94,6 @@ export function ProviderInfiniteScrollTable<T extends Data>({
             key={`${column.id}+${index}`}
             variant='head'
             align={column.numeric || false ? 'right' : 'left'}
-            style={{}}
             sx={{ backgroundColor: 'background.paper' }}
           >
             {column.label}
