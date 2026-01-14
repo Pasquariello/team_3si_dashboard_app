@@ -1,7 +1,16 @@
 import type { Route } from './+types/providerDetails';
 
 import { redirect, useParams } from 'react-router';
-import { Box, useTheme, Card, Typography, Button, CircularProgress, Backdrop, NoSsr } from '@mui/material';
+import {
+  Box,
+  useTheme,
+  Card,
+  Typography,
+  Button,
+  CircularProgress,
+  Backdrop,
+  NoSsr,
+} from '@mui/material';
 import { LineChart } from '@mui/x-charts/LineChart';
 import AuditLogTable from '~/components/providerData/auditTable';
 import AddIcon from '@mui/icons-material/Add';
@@ -20,6 +29,7 @@ import FlagHistoryTable from '~/components/providerData/FlagHistoryTable';
 import { useProviderDetails } from '~/hooks/useProviderDetails';
 import { Edit } from '@mui/icons-material';
 import { useProviderInsights } from '~/hooks/useProviderInsights';
+import ProviderRiskTabs from '~/components/table/providerRisk/ProviderRiskTabs';
 
 export function meta({}: Route.MetaArgs) {
   return [{ title: 'Provider Details' }, { name: 'description', content: 'providerDetails' }];
@@ -156,6 +166,22 @@ export default function ProviderDetails() {
               </Button>
             </Box>
             <FlagHistoryTable history={insights?.history || []} isLoading={isLoadingInsights} />
+          </Card>
+        </Box>
+        <Box sx={{ display: 'flex', gap: 2 }}>
+          <Card
+            sx={{
+              flex: 1,
+              justifyContent: 'center',
+              display: 'flex',
+              flexDirection: 'column',
+              p: 3,
+              borderRadius: 2,
+            }}
+            variant='outlined'
+          >
+            Provider Risk Scores
+            <ProviderRiskTabs />
           </Card>
         </Box>
 
