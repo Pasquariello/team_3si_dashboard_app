@@ -4,17 +4,21 @@ import { AdapterDateFns } from '@mui/x-date-pickers/AdapterDateFns';
 import { useEffect, useState } from 'react';
 import { isValid, parseISO } from 'date-fns';
 import { NoSsr } from '@mui/material';
+import { useParams } from 'react-router';
 
 interface DatePickerViewsProps {
   // initialDate: string;
   label: string;
   views: Array<'year' | 'month'>;
-  date: string;
-  setMonthlyViewData: () => null
+  setMonthlyViewData: () => void;
 }
 
-export default function DatePickerViews({label, views, date, setMonthlyViewData }: DatePickerViewsProps) {
-
+export default function DatePickerViews({
+  label,
+  views,
+  setMonthlyViewData,
+}: DatePickerViewsProps) {
+  const { date } = useParams();
   const [value, setValue] = useState<Date | null>(null);
   // TODO - decide what we need here
   // const [queryParams, updateQuery] = useQueryParams();
@@ -23,8 +27,7 @@ export default function DatePickerViews({label, views, date, setMonthlyViewData 
   // // Load initial date from path param
   useEffect(() => {
     if (date) {
-
-      const [year, month] = date.split("-");
+      const [year, month] = date.split('-');
       let value = new Date(Number(year), Number(month) - 1);
       // const parsed = parseISO(date);
       if (isValid(value)) {
@@ -40,18 +43,17 @@ export default function DatePickerViews({label, views, date, setMonthlyViewData 
   return (
     <NoSsr>
       <LocalizationProvider dateAdapter={AdapterDateFns}>
-      <DatePicker
-        disableFuture
-        label={label}
-        views={views}
-        value={value}
-        onChange={handleChange}
-        onAccept={setMonthlyViewData}
-        slotProps={{ textField: { size: 'small' } }}
-      />
-    </LocalizationProvider>
+        <DatePicker
+          disableFuture
+          label={label}
+          views={views}
+          value={value}
+          onChange={handleChange}
+          onAccept={setMonthlyViewData}
+          slotProps={{ textField: { size: 'small' } }}
+        />
+      </LocalizationProvider>
     </NoSsr>
-
   );
 }
 

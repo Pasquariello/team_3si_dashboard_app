@@ -29,7 +29,7 @@ import FlagHistoryTable from '~/components/providerData/FlagHistoryTable';
 import { useProviderDetails } from '~/hooks/useProviderDetails';
 import { Edit } from '@mui/icons-material';
 import { useProviderInsights } from '~/hooks/useProviderInsights';
-import ProviderRiskTabs from '~/components/table/providerRisk/ProviderRiskTabs';
+import ProviderRiskTabs from '~/components/ProviderRiskTabs';
 
 export function meta({}: Route.MetaArgs) {
   return [{ title: 'Provider Details' }, { name: 'description', content: 'providerDetails' }];

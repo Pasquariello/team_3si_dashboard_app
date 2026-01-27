@@ -7,7 +7,7 @@ import type { Route } from './+types/annualProviderData';
 import type { AnnualData, HeadCell, Order } from '~/types';
 
 import { useTheme } from '@mui/material/styles';
-import { Backdrop, Box, Button, CircularProgress, Divider, Link, NoSsr } from '@mui/material';
+import { Box, CircularProgress, Divider, Link, NoSsr } from '@mui/material';
 
 import EnhancedTableToolbar from '~/components/table/EnhancedTableToolbar';
 import YearOrRangeSelector from '~/components/YearOrRangeSelector';
@@ -17,13 +17,12 @@ import NoData from '~/components/NoData';
 import { getAnnualData, type ProviderFilters } from '~/components/services/providerDataServices';
 import DescriptionAlerts from '~/components/DescriptionAlerts';
 import { ProviderTableFilterBar } from '~/components/ProviderTableFilterBar';
-import { redirect, useNavigate, useParams } from 'react-router';
+import { redirect } from 'react-router';
 import { queryClient } from '~/queryClient';
 import { useQueryParams } from '~/contexts/queryParamContext';
 import { useAuth } from '~/contexts/authContext';
 import { useProviderYearlyData } from '~/hooks/useProviderYearlyData';
 import { ProviderInfiniteScrollTable } from '~/components/table/ProviderInfiniteScrollTable';
-import ConfigureRiskScoreSelect from '~/components/ConfigureRiskScoreSelect';
 
 const headCells: readonly HeadCell[] = [
   {
@@ -80,20 +79,22 @@ const headCells: readonly HeadCell[] = [
   },
 ];
 
-const toggleableColumns = headCells.filter(cell => cell.selectable).map(({ id, label }) => ({ id, label, display: true }));
-
+const toggleableColumns = headCells
+  .filter(cell => cell.selectable)
+  .map(({ id, label }) => ({ id, label, display: true }));
 
 const initialVisibility = headCells
   .filter(col => col.selectable)
-  .reduce((acc, col) => {
-    acc[col.id] = {
-      label: col.label,
-      display: true, // or false depending on default behavior
-    };
-    return acc;
-  }, {} as Record<string, { label: string; display: boolean }>);
-
-
+  .reduce(
+    (acc, col) => {
+      acc[col.id] = {
+        label: col.label,
+        display: true, // or false depending on default behavior
+      };
+      return acc;
+    },
+    {} as Record<string, { label: string; display: boolean }>
+  );
 
 const riskThresholds = [
   { max: 100, min: 90, color: 'red' },
@@ -112,91 +113,92 @@ function getColor(value: number, max = 48) {
   return match ? match.color : 'defaultColor';
 }
 
-const createRenderCellContent = (riskScoreColumns) => 
+const createRenderCellContent =
+  riskScoreColumns =>
   (row: AnnualData, columnId: HeadCell['id'], labelId: string, key: string): React.ReactNode => {
+    const overallRiskScore = Object.entries(riskScoreColumns).reduce((sum, [key, cfg]) => {
+      if (!cfg.display) return sum; // Only sum fields that are toggled ON
+      const value = Number(row[key] ?? 0);
+      return sum + value;
+    }, 0);
 
-  
-  const overallRiskScore = Object.entries(riskScoreColumns).reduce((sum, [key, cfg]) => {
-    if (!cfg.display) return sum; // Only sum fields that are toggled ON
-    const value = Number(row[key] ?? 0);
-    return sum + value;
-  }, 0);
+    const activeCount = Object.values(riskScoreColumns).filter(v => v.display).length;
 
-  const activeCount = Object.values(riskScoreColumns)
-  .filter(v => v.display)
-  .length;
-
-  switch (columnId) {
-    case 'providerLicensingId':
-      return (
-        <TooltipTableCell
-          tooltipTitle={row.providerLicensingId}
-          key={key}
-          id={labelId}
-          scope='row'
-          padding='none'
-        >
-          <Link
-            rel='noopener noreferrer'
-            target='_blank'
-            href={`/provider/risk-audit/${row.providerLicensingId}`}
+    switch (columnId) {
+      case 'providerLicensingId':
+        return (
+          <TooltipTableCell
+            tooltipTitle={row.providerLicensingId}
+            key={key}
+            id={labelId}
+            scope='row'
+            padding='none'
           >
-            {row.providerLicensingId}
-          </Link>
-        </TooltipTableCell>
-      );
-    case 'providerName':
-      return (
-        <TooltipTableCell tooltipTitle={row.providerName} key={key} subtext={row.city} align='left'>
-          {row.providerName}
-        </TooltipTableCell>
-      );
-    case 'overallRiskScore':
-      return (
-        <TooltipTableCell
-          key={key}
-          tooltipTitle={row.overallRiskScore}
-          align='right'
-          sx={{
-            color: getColor(overallRiskScore, activeCount * 12 ),
-          }}
-        >
-          {/* {row.overallRiskScore} */}
-          {overallRiskScore}
-        </TooltipTableCell>
-      );
-    case 'childrenBilledOverCapacity':
-      return (
-        <TooltipTableCell tooltipTitle={row.childrenBilledOverCapacity} key={key} align='right'>
-          {row.childrenBilledOverCapacity}
-        </TooltipTableCell>
-      );
-    case 'distanceTraveled':
-      return (
-        <TooltipTableCell tooltipTitle={row.distanceTraveled} key={key} align='right'>
-          {row.distanceTraveled}
-        </TooltipTableCell>
-      );
-    case 'childrenPlacedOverCapacity':
-      return (
-        <TooltipTableCell tooltipTitle={row.childrenPlacedOverCapacity} key={key} align='right'>
-          {row.childrenPlacedOverCapacity}
-        </TooltipTableCell>
-      );
-    case 'providersWithSameAddress':
-      return (
-        <TooltipTableCell tooltipTitle={row.providersWithSameAddress} key={key} align='right'>
-          {row.providersWithSameAddress}
-        </TooltipTableCell>
-      );
-    default:
-      return null;
-  }
-}
-
-
-export async function loader({ selectedYear, request }: Route.LoaderArgs) {
-  let year = selectedYear;
+            <Link
+              rel='noopener noreferrer'
+              target='_blank'
+              href={`/provider/risk-audit/${row.providerLicensingId}`}
+            >
+              {row.providerLicensingId}
+            </Link>
+          </TooltipTableCell>
+        );
+      case 'providerName':
+        return (
+          <TooltipTableCell
+            tooltipTitle={row.providerName}
+            key={key}
+            subtext={row.city}
+            align='left'
+          >
+            {row.providerName}
+          </TooltipTableCell>
+        );
+      case 'overallRiskScore':
+        return (
+          <TooltipTableCell
+            key={key}
+            tooltipTitle={row.overallRiskScore}
+            align='right'
+            sx={{
+              color: getColor(overallRiskScore, activeCount * 12),
+            }}
+          >
+            {/* {row.overallRiskScore} */}
+            {overallRiskScore}
+          </TooltipTableCell>
+        );
+      case 'childrenBilledOverCapacity':
+        return (
+          <TooltipTableCell tooltipTitle={row.childrenBilledOverCapacity} key={key} align='right'>
+            {row.childrenBilledOverCapacity}
+          </TooltipTableCell>
+        );
+      case 'distanceTraveled':
+        return (
+          <TooltipTableCell tooltipTitle={row.distanceTraveled} key={key} align='right'>
+            {row.distanceTraveled}
+          </TooltipTableCell>
+        );
+      case 'childrenPlacedOverCapacity':
+        return (
+          <TooltipTableCell tooltipTitle={row.childrenPlacedOverCapacity} key={key} align='right'>
+            {row.childrenPlacedOverCapacity}
+          </TooltipTableCell>
+        );
+      case 'providersWithSameAddress':
+        return (
+          <TooltipTableCell tooltipTitle={row.providersWithSameAddress} key={key} align='right'>
+            {row.providersWithSameAddress}
+          </TooltipTableCell>
+        );
+      default:
+        return null;
+    }
+  };
+// loader relies on address bar params
+export async function loader({ params, request }: Route.LoaderArgs) {
+  let year = params?.date;
   if (!year) {
     year = '2024'; // getCurrentDate() TODO
     return redirect(`${year}`);
@@ -214,8 +216,8 @@ export async function loader({ selectedYear, request }: Route.LoaderArgs) {
   // TODO: as we add filters we should update the with them!!
   // update the hook query key to match here
   const queryKey = ['annualProviderData', year, filters.flagStatus, ...cityFilters];
-
-  await queryClient.prefetchInfiniteQuery({
+  // don't await without a suspense plan in component
+  queryClient.prefetchInfiniteQuery({
     initialPageParam: offset,
     queryKey: queryKey,
     queryFn: () => getAnnualData(year, offset, filters),
@@ -225,10 +227,11 @@ export async function loader({ selectedYear, request }: Route.LoaderArgs) {
 }
 
 type AnnualProviderDataProps = {
-  selectedYear: number | string;
+  setAnnualViewData: (value: string) => void;
+  date: string;
 };
 
-export default function AnnualProviderData({ selectedYear , setAnnualViewData}: AnnualProviderDataProps) {
+export default function AnnualProviderData({ date, setAnnualViewData }: AnnualProviderDataProps) {
   const theme = useTheme();
   const [order, setOrder] = useState<Order>('desc');
   const [orderBy, setOrderBy] = useState<keyof AnnualData>('overallRiskScore');
@@ -238,18 +241,18 @@ export default function AnnualProviderData({ selectedYear , setAnnualViewData}: 
 
   const [riskScoreColumns, setRiskScoreColumns] = useState(initialVisibility);
 
-  const handleChangeRiskScores = (event) => {
-        const {
-          target: { value, name },
-        } = event;
+  const handleChangeRiskScores = event => {
+    const {
+      target: { value, name },
+    } = event;
 
-        setRiskScoreColumns(prev => ({
-          ...prev,
-          [name]: {
-            ...prev[name],
-            display: !prev[name].display
-          }
-        }));
+    setRiskScoreColumns(prev => ({
+      ...prev,
+      [name]: {
+        ...prev[name],
+        display: !prev[name].display,
+      },
+    }));
   };
 
   const displayedColumns = useMemo(() => {
@@ -261,9 +264,6 @@ export default function AnnualProviderData({ selectedYear , setAnnualViewData}: 
     });
   }, [headCells, riskScoreColumns]);
 
-  
-  let params = useParams();
-  const navigate = useNavigate();
   const [queryParams, updateQuery] = useQueryParams();
   const offset = queryParams?.get('offset') || '0';
   const flagStatus = queryParams?.get('flagStatus') || undefined;
@@ -278,30 +278,17 @@ export default function AnnualProviderData({ selectedYear , setAnnualViewData}: 
     };
   }, [flagStatus, cities]);
 
-  const { data, fetchNextPage, isFetching, isLoading, error } = useProviderYearlyData(
-    selectedYear!, // the loader ensures this will be here via redirect
-    offset,
-    filters,
-    offset
-  );
+  const { data, fetchNextPage, isRefetching, isFetchingNextPage, isPending, error } =
+    useProviderYearlyData(date, offset, filters, offset);
 
   useEffect(() => {
     if (!data) return;
     const newItems = data.pages.flat();
 
     setRows(() => {
-      const seen = new Set(newItems.map(r => r.providerLicensingId));
-      const merged = [];
-      // de-dupe for virtualization in table
-      for (const item of newItems) {
-        if (seen.has(item.providerLicensingId)) {
-          merged.push(item);
-          seen.delete(item.providerLicensingId);
-        }
-      }
       // our local filter on the table
       const filteredItems =
-        merged.filter(dataRow => {
+        newItems.filter(dataRow => {
           if (dataRow?.error) {
             return false;
           }
@@ -339,7 +326,7 @@ export default function AnnualProviderData({ selectedYear , setAnnualViewData}: 
 
   // newVirtuoso functions
   const updateOffset = () => {
-    if (isFetching || isLoading) {
+    if (isRefetching || isFetchingNextPage || isPending) {
       return;
     }
     // Our scroll offset is tracked by our cache :)
@@ -360,9 +347,9 @@ export default function AnnualProviderData({ selectedYear , setAnnualViewData}: 
   };
 
   const renderCellContent = useMemo(
-  () => createRenderCellContent(riskScoreColumns),
-  [riskScoreColumns]
-);
+    () => createRenderCellContent(riskScoreColumns),
+    [riskScoreColumns]
+  );
 
   return (
     <>
@@ -393,11 +380,16 @@ export default function AnnualProviderData({ selectedYear , setAnnualViewData}: 
           }}
         >
           <Box sx={{ my: 3 }} display={'flex'} gap={1} width={'100%'}>
-            <YearOrRangeSelector selectedYear={selectedYear} setAnnualViewData={setAnnualViewData} />
-            <EnhancedTableToolbar searchHandler={setSearchValue} riskScoreColumns={riskScoreColumns} toggleableColumns={toggleableColumns} handleChangeRiskScores={handleChangeRiskScores}  />
+            <YearOrRangeSelector date={date} setAnnualViewData={setAnnualViewData} />
+            <EnhancedTableToolbar
+              searchHandler={setSearchValue}
+              riskScoreColumns={riskScoreColumns}
+              toggleableColumns={toggleableColumns}
+              handleChangeRiskScores={handleChangeRiskScores}
+            />
           </Box>
           <Divider orientation='horizontal' flexItem />
-    
+
           <ProviderTableFilterBar />
         </Box>
         {visibleRows.length ? (
@@ -408,31 +400,29 @@ export default function AnnualProviderData({ selectedYear , setAnnualViewData}: 
               headCells={displayedColumns}
               renderCellContent={renderCellContent}
               fetchMore={handleEndScroll}
-              isLoading={isFetching || isLoading}
+              isLoadingMore={isFetchingNextPage}
+              isLoading={isPending && !isFetchingNextPage}
               order={order}
               orderBy={orderBy}
               handleRequestSort={handleRequestSort}
             />
           </Box>
-        ) :
-        //  TODO THis is causing a hydration bug
-        //  isFetching || isLoading ? (
-        //   <Box
-        //     sx={{
-        //       display: 'flex',
-        //       flexGrow: 1,
-        //       height: '100%',
-        //       justifyContent: 'center',
-        //       alignItems: 'center',
-        //       backgroundColor: theme.palette.primary.contrastText,
-        //     }}
-        //   >
-        //     <NoSsr>
-        //     <CircularProgress size={24} />
-        //     </NoSsr>
-        //   </Box>
-        // ) :
-         (
+        ) : isPending && visibleRows.length === 0 ? (
+          <Box
+            sx={{
+              display: 'flex',
+              flexGrow: 1,
+              height: '100%',
+              justifyContent: 'center',
+              alignItems: 'center',
+              backgroundColor: theme.palette.primary.contrastText,
+            }}
+          >
+            <NoSsr>
+              <CircularProgress size={24} />
+            </NoSsr>
+          </Box>
+        ) : (
           <NoData />
         )}
       </Box>
