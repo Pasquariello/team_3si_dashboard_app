@@ -9,15 +9,11 @@ import NoData from '~/components/NoData';
 import { useProviderMonthlyData } from '~/hooks/useProviderMonthlyData';
 
 import { TooltipTableCell } from '~/components/table/TooltipTableCell';
-import {
-  createQueryStringFromFilters,
-  getMonthlyData,
-  type ProviderFilters,
-} from '~/components/services/providerDataServices';
+import { getMonthlyData, type ProviderFilters } from '~/components/services/providerDataServices';
 import { useAuth } from '~/contexts/authContext';
 import { queryClient } from '~/queryClient';
 import DescriptionAlerts from '~/components/DescriptionAlerts';
-import { redirect, useNavigate, useParams } from 'react-router';
+import { redirect } from 'react-router';
 import { ProviderTableFilterBar } from '~/components/ProviderTableFilterBar';
 import { useQueryParams } from '~/contexts/queryParamContext';
 import { ProviderInfiniteScrollTable } from '~/components/table/ProviderInfiniteScrollTable';
@@ -180,7 +176,7 @@ const renderCellContent = (
       return null;
   }
 };
-
+// loader relies on address bar params
 export async function loader({ params, request }: Route.LoaderArgs) {
   let date = params?.date;
   if (!date) {
@@ -200,8 +196,8 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   // TODO: as we add filters we should update the with them!!
   // update the loader query key to match here
   const queryKey = ['monthlyProviderData', date, filters.flagStatus, ...cityFilters];
-
-  await queryClient.prefetchInfiniteQuery({
+  // don't await without a suspense plan in component
+  queryClient.prefetchInfiniteQuery({
     initialPageParam: offset,
     queryKey: queryKey,
     queryFn: () => getMonthlyData(date, offset, filters),
@@ -210,7 +206,13 @@ export async function loader({ params, request }: Route.LoaderArgs) {
   return null;
 }
 
-export default function MonthlyProviderData({selectedDate, setMonthlyViewData}) {
+export default function MonthlyProviderData({
+  setMonthlyViewData,
+  date,
+}: {
+  setMonthlyViewData: () => void;
+  date: string;
+}) {
   const theme = useTheme();
   const [order, setOrder] = useState<Order>('desc');
   const [orderBy, setOrderBy] = useState<keyof MonthlyData>('overallRiskScore');
@@ -220,7 +222,7 @@ export default function MonthlyProviderData({selectedDate, setMonthlyViewData}) 
 
   const [riskScoreColumns, setRiskScoreColumns] = useState(initialVisibility);
 
-  const handleChangeRiskScores = event => {
+  const handleChangeRiskScores = (event: { target: { value: any; name: any } }) => {
     const {
       target: { value, name },
     } = event;
@@ -243,8 +245,6 @@ export default function MonthlyProviderData({selectedDate, setMonthlyViewData}) 
     });
   }, [headCells, riskScoreColumns]);
 
-  let params = useParams();
-  const navigate = useNavigate();
   const [queryParams, updateQuery] = useQueryParams();
   const offset = queryParams?.get('offset') || '0';
   const flagStatus = queryParams?.get('flagStatus') || undefined;
@@ -253,18 +253,15 @@ export default function MonthlyProviderData({selectedDate, setMonthlyViewData}) 
   const { setToken } = useAuth();
 
   const filters: Partial<ProviderFilters> = useMemo(() => {
+    console.log(flagStatus, cities);
     return {
       flagStatus,
       cities,
     };
   }, [flagStatus, cities]);
 
-  const { data, fetchNextPage, isFetching, isLoading, error } = useProviderMonthlyData(
-    selectedDate!, // the loader ensures this will be here via redirect
-    offset,
-    filters,
-    offset
-  );
+  const { data, fetchNextPage, isRefetching, isFetchingNextPage, isPending, error } =
+    useProviderMonthlyData(date, offset, filters, offset);
 
   useEffect(() => {
     if (!data) return;
@@ -272,18 +269,9 @@ export default function MonthlyProviderData({selectedDate, setMonthlyViewData}) 
     const newItems = data.pages.flat();
 
     setRows(() => {
-      const seen = new Set(newItems.map(r => r.providerLicensingId));
-      const merged = [];
-      // de-dupe for virtualization in table
-      for (const item of newItems) {
-        if (seen.has(item.providerLicensingId)) {
-          merged.push(item);
-          seen.delete(item.providerLicensingId);
-        }
-      }
       // our local filter on the table
       const filteredItems =
-        merged.filter(dataRow => {
+        newItems.filter(dataRow => {
           if (dataRow?.error) {
             return false;
           }
@@ -320,7 +308,7 @@ export default function MonthlyProviderData({selectedDate, setMonthlyViewData}) 
   };
 
   const updateOffset = () => {
-    if (isFetching || isLoading) {
+    if (isRefetching || isFetchingNextPage || isPending) {
       return;
     }
     // Our scroll offset is tracked by our cache :)
@@ -328,54 +316,19 @@ export default function MonthlyProviderData({selectedDate, setMonthlyViewData}) 
     updateQuery({ type: 'SET', key: 'offset', value: String(items) });
   };
 
-  const handleEndScroll = (_rowCount: number) => {
+  const handleEndScroll = async (_rowCount: number) => {
+    console.log('end scroll reached', searchValue.length);
     // prevent query when local searching
     if (searchValue.length > 0) {
       return;
     }
+
     // rowCount is the visible rows in the table
     // since we can locally filter we need to check the results from cache
     if ((rows.length || 0 + 1) % 200 === 0) {
-      fetchNextPage().then(() => updateOffset());
+      await fetchNextPage().then(() => updateOffset());
     }
   };
-  // TODO - temp comment out Taylor and Justin to Resolve
-  // const handleDateSelection = (newDate: Date) => {
-  //   const year = newDate.getFullYear();
-  //   const month = String(newDate.getMonth() + 1).padStart(2, '0');
-
-  //   const pathname = location.pathname;
-  //   const updatedPath = pathname
-  //     .split('/')
-  //     .map(segment => (segment === params.date ? `${year}-${month}` : segment))
-  //     .join('/');
-
-  //   updateQuery({
-  //     key: 'offset',
-  //     value: '0',
-  //     type: 'SET',
-  //   });
-
-  //   const offset = queryParams?.get('offset') || '0';
-  //   const flagStatus = queryParams?.get('flagStatus') || undefined;
-  //   const cities = queryParams.getAll('cities') || undefined;
-  //   let searchParams = '';
-
-  //   const offsetMod = new URLSearchParams({ offset }).toString();
-  //   searchParams += `?${offsetMod}`;
-
-  //   const filters = {
-  //     flagStatus,
-  //     cities,
-  //   };
-
-  //   const queryString = createQueryStringFromFilters(filters);
-  //   if (queryString) {
-  //     searchParams += `&${queryString}`;
-  //   }
-
-  //   navigate(`${updatedPath}${searchParams}`);
-  // };
 
   return (
     <>
@@ -406,10 +359,18 @@ export default function MonthlyProviderData({selectedDate, setMonthlyViewData}) 
           }}
         >
           <Box display={'flex'} flex={1} gap={1} width={'100%'}>
-            <DatePickerViews label={'"month" and "year"'} views={['year', 'month']} date={selectedDate} setMonthlyViewData={setMonthlyViewData} />
+            <DatePickerViews
+              label={'"month" and "year"'}
+              views={['year', 'month']}
+              setMonthlyViewData={setMonthlyViewData}
+            />
             {/* <EnhancedTableToolbar searchHandler={setSearchValue} /> */}
-            <EnhancedTableToolbar searchHandler={setSearchValue} riskScoreColumns={riskScoreColumns} toggleableColumns={toggleableColumns} handleChangeRiskScores={handleChangeRiskScores}  />
-
+            <EnhancedTableToolbar
+              searchHandler={setSearchValue}
+              riskScoreColumns={riskScoreColumns}
+              toggleableColumns={toggleableColumns}
+              handleChangeRiskScores={handleChangeRiskScores}
+            />
           </Box>
           <Divider orientation='horizontal' flexItem />
           <ProviderTableFilterBar />
@@ -422,32 +383,30 @@ export default function MonthlyProviderData({selectedDate, setMonthlyViewData}) 
                 headCells={displayedColumns}
                 renderCellContent={renderCellContent}
                 fetchMore={handleEndScroll}
-                isLoading={isFetching || isLoading}
+                isLoadingMore={isFetchingNextPage}
+                isLoading={isPending && !isFetchingNextPage}
                 order={order}
                 orderBy={orderBy}
                 handleRequestSort={handleRequestSort}
               />
             </Box>
           </>
-        ) 
-        // TODO - this is causing a hydration error
-        // : isFetching || isLoading ? (
-        //   <Box
-        //     sx={{
-        //       display: 'flex',
-        //       flexGrow: 1,
-        //       height: '100%',
-        //       justifyContent: 'center',
-        //       alignItems: 'center',
-        //       backgroundColor: theme.palette.primary.contrastText,
-        //     }}
-        //   >
-        //     <NoSsr>
-        //     <CircularProgress size={24} />
-        //     </NoSsr>
-        //   </Box>
-        // ) 
-        : (
+        ) : isPending && visibleRows.length === 0 ? (
+          <Box
+            sx={{
+              display: 'flex',
+              flexGrow: 1,
+              height: '100%',
+              justifyContent: 'center',
+              alignItems: 'center',
+              backgroundColor: theme.palette.primary.contrastText,
+            }}
+          >
+            <NoSsr>
+              <CircularProgress size={24} />
+            </NoSsr>
+          </Box>
+        ) : (
           <NoData />
         )}
       </Box>

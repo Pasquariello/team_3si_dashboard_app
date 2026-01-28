@@ -9,6 +9,7 @@ import {
   CircularProgress,
   Box,
   NoSsr,
+  useTheme,
 } from '@mui/material';
 import { Scroller } from '~/components/table/Scroller';
 import { TableVirtuoso, type TableComponents } from 'react-virtuoso';
@@ -28,6 +29,7 @@ interface ProviderInfiniteScrollTableProps<T> {
     key: string
   ) => React.ReactNode;
   fetchMore?: (rowCount: number) => void;
+  isLoadingMore?: boolean;
   isLoading?: boolean;
   fetchRowCount?: number;
   order: 'asc' | 'desc';
@@ -42,6 +44,7 @@ export function ProviderInfiniteScrollTable<T extends Data>({
   headCells,
   renderCellContent,
   fetchMore,
+  isLoadingMore,
   isLoading,
   fetchRowCount = FETCH_ROW_COUNT,
   order,
@@ -50,6 +53,7 @@ export function ProviderInfiniteScrollTable<T extends Data>({
   onSelectChange,
 }: ProviderInfiniteScrollTableProps<T>) {
   const [selected, setSelected] = useState<string[]>([]);
+  const theme = useTheme();
 
   const handleSelectAllClick = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -136,36 +140,53 @@ export function ProviderInfiniteScrollTable<T extends Data>({
 
   return (
     <TableContainer component={Paper} sx={{ height: '97vh', flexGrow: 1, overflow: 'auto' }}>
-      <TableVirtuoso
-        data={data}
-        computeItemKey={(index, item) => item.providerLicensingId}
-        endReached={fetchMore}
-        increaseViewportBy={fetchRowCount}
-        fixedHeaderContent={fixedHeaderContent}
-        itemContent={(index: number, row: T) => {
-          const labelId = `enhanced-table-checkbox-${row.providerLicensingId}`;
-          return (
-            <Fragment>
-              {headCells.map((column, index) => {
-                const key = `${column.id}-${row.providerLicensingId}`;
-                return renderCellContent(row, column.id, labelId, key);
-              })}
-            </Fragment>
-          );
-        }}
-        components={VirtuosoTableComponents}
-        fixedFooterContent={() =>
-          isLoading ? (
-            <TableRow sx={{ backgroundColor: 'lightgray' }}>
-              <TableCell colSpan={headCells.length} align='center'>
-                <Box sx={{ textAlign: 'center' }}>
-                  <CircularProgress size={24} />
-                </Box>
-              </TableCell>
-            </TableRow>
-          ) : null
-        }
-      />
+      {isLoading ? (
+        <Box
+          sx={{
+            display: 'flex',
+            flexGrow: 1,
+            height: '100%',
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: theme.palette.primary.contrastText,
+          }}
+        >
+          <NoSsr>
+            <CircularProgress size={24} />
+          </NoSsr>
+        </Box>
+      ) : (
+        <TableVirtuoso
+          data={data}
+          computeItemKey={(index, item) => item.providerLicensingId}
+          endReached={fetchMore}
+          increaseViewportBy={fetchRowCount}
+          fixedHeaderContent={fixedHeaderContent}
+          itemContent={(index: number, row: T) => {
+            const labelId = `enhanced-table-checkbox-${row.providerLicensingId}`;
+            return (
+              <Fragment>
+                {headCells.map((column, index) => {
+                  const key = `${column.id}-${row.providerLicensingId}`;
+                  return renderCellContent(row, column.id, labelId, key);
+                })}
+              </Fragment>
+            );
+          }}
+          components={VirtuosoTableComponents}
+          fixedFooterContent={() =>
+            isLoadingMore ? (
+              <TableRow sx={{ backgroundColor: 'lightgray' }}>
+                <TableCell colSpan={headCells.length} align='center'>
+                  <Box sx={{ textAlign: 'center' }}>
+                    <CircularProgress size={24} />
+                  </Box>
+                </TableCell>
+              </TableRow>
+            ) : null
+          }
+        />
+      )}
     </TableContainer>
   );
 }

@@ -42,7 +42,7 @@ export default function FlagModal({ providerData, open, onClose, onSave }: FlagM
   const handleTextChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setComment(e.target.value);
   };
-  console.log(providerData);
+  // console.log(providerData);
 
   // send whole record, just make sure the action is correct
   const handleOnSave = () => {

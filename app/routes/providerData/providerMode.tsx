@@ -1,26 +1,36 @@
-import { useParams } from "react-router";
-import AnnualProviderData from "./annualProviderData";
-import MonthlyProviderData from "./monthlyProviderData";
-import { useOutletContext } from "react-router";
+import { useMatch } from 'react-router';
+import AnnualProviderData from './annualProviderData';
+import MonthlyProviderData from './monthlyProviderData';
+import { useOutletContext } from 'react-router';
 
 export default function ProviderMode() {
-const { annual, monthly, setAnnualViewData, setMonthlyViewData } = useOutletContext();
-  const { mode, date } = useParams();    
+  const { setAnnualViewData, setMonthlyViewData, date } = useOutletContext<{
+    setAnnualViewData: () => void;
+    setMonthlyViewData: () => void;
+    date: string;
+  }>();
+  const annualMatch = useMatch('/provider/risk-audit/annual/:date?');
+  const monthlyMatch = useMatch('/provider/risk-audit/monthly/:date?');
 
+  let mode: 'annual' | 'monthly' | null = null;
 
-  if (!mode || !date) {
-    throw new Error("Missing required parameters");
+  if (annualMatch) {
+    mode = 'annual';
+  } else if (monthlyMatch) {
+    mode = 'monthly';
   }
 
-  if (mode === "annual") {
-    // return <div>HI</div>
-    return <AnnualProviderData selectedYear={annual} setAnnualViewData={setAnnualViewData} />;
+  if (!mode) {
+    throw new Error('Missing or invalid route parameters');
   }
 
-  if (mode === "monthly") {
-    // return <div>HI</div>
-    return <MonthlyProviderData selectedDate={monthly} setMonthlyViewData={setMonthlyViewData} />;
+  if (mode === 'annual') {
+    return <AnnualProviderData date={date} setAnnualViewData={setAnnualViewData} />;
   }
 
-  throw new Response("Not found", { status: 404 });
+  if (mode === 'monthly') {
+    return <MonthlyProviderData date={date} setMonthlyViewData={setMonthlyViewData} />;
+  }
+
+  throw new Response('Not found', { status: 404 });
 }
