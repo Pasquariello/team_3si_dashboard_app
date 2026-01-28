@@ -95,7 +95,6 @@ export function CityMultiSelectMenu({ queryKey }: { queryKey: string }) {
         />
       }
       onChange={(event, newValue, reason, details) => {
-        console.log(reason, newValue, details);
         // `details.option` is the item that triggered this change
         if (onItemClick && details?.option) {
           const selected = newValue.includes(details.option);

@@ -1,6 +1,8 @@
 import { fetchWithAuth } from '~/apiClient';
 import { env } from '~/env';
 import type { AnnualData, MonthlyData, ProviderDetails, ProviderInsightWithHistory } from '~/types';
+import type { MainRowData } from '../table/ExpandableTable';
+import type { View } from '~/routes/providerDetails';
 
 export type ProviderFilters = {
   flagStatus: string | undefined;
@@ -202,3 +204,20 @@ export const getProviderDetails = async (providerId: string): Promise<ProviderDe
 
   return result;
 };
+
+export async function fetchTableData<T>(view: View, providerId: string): Promise<MainRowData<T>[]> {
+  let result = [];
+  const viewMap = {
+    cpoc: 'placed',
+    cboc: 'billed',
+    overall: 'overall',
+  };
+
+  let url = `${env.VITE_API_ROOT_API_URL}/scenario/${viewMap[view]}/${providerId}`;
+
+  result = await fetchWithAuth(url, {
+    method: 'GET',
+  });
+
+  return result;
+}

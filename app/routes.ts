@@ -21,12 +21,11 @@ export default [
     ]),
   ]),
 
-  layout('./routes/providerData/providerDetails.tsx', [
+  layout('./routes/providerDetails/index.tsx', [
     ...prefix('provider/risk-audit/:providerId', [
-      index('routes/home.tsx'), // default outlet
+      index('routes/providerDetails/redirect.tsx'),
       // tabs ----
-      route('/audit', './routes/about.tsx'),
-      // route('history', 'routes/providerData/providerHistory.tsx'),
+      route('/:view', './routes/providerDetails/ProviderScenarioTable.tsx'),
       // add more sub-views here later
     ]),
   ]),

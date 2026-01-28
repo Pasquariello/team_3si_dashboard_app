@@ -6,6 +6,7 @@ import { Tabs, Tab, Box, useTheme } from '@mui/material';
 import { useNavigate } from 'react-router';
 
 import { useQueryParams } from '~/contexts/queryParamContext';
+import ProviderDataCards from '~/components/providerData/providerDataCards';
 
 export function meta({}: Route.MetaArgs) {
   return [{ title: 'Provider Data' }, { name: 'description', content: 'providerData' }];
@@ -53,14 +54,17 @@ export default function ProviderData() {
   const [annualViewData, setAnnualViewData] = React.useState(defaultAnnual);
   const [monthlyViewData, setMonthlyViewData] = React.useState(defaultMonthly);
 
-  const handleUpdateAnnualViewData = (event: { target: { value: any; }; }) => {
+  const handleUpdateAnnualViewData = (event: { target: { value: any } }) => {
     const newDate = event.target.value;
 
     setAnnualViewData(newDate);
     navigate(`/provider/risk-audit/annual/${newDate}`);
   };
 
-  const handleUpdateMonthlyViewData = (value: { getFullYear: () => any; getMonth: () => number; }) => {
+  const handleUpdateMonthlyViewData = (value: {
+    getFullYear: () => any;
+    getMonth: () => number;
+  }) => {
     const year = value.getFullYear();
     const month = String(value.getMonth() + 1).padStart(2, '0');
     const newDate = `${year}-${month}`;
@@ -110,7 +114,7 @@ export default function ProviderData() {
         minHeight: '100vh',
       }}
     >
-      {/* <ProviderDataCards /> */}
+      <ProviderDataCards />
       <Tabs value={activeTab} onChange={handleChange}>
         {tabRoutes.map(({ label, id }) => (
           <Tab
