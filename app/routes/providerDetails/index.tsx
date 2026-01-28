@@ -22,11 +22,11 @@ import { Edit } from '@mui/icons-material';
 import { useProviderInsights } from '~/hooks/useProviderInsights';
 import ProviderRiskTabs from '~/routes/providerDetails/ProviderRiskTabs';
 import {
-  overallColumns,
-  providerColumns,
   type ScenarioOverData,
+  providerColumns,
   type UiOverallScoreData,
-} from './ProviderScenarioTable';
+  overallColumns,
+} from '~/components/table/providerRisk/columnDefs';
 
 export function meta({}: Route.MetaArgs) {
   return [{ title: 'Provider Details' }, { name: 'description', content: 'providerDetails' }];
