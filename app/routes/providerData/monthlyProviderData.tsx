@@ -20,15 +20,22 @@ import { ProviderInfiniteScrollTable } from '~/components/table/ProviderInfinite
 import { getVisibleRows } from '~/utils/table';
 
 const riskThresholds = [
-  { max: 4, min: 3, color: 'red' },
-  { max: 2, min: 2, color: 'orange' },
-  { max: 1, min: 0, color: 'green' },
+  { max: 25, min: 0, color: 'green' },
+  { max: 74, min: 26, color: 'orange' },
+  { max: 100, min: 75, color: 'red' },
 ];
 
-const getColor = (value: number) => {
-  const match = riskThresholds.find(threshold => value <= threshold.max && value >= threshold.min);
+function getColor(value: number, max = 4) {
+  const valPercent = (value / max) * 100; // 4 is highest possible value so this calcs percentage
+  console.log(valPercent);
+  const match = riskThresholds.find(
+    // threshold => value <= threshold.max && value >= threshold.min
+    threshold => valPercent <= threshold.max && valPercent >= threshold.min
+
+    // threshold => value <= (threshold.max / 48 ) * 100 && value >= (threshold.min / 48 ) * 100
+  );
   return match ? match.color : 'defaultColor';
-};
+}
 
 const headCells: readonly HeadCell[] = [
   {
@@ -104,78 +111,91 @@ const initialVisibility = headCells
     {} as Record<string, { label: string; display: boolean }>
   );
 
-const renderCellContent = (
-  row: MonthlyData,
-  columnId: HeadCell['id'],
-  labelId: string,
-  key: string
-): React.ReactNode => {
-  switch (columnId) {
-    case 'providerLicensingId':
-      return (
-        <TooltipTableCell
-          tooltipTitle={row.providerLicensingId}
-          key={key}
-          id={labelId}
-          scope='row'
-          padding='none'
-        >
-          <Link
-            rel='noopener noreferrer'
-            target='_blank'
-            href={`/provider/risk-audit/${row.providerLicensingId}`}
+const createRenderCellContent =
+  riskScoreColumns =>
+  (row: MonthlyData, columnId: HeadCell['id'], labelId: string, key: string): React.ReactNode => {
+    const overallRiskScore = Object.entries(riskScoreColumns).reduce((sum, [key, cfg]) => {
+      if (!cfg.display) return sum; // Only sum fields that are toggled ON
+
+      const value = row[key] === 'Yes' ? 1 : 0;
+      console.log(value, row[key]);
+      return sum + value;
+    }, 0);
+
+    const activeCount = Object.values(riskScoreColumns).filter(v => v.display).length;
+
+    switch (columnId) {
+      case 'providerLicensingId':
+        return (
+          <TooltipTableCell
+            tooltipTitle={row.providerLicensingId}
+            key={key}
+            id={labelId}
+            scope='row'
+            padding='none'
           >
-            {row.providerLicensingId}
-          </Link>
-        </TooltipTableCell>
-      );
-    case 'providerName':
-      return (
-        <TooltipTableCell tooltipTitle={row.providerName} key={key} subtext={row.city} align='left'>
-          {row.providerName}
-        </TooltipTableCell>
-      );
-    case 'overallRiskScore':
-      return (
-        <TooltipTableCell
-          key={key}
-          tooltipTitle={row.overallRiskScore}
-          align='right'
-          sx={{
-            color: getColor(row.overallRiskScore),
-          }}
-        >
-          {row.overallRiskScore}
-        </TooltipTableCell>
-      );
-    case 'childrenBilledOverCapacity':
-      return (
-        <TooltipTableCell tooltipTitle={row.childrenBilledOverCapacity} key={key} align='right'>
-          {row.childrenBilledOverCapacity}
-        </TooltipTableCell>
-      );
-    case 'distanceTraveled':
-      return (
-        <TooltipTableCell tooltipTitle={row.distanceTraveled} key={key} align='right'>
-          {row.distanceTraveled}
-        </TooltipTableCell>
-      );
-    case 'childrenPlacedOverCapacity':
-      return (
-        <TooltipTableCell tooltipTitle={row.childrenPlacedOverCapacity} key={key} align='right'>
-          {row.childrenPlacedOverCapacity}
-        </TooltipTableCell>
-      );
-    case 'providersWithSameAddress':
-      return (
-        <TooltipTableCell tooltipTitle={row.providersWithSameAddress} key={key} align='right'>
-          {row.providersWithSameAddress}
-        </TooltipTableCell>
-      );
-    default:
-      return null;
-  }
-};
+            <Link
+              rel='noopener noreferrer'
+              target='_blank'
+              href={`/provider/risk-audit/${row.providerLicensingId}`}
+            >
+              {row.providerLicensingId}
+            </Link>
+          </TooltipTableCell>
+        );
+      case 'providerName':
+        return (
+          <TooltipTableCell
+            tooltipTitle={row.providerName}
+            key={key}
+            subtext={row.city}
+            align='left'
+          >
+            {row.providerName}
+          </TooltipTableCell>
+        );
+      case 'overallRiskScore':
+        return (
+          <TooltipTableCell
+            key={key}
+            tooltipTitle={overallRiskScore}
+            align='right'
+            sx={{
+              color: getColor(overallRiskScore, activeCount * 1),
+            }}
+          >
+            {/* {row.overallRiskScore} */}
+            {overallRiskScore}
+          </TooltipTableCell>
+        );
+      case 'childrenBilledOverCapacity':
+        return (
+          <TooltipTableCell tooltipTitle={row.childrenBilledOverCapacity} key={key} align='right'>
+            {row.childrenBilledOverCapacity}
+          </TooltipTableCell>
+        );
+      case 'distanceTraveled':
+        return (
+          <TooltipTableCell tooltipTitle={row.distanceTraveled} key={key} align='right'>
+            {row.distanceTraveled}
+          </TooltipTableCell>
+        );
+      case 'childrenPlacedOverCapacity':
+        return (
+          <TooltipTableCell tooltipTitle={row.childrenPlacedOverCapacity} key={key} align='right'>
+            {row.childrenPlacedOverCapacity}
+          </TooltipTableCell>
+        );
+      case 'providersWithSameAddress':
+        return (
+          <TooltipTableCell tooltipTitle={row.providersWithSameAddress} key={key} align='right'>
+            {row.providersWithSameAddress}
+          </TooltipTableCell>
+        );
+      default:
+        return null;
+    }
+  };
 // loader relies on address bar params
 export async function loader({ params, request }: Route.LoaderArgs) {
   let date = params?.date;
@@ -329,6 +349,11 @@ export default function MonthlyProviderData({
       await fetchNextPage().then(() => updateOffset());
     }
   };
+
+  const renderCellContent = useMemo(
+    () => createRenderCellContent(riskScoreColumns),
+    [riskScoreColumns]
+  );
 
   return (
     <>
