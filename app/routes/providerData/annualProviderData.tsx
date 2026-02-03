@@ -3,7 +3,7 @@ import { TooltipTableCell } from '~/components/table/TooltipTableCell';
 
 import { useState, useMemo, useEffect } from 'react';
 
-import type { Route } from './+types/annualProviderData';
+import type { Route } from './+types/index';
 import type { AnnualData, HeadCell, Order } from '~/types';
 
 import { useTheme } from '@mui/material/styles';
@@ -12,7 +12,7 @@ import { Box, CircularProgress, Divider, Link, NoSsr } from '@mui/material';
 import EnhancedTableToolbar from '~/components/table/EnhancedTableToolbar';
 import YearOrRangeSelector from '~/components/YearOrRangeSelector';
 
-import { getVisibleRows } from '~/utils/table';
+import { getColor, getVisibleRows, typedEntries } from '~/utils/table';
 import NoData from '~/components/NoData';
 import { getAnnualData, type ProviderFilters } from '~/components/services/providerDataServices';
 import DescriptionAlerts from '~/components/DescriptionAlerts';
@@ -83,6 +83,8 @@ const toggleableColumns = headCells
   .filter(cell => cell.selectable)
   .map(({ id, label }) => ({ id, label, display: true }));
 
+type ColumnVisibility = Partial<Record<keyof AnnualData, { label: string; display: boolean }>>;
+
 const initialVisibility = headCells
   .filter(col => col.selectable)
   .reduce(
@@ -96,29 +98,12 @@ const initialVisibility = headCells
     {} as Record<string, { label: string; display: boolean }>
   );
 
-const riskThresholds = [
-  { max: 100, min: 90, color: 'red' },
-  { max: 90, min: 80, color: 'orange' },
-  { max: 80, min: 0, color: 'green' },
-];
-
-function getColor(value: number, max = 48) {
-  const valPercent = (value / max) * 100; // 48 is highest possible value so this calcs percentage
-  const match = riskThresholds.find(
-    // threshold => value <= threshold.max && value >= threshold.min
-    threshold => valPercent <= threshold.max && valPercent >= threshold.min
-
-    // threshold => value <= (threshold.max / 48 ) * 100 && value >= (threshold.min / 48 ) * 100
-  );
-  return match ? match.color : 'defaultColor';
-}
-
 const createRenderCellContent =
-  riskScoreColumns =>
+  (riskScoreColumns: ColumnVisibility) =>
   (row: AnnualData, columnId: HeadCell['id'], labelId: string, key: string): React.ReactNode => {
-    const overallRiskScore = Object.entries(riskScoreColumns).reduce((sum, [key, cfg]) => {
-      if (!cfg.display) return sum; // Only sum fields that are toggled ON
-      const value = Number(row[key] ?? 0);
+    const overallRiskScore = typedEntries(riskScoreColumns).reduce((sum, [riskKey, cfg]) => {
+      if (!cfg!.display) return sum; // Only sum fields that are toggled ON
+      const value = Number(row[riskKey] ?? 0);
       return sum + value;
     }, 0);
 
@@ -161,7 +146,7 @@ const createRenderCellContent =
             tooltipTitle={row.overallRiskScore}
             align='right'
             sx={{
-              color: getColor(overallRiskScore, activeCount * 12),
+              color: getColor(overallRiskScore, 'annual', activeCount),
             }}
           >
             {/* {row.overallRiskScore} */}
@@ -239,20 +224,25 @@ export default function AnnualProviderData({ date, setAnnualViewData }: AnnualPr
   const [searchValue, setSearchValue] = useState<string>('');
   const [rows, setRows] = useState<AnnualData[]>([]);
 
-  const [riskScoreColumns, setRiskScoreColumns] = useState(initialVisibility);
+  const [riskScoreColumns, setRiskScoreColumns] = useState<ColumnVisibility>(initialVisibility);
 
-  const handleChangeRiskScores = event => {
+  const handleChangeRiskScores = (event: { target: { value: any; name: keyof AnnualData } }) => {
     const {
       target: { value, name },
     } = event;
 
-    setRiskScoreColumns(prev => ({
-      ...prev,
-      [name]: {
-        ...prev[name],
-        display: !prev[name].display,
-      },
-    }));
+    setRiskScoreColumns(prev => {
+      const column = prev[name];
+      if (!column) return prev;
+
+      return {
+        ...prev,
+        [name]: {
+          ...column,
+          display: !column.display,
+        },
+      };
+    });
   };
 
   const displayedColumns = useMemo(() => {
