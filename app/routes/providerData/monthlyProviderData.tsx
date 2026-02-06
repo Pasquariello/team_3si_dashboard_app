@@ -4,7 +4,7 @@ import { Box, CircularProgress, Divider, Link, NoSsr, useTheme } from '@mui/mate
 import type { HeadCell, MonthlyData, Order } from '~/types';
 import DatePickerViews from '~/components/DatePickerViews';
 import EnhancedTableToolbar from '~/components/table/EnhancedTableToolbar';
-import type { Route } from './+types/monthlyProviderData';
+import type { Route } from './+types/index';
 import NoData from '~/components/NoData';
 import { useProviderMonthlyData } from '~/hooks/useProviderMonthlyData';
 
@@ -17,18 +17,7 @@ import { redirect } from 'react-router';
 import { ProviderTableFilterBar } from '~/components/ProviderTableFilterBar';
 import { useQueryParams } from '~/contexts/queryParamContext';
 import { ProviderInfiniteScrollTable } from '~/components/table/ProviderInfiniteScrollTable';
-import { getVisibleRows } from '~/utils/table';
-
-const riskThresholds = [
-  { max: 4, min: 3, color: 'red' },
-  { max: 2, min: 2, color: 'orange' },
-  { max: 1, min: 0, color: 'green' },
-];
-
-const getColor = (value: number) => {
-  const match = riskThresholds.find(threshold => value <= threshold.max && value >= threshold.min);
-  return match ? match.color : 'defaultColor';
-};
+import { getColor, getVisibleRows, typedEntries } from '~/utils/table';
 
 const headCells: readonly HeadCell[] = [
   {
@@ -87,95 +76,105 @@ const headCells: readonly HeadCell[] = [
   },
 ];
 
-const toggleableColumns = headCells
+const toggleableColumns: { id: string; label: string; display: boolean }[] = headCells
   .filter(cell => cell.selectable)
   .map(({ id, label }) => ({ id, label, display: true }));
 
+type ColumnVisibility = Partial<Record<keyof MonthlyData, { label: string; display: boolean }>>;
+
 const initialVisibility = headCells
   .filter(col => col.selectable)
-  .reduce(
-    (acc, col) => {
-      acc[col.id] = {
-        label: col.label,
-        display: true, // or false depending on default behavior
-      };
-      return acc;
-    },
-    {} as Record<string, { label: string; display: boolean }>
-  );
+  .reduce((acc, col) => {
+    acc[col.id] = {
+      label: col.label,
+      display: true, // or false depending on default behavior
+    };
+    return acc;
+  }, {} as ColumnVisibility);
 
-const renderCellContent = (
-  row: MonthlyData,
-  columnId: HeadCell['id'],
-  labelId: string,
-  key: string
-): React.ReactNode => {
-  switch (columnId) {
-    case 'providerLicensingId':
-      return (
-        <TooltipTableCell
-          tooltipTitle={row.providerLicensingId}
-          key={key}
-          id={labelId}
-          scope='row'
-          padding='none'
-        >
-          <Link
-            rel='noopener noreferrer'
-            target='_blank'
-            href={`/provider/risk-audit/${row.providerLicensingId}`}
+const createRenderCellContent =
+  (riskScoreColumns: ColumnVisibility) =>
+  (row: MonthlyData, columnId: HeadCell['id'], labelId: string, key: string): React.ReactNode => {
+    const overallRiskScore = typedEntries(riskScoreColumns).reduce((sum, [riskKey, cfg]) => {
+      if (!cfg!.display) return sum; // Only sum fields that are toggled ON
+      const value = row[riskKey] === 'Yes' ? 1 : 0;
+      return sum + value;
+    }, 0);
+
+    const activeCount = Object.values(riskScoreColumns).filter(v => v.display).length;
+
+    switch (columnId) {
+      case 'providerLicensingId':
+        return (
+          <TooltipTableCell
+            tooltipTitle={row.providerLicensingId}
+            key={key}
+            id={labelId}
+            scope='row'
+            padding='none'
           >
-            {row.providerLicensingId}
-          </Link>
-        </TooltipTableCell>
-      );
-    case 'providerName':
-      return (
-        <TooltipTableCell tooltipTitle={row.providerName} key={key} subtext={row.city} align='left'>
-          {row.providerName}
-        </TooltipTableCell>
-      );
-    case 'overallRiskScore':
-      return (
-        <TooltipTableCell
-          key={key}
-          tooltipTitle={row.overallRiskScore}
-          align='right'
-          sx={{
-            color: getColor(row.overallRiskScore),
-          }}
-        >
-          {row.overallRiskScore}
-        </TooltipTableCell>
-      );
-    case 'childrenBilledOverCapacity':
-      return (
-        <TooltipTableCell tooltipTitle={row.childrenBilledOverCapacity} key={key} align='right'>
-          {row.childrenBilledOverCapacity}
-        </TooltipTableCell>
-      );
-    case 'distanceTraveled':
-      return (
-        <TooltipTableCell tooltipTitle={row.distanceTraveled} key={key} align='right'>
-          {row.distanceTraveled}
-        </TooltipTableCell>
-      );
-    case 'childrenPlacedOverCapacity':
-      return (
-        <TooltipTableCell tooltipTitle={row.childrenPlacedOverCapacity} key={key} align='right'>
-          {row.childrenPlacedOverCapacity}
-        </TooltipTableCell>
-      );
-    case 'providersWithSameAddress':
-      return (
-        <TooltipTableCell tooltipTitle={row.providersWithSameAddress} key={key} align='right'>
-          {row.providersWithSameAddress}
-        </TooltipTableCell>
-      );
-    default:
-      return null;
-  }
-};
+            <Link
+              rel='noopener noreferrer'
+              target='_blank'
+              href={`/provider/risk-audit/${row.providerLicensingId}`}
+            >
+              {row.providerLicensingId}
+            </Link>
+          </TooltipTableCell>
+        );
+      case 'providerName':
+        return (
+          <TooltipTableCell
+            tooltipTitle={row.providerName}
+            key={key}
+            subtext={row.city}
+            align='left'
+          >
+            {row.providerName}
+          </TooltipTableCell>
+        );
+      case 'overallRiskScore':
+        return (
+          <TooltipTableCell
+            key={key}
+            tooltipTitle={overallRiskScore}
+            align='right'
+            sx={{
+              color: getColor(overallRiskScore, 'monthly', activeCount),
+            }}
+          >
+            {/* {row.overallRiskScore} */}
+            {overallRiskScore}
+          </TooltipTableCell>
+        );
+      case 'childrenBilledOverCapacity':
+        return (
+          <TooltipTableCell tooltipTitle={row.childrenBilledOverCapacity} key={key} align='right'>
+            {row.childrenBilledOverCapacity}
+          </TooltipTableCell>
+        );
+      case 'distanceTraveled':
+        return (
+          <TooltipTableCell tooltipTitle={row.distanceTraveled} key={key} align='right'>
+            {row.distanceTraveled}
+          </TooltipTableCell>
+        );
+      case 'childrenPlacedOverCapacity':
+        return (
+          <TooltipTableCell tooltipTitle={row.childrenPlacedOverCapacity} key={key} align='right'>
+            {row.childrenPlacedOverCapacity}
+          </TooltipTableCell>
+        );
+      case 'providersWithSameAddress':
+        return (
+          <TooltipTableCell tooltipTitle={row.providersWithSameAddress} key={key} align='right'>
+            {row.providersWithSameAddress}
+          </TooltipTableCell>
+        );
+      default:
+        return null;
+    }
+  };
 // loader relies on address bar params
 export async function loader({ params, request }: Route.LoaderArgs) {
   let date = params?.date;
@@ -220,20 +219,25 @@ export default function MonthlyProviderData({
   const [searchValue, setSearchValue] = useState<string>('');
   const [rows, setRows] = useState<MonthlyData[]>([]);
 
-  const [riskScoreColumns, setRiskScoreColumns] = useState(initialVisibility);
+  const [riskScoreColumns, setRiskScoreColumns] = useState<ColumnVisibility>(initialVisibility);
 
-  const handleChangeRiskScores = (event: { target: { value: any; name: any } }) => {
+  const handleChangeRiskScores = (event: { target: { value: any; name: keyof MonthlyData } }) => {
     const {
       target: { value, name },
     } = event;
 
-    setRiskScoreColumns(prev => ({
-      ...prev,
-      [name]: {
-        ...prev[name],
-        display: !prev[name].display,
-      },
-    }));
+    setRiskScoreColumns(prev => {
+      const column = prev[name];
+      if (!column) return prev;
+
+      return {
+        ...prev,
+        [name]: {
+          ...column,
+          display: !column.display,
+        },
+      };
+    });
   };
 
   const displayedColumns = useMemo(() => {
@@ -329,6 +333,11 @@ export default function MonthlyProviderData({
       await fetchNextPage().then(() => updateOffset());
     }
   };
+
+  const renderCellContent = useMemo(
+    () => createRenderCellContent(riskScoreColumns),
+    [riskScoreColumns]
+  );
 
   return (
     <>

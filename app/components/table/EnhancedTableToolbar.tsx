@@ -22,6 +22,7 @@ import { useQueryParams } from '~/contexts/queryParamContext';
 import { useMemo, useState } from 'react';
 import DescriptionAlerts from '../DescriptionAlerts';
 import ConfigureRiskScoreSelect from '../ConfigureRiskScoreSelect';
+import type { Data } from '~/types';
 
 const getTabValue = (pathName: string) => {
   if (pathName.includes('annual')) {
@@ -32,7 +33,17 @@ const getTabValue = (pathName: string) => {
   }
 };
 
-function EnhancedTableToolbar({ searchHandler, riskScoreColumns, toggleableColumns, handleChangeRiskScores}: { searchHandler: (val: string) => void }) {
+function EnhancedTableToolbar({
+  searchHandler,
+  riskScoreColumns,
+  toggleableColumns,
+  handleChangeRiskScores,
+}: {
+  searchHandler: (val: string) => void;
+  riskScoreColumns: Partial<Record<keyof Data, { label: string; display: boolean }>>;
+  toggleableColumns: { id: string; label: string; display: boolean }[];
+  handleChangeRiskScores: (event: any) => void;
+}) {
   const theme = useTheme();
   const location = useLocation();
   let params = useParams();
@@ -126,7 +137,7 @@ function EnhancedTableToolbar({ searchHandler, riskScoreColumns, toggleableColum
         sx={{
           display: 'flex',
           gap: 1,
-          flex: 1
+          flex: 1,
         }}
       >
         {/* TODO: Hook up for local search */}
@@ -135,26 +146,19 @@ function EnhancedTableToolbar({ searchHandler, riskScoreColumns, toggleableColum
           variant='outlined'
           onChange={event => searchHandler(event.target.value)}
           size='small'
-          sx={{flex: 1}}
+          sx={{ flex: 1 }}
         />
 
         <Divider orientation='vertical' flexItem sx={{ mx: 0.5 }} />
-     
-        <Button
-          variant='outlined'
-          onClick={handleOpen}
-          size='small'
-          sx={{
-            // alignSelf: 'stretch',
-           
-          }}
-          
-          startIcon={<DownloadIcon />}
-        >
+        <Button variant='outlined' onClick={handleOpen} size='small' startIcon={<DownloadIcon />}>
           Export
         </Button>
 
-        <ConfigureRiskScoreSelect riskScoreColumns={riskScoreColumns} options={toggleableColumns}  handleChangeRiskScores={handleChangeRiskScores}/>
+        <ConfigureRiskScoreSelect
+          riskScoreColumns={riskScoreColumns}
+          options={toggleableColumns}
+          handleChangeRiskScores={handleChangeRiskScores}
+        />
       </Box>
     </>
   );

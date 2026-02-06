@@ -18,3 +18,37 @@ function getComparator<T>(order: Order, orderBy: keyof T): (a: T, b: T) => numbe
 
 export const getVisibleRows = <T>(rows: T[], order: Order, orderBy: keyof T) =>
   [...rows].sort(getComparator(order, orderBy));
+
+export function typedEntries<T extends object>(obj: T): [keyof T, T[keyof T]][] {
+  return Object.entries(obj) as [keyof T, T[keyof T]][];
+}
+
+type RiskThreshold = {
+  minPercent: number;
+  maxPercent: number;
+  color: string;
+};
+
+const monthlyRiskThresholds: RiskThreshold[] = [
+  { maxPercent: 25, minPercent: 0, color: 'green' },
+  { maxPercent: 74, minPercent: 26, color: 'orange' },
+  { maxPercent: 100, minPercent: 75, color: 'red' },
+];
+
+const annualRiskThresholds: RiskThreshold[] = [
+  { maxPercent: 100, minPercent: 90, color: 'red' },
+  { maxPercent: 90, minPercent: 80, color: 'orange' },
+  { maxPercent: 80, minPercent: 0, color: 'green' },
+];
+
+export function getColor(value: number, viewType: 'monthly' | 'annual', activeRiskColumns: number) {
+  const maxRiskPerColumn = viewType === 'monthly' ? 1 : 12;
+  const riskThresholds = viewType === 'monthly' ? monthlyRiskThresholds : annualRiskThresholds;
+  const maxRisk = maxRiskPerColumn * activeRiskColumns;
+
+  const valPercent = (value / maxRisk) * 100;
+  const match = riskThresholds.find(
+    threshold => valPercent <= threshold.maxPercent && valPercent >= threshold.minPercent
+  );
+  return match ? match.color : 'defaultColor';
+}
