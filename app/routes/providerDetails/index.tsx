@@ -26,6 +26,8 @@ import {
   providerColumns,
   type UiOverallScoreData,
   overallColumns,
+  sameAddressColumns,
+  distanceTraveledColumns,
 } from '~/components/table/providerRisk/columnDefs';
 
 export function meta({}: Route.MetaArgs) {
@@ -128,6 +130,14 @@ export default function ProviderDetails() {
       overall: {
         fetch: (view: View, id: string) => fetchTableData<UiOverallScoreData>(view, id),
         columns: overallColumns,
+      },
+      psa: {
+        fetch: (view: View, id: string) => fetchTableData<ScenarioOverData>(view, id),
+        columns: sameAddressColumns,
+      },
+      dt: {
+        fetch: (view: View, id: string) => fetchTableData<UiOverallScoreData>(view, id),
+        columns: distanceTraveledColumns,
       },
     };
   }, [params.view]);

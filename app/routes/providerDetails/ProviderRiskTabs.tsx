@@ -27,19 +27,19 @@ const tabConfig = [
       'Tracks cases where providers billed for more children than their licensed capacity, which could signal billing irregularities or capacity violations.',
     path: 'cboc',
   },
-  // {
-  //   id: 4,
-  //   label: 'Providers with Same Address',
-  //   tooltip: `Detects multiple providers operating from the same address, which may indicate potential fraud, unlicensed operations, or administrative issues.`,
-  //   path: 'psa',
-  // },
-  // {
-  //   id: 5,
-  //   label: 'Distance Traveled',
-  //   tooltip:
-  //     'Monitors the average distance families travel to reach the provider, with unusual patterns potentially indicating improper enrollment or fraud schemes.',
-  //   path: 'dt',
-  // },
+  {
+    id: 4,
+    label: 'Providers with Same Address',
+    tooltip: `Detects multiple providers operating from the same address, which may indicate potential fraud, unlicensed operations, or administrative issues.`,
+    path: 'psa',
+  },
+  {
+    id: 5,
+    label: 'Distance Traveled',
+    tooltip:
+      'Monitors the average distance families travel to reach the provider, with unusual patterns potentially indicating improper enrollment or fraud schemes.',
+    path: 'dt',
+  },
 ];
 
 export default function ProviderRiskTabs() {
