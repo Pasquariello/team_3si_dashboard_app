@@ -74,7 +74,7 @@ export default function ExpandableTable<T>({ data, columns }: ExpandableTablePro
 
         <TableBody>
           {data?.map((row, index) => {
-            const rowKey = String(row[columns[0]?.key] ?? index);
+            const rowKey = String(`${row[columns[0]?.key]}-${index}`);
 
             return (
               <React.Fragment key={`${rowKey}-${index}`}>
@@ -84,9 +84,9 @@ export default function ExpandableTable<T>({ data, columns }: ExpandableTablePro
                       <IconButton
                         aria-label='expand row'
                         size='small'
-                        onClick={() => handleToggleRow(row[columns[0].key]! as string)}
+                        onClick={() => handleToggleRow(rowKey)}
                       >
-                        {openRows.has(row[columns[0].key] as string) ? (
+                        {openRows.has(rowKey) ? (
                           <KeyboardArrowDownIcon />
                         ) : (
                           <KeyboardArrowRightIcon />
@@ -106,7 +106,7 @@ export default function ExpandableTable<T>({ data, columns }: ExpandableTablePro
                   })}
                 </TableRow>
 
-                {openRows.has(row[columns[0].key] as string) &&
+                {openRows.has(rowKey) &&
                   row.subRows &&
                   row.subRows.length > 0 &&
                   row.subRows?.map((subRow, subIndex) => (

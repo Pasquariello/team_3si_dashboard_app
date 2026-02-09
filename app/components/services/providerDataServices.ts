@@ -130,7 +130,7 @@ export const getProviderCities = async (cityName: string): Promise<string[]> => 
   if (cityName) {
     url += `?${new URLSearchParams({ cityName }).toString()}`;
   }
-  
+
   result = await fetchWithAuth(url, { method: 'GET' });
 
   return result;
@@ -211,6 +211,8 @@ export async function fetchTableData<T>(view: View, providerId: string): Promise
     cpoc: 'placed',
     cboc: 'billed',
     overall: 'overall',
+    psa: 'address',
+    dt: 'distance',
   };
 
   let url = `${env.VITE_API_ROOT_API_URL}/scenario/${viewMap[view]}/${providerId}`;
