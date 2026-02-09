@@ -128,12 +128,12 @@ export const overallColumns: ColumnDef<UiOverallScoreData>[] = [
     render: value => <RiskThresholdBadge flag={value} />,
   },
   {
-    key: 'overBilledCapacity',
-    header: 'Over Billed Capacity',
-  },
-  {
     key: 'overPlacementCapacity',
     header: 'Over Placement Capacity',
+  },
+  {
+    key: 'overBilledCapacity',
+    header: 'Over Billed Capacity',
   },
   {
     key: 'sameAddress',
@@ -156,7 +156,7 @@ export const sameAddressColumns: ColumnDef<SameAddressScenarioSubRow>[] = [
   {
     key: 'riskFlag',
     header: 'Risk Flag',
-    render: value => <RiskFlagBadge flag={value} />,
+    render: value => <RiskThresholdBadge flag={value} />,
   },
   {
     key: 'providerId',

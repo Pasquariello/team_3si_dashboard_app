@@ -1,8 +1,25 @@
 import { Box } from '@mui/material';
 import type { RowValue } from '../ExpandableTable';
 
+function toDisplayFlag(flag?: string | number | boolean): 0 | 1 {
+  if (typeof flag === 'boolean') return flag ? 1 : 0;
+
+  if (typeof flag === 'number') return flag === 1 ? 1 : 0;
+
+  if (typeof flag === 'string') {
+    const v = flag.toLowerCase().trim();
+    if (v === 'yes') return 1;
+    if (v === 'no') return 0;
+  }
+
+  return 0;
+}
+
 export const RiskFlagBadge: React.FC<{ flag?: RowValue }> = ({ flag }) => {
-  const displayFlag = flag !== undefined ? 1 : 0;
+  const displayFlag = toDisplayFlag(flag);
+  // 0 or 4
+  const { color, bg } = getThresholdColor(displayFlag === 0 ? 0 : 4);
+
   return (
     <Box
       sx={{
@@ -12,9 +29,9 @@ export const RiskFlagBadge: React.FC<{ flag?: RowValue }> = ({ flag }) => {
         width: 24,
         height: 24,
         borderRadius: '50%',
-        backgroundColor: displayFlag > 0 ? '#ffebee' : 'transparent',
-        color: displayFlag > 0 ? '#ef5350' : 'inherit',
-        border: displayFlag > 0 ? '1px solid #ef5350' : 'none',
+        backgroundColor: bg,
+        color: color,
+        border: `1px solid ${color}`,
         fontWeight: 'bold',
         fontSize: '0.8rem',
       }}
@@ -32,7 +49,7 @@ function convertFlag(flag: unknown): number {
 
 export const RiskThresholdBadge: React.FC<{ flag?: RowValue }> = ({ flag }) => {
   const displayFlag = convertFlag(flag);
-  const { color, bg } = getColor(displayFlag);
+  const { color, bg } = getThresholdColor(displayFlag);
   return (
     <Box
       sx={{
@@ -60,7 +77,7 @@ const riskThresholds = [
   { max: 1, min: 0, color: '#66bb6a', bg: '#e8f5e9' },
 ];
 
-const getColor = (value: number) => {
+const getThresholdColor = (value: number) => {
   const match = riskThresholds.find(threshold => value <= threshold.max && value >= threshold.min);
   return match ? match : riskThresholds[2];
 };
