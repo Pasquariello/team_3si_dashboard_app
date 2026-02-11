@@ -156,7 +156,7 @@ export const sameAddressColumns: ColumnDef<SameAddressScenarioSubRow>[] = [
   {
     key: 'riskFlag',
     header: 'Risk Flag',
-    render: value => <RiskThresholdBadge flag={value} />,
+    render: value => <RiskFlagBadge flag={value} />,
   },
   {
     key: 'providerId',

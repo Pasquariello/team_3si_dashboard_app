@@ -7,6 +7,7 @@ export interface HeadCell {
   numeric: boolean;
   width?: string;
   selectable?: boolean;
+  tooltip?: string;
 }
 
 export interface Data {

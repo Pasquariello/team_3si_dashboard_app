@@ -116,7 +116,7 @@ export default function ProviderData() {
         minHeight: '100vh',
       }}
     >
-      <Box display={'flex'} justifyContent={'end'}>
+      <Box display={'flex'} justifyContent={'end'} marginRight={2}>
         <RiskScenarioDefinitions scenarioConfig={scenarioConfig} />
       </Box>
       <ProviderDataCards />

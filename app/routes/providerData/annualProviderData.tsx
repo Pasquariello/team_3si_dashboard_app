@@ -48,6 +48,8 @@ const headCells: readonly HeadCell[] = [
     numeric: true,
     disablePadding: false,
     label: 'Overall Risk Score',
+    tooltip:
+      "A composite score reflecting the provider's overall risk level based on multiple factors including capacity, billing, and compliance patterns.",
   },
   {
     id: 'childrenBilledOverCapacity', // 'childrenBilledOverCapacity',
@@ -55,6 +57,8 @@ const headCells: readonly HeadCell[] = [
     disablePadding: false,
     label: 'Children Billed Over',
     selectable: true,
+    tooltip:
+      "Measures the number of unique children billed by a provider relative to the provider's capacity in a service week. A provider is flagged if the number of billed placements exceeds the licensed capacity in any week in a given month.",
   },
   {
     id: 'childrenPlacedOverCapacity', // 'childrenPlacedOverCapacity',
@@ -62,6 +66,8 @@ const headCells: readonly HeadCell[] = [
     disablePadding: false,
     label: 'Children Placed Over Capacity',
     selectable: true,
+    tooltip:
+      "Measures the number of unique children who have placements at a provider site relative to the provider's licensed capacity in a service week. A provider is flagged if the number of placements exceeds the licensed capacity in any week in a given month.",
   },
   {
     id: 'distanceTraveled', //'distanceTraveled',
@@ -69,6 +75,8 @@ const headCells: readonly HeadCell[] = [
     disablePadding: false,
     label: 'Distance Traveled',
     selectable: true,
+    tooltip:
+      'Tracks child-to-provider distances for children placed at a provider in a service week. A provider is flagged if the average distance traveled by children placed at that provider exceeds 20 miles in any service week in a given month.',
   },
   {
     id: 'providersWithSameAddress', //'providersWithSameAddress',
@@ -76,6 +84,8 @@ const headCells: readonly HeadCell[] = [
     disablePadding: false,
     label: 'Providers with Same Address',
     selectable: true,
+    tooltip:
+      'Tracks whether a provider shares the same physical address with one or more other providers in a service week. A provider is flagged if they are co-located with at least one other provider that has a different licensing ID in the same service week in a given month.',
   },
 ];
 
