@@ -7,6 +7,8 @@ import { useNavigate } from 'react-router';
 
 import { useQueryParams } from '~/contexts/queryParamContext';
 import ProviderDataCards from '~/components/providerData/providerDataCards';
+import RiskScenarioDefinitions from '~/components/modals/RiskScenarioDefinitions';
+import { scenarioConfig } from '../providerDetails/configs';
 
 export function meta({}: Route.MetaArgs) {
   return [{ title: 'Provider Data' }, { name: 'description', content: 'providerData' }];
@@ -114,6 +116,9 @@ export default function ProviderData() {
         minHeight: '100vh',
       }}
     >
+      <Box display={'flex'} justifyContent={'end'}>
+        <RiskScenarioDefinitions scenarioConfig={scenarioConfig} />
+      </Box>
       <ProviderDataCards />
       <Tabs value={activeTab} onChange={handleChange}>
         {tabRoutes.map(({ label, id }) => (
