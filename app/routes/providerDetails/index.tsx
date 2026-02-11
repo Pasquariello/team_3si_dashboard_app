@@ -29,6 +29,8 @@ import {
   sameAddressColumns,
   distanceTraveledColumns,
 } from '~/components/table/providerRisk/columnDefs';
+import RiskScenarioDefinitions from '~/components/modals/RiskScenarioDefinitions';
+import { scenarioConfig } from './configs';
 
 export function meta({}: Route.MetaArgs) {
   return [{ title: 'Provider Details' }, { name: 'description', content: 'providerDetails' }];
@@ -191,6 +193,9 @@ export default function ProviderDetails() {
         handleClose={() => setAlert(null)}
       />
       <Box display='flex' flexDirection='column' gap={3} sx={{ px: 3 }}>
+        <Box display={'flex'} justifyContent={'end'}>
+          <RiskScenarioDefinitions scenarioConfig={scenarioConfig} />
+        </Box>
         <Box display='flex' gap={3}>
           <ProviderMetaDataSection data={details!} isLoading={isLoadingDetails} />
           <Card

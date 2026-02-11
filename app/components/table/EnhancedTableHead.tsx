@@ -1,3 +1,4 @@
+import { InfoOutlineRounded } from '@mui/icons-material';
 import {
   Box,
   Checkbox,
@@ -5,6 +6,7 @@ import {
   TableHead,
   TableRow,
   TableSortLabel,
+  Tooltip,
   useTheme,
 } from '@mui/material';
 import { visuallyHidden } from '@mui/utils';
@@ -83,6 +85,19 @@ function EnhancedTableHead<T extends Data>({
               {/* Sort icon makes alignment look off so we put it to the opposite side */}
               {headCell.numeric ? (
                 <>
+                  {headCell.tooltip && (
+                    <Tooltip title={headCell.tooltip} arrow>
+                      <InfoOutlineRounded
+                        sx={{
+                          ml: '0.5rem',
+                          opacity: 0.3,
+                          fontSize: '1em',
+                          alignSelf: 'center',
+                          display: 'flex',
+                        }}
+                      />
+                    </Tooltip>
+                  )}
                   {headCell.label}
                   {orderBy === headCell.id ? (
                     <Box component='span' sx={visuallyHidden}>
@@ -97,6 +112,19 @@ function EnhancedTableHead<T extends Data>({
                       {order === 'desc' ? 'sorted descending' : 'sorted ascending'}
                     </Box>
                   ) : null}
+                  {headCell.tooltip && (
+                    <Tooltip title={headCell.tooltip} arrow>
+                      <InfoOutlineRounded
+                        sx={{
+                          ml: '0.5rem',
+                          opacity: 0.3,
+                          fontSize: '1em',
+                          alignSelf: 'center',
+                          display: 'flex',
+                        }}
+                      />
+                    </Tooltip>
+                  )}
                   {headCell.label}
                 </>
               )}
