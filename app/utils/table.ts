@@ -29,13 +29,13 @@ type RiskThreshold = {
   color: string;
 };
 
-const monthlyRiskThresholds: RiskThreshold[] = [
+export const monthlyRiskThresholds: RiskThreshold[] = [
   { maxPercent: 25, minPercent: 0, color: 'green' },
   { maxPercent: 74, minPercent: 26, color: 'orange' },
   { maxPercent: 100, minPercent: 75, color: 'red' },
 ];
 
-const annualRiskThresholds: RiskThreshold[] = [
+export const annualRiskThresholds: RiskThreshold[] = [
   { maxPercent: 100, minPercent: 90, color: 'red' },
   { maxPercent: 90, minPercent: 80, color: 'orange' },
   { maxPercent: 80, minPercent: 0, color: 'green' },
@@ -50,5 +50,7 @@ export function getColor(value: number, viewType: 'monthly' | 'annual', activeRi
   const match = riskThresholds.find(
     threshold => valPercent <= threshold.maxPercent && valPercent >= threshold.minPercent
   );
-  return match ? match.color : 'defaultColor';
+  return match ? match.color : 'unset';
 }
+
+export { descendingComparator, getComparator };
