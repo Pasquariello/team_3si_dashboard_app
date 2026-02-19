@@ -26,5 +26,13 @@ export default defineConfig(({ mode }) => {
         },
       }),
     ],
+    test: {
+      globals: true,
+    },
+    resolve: {
+      alias: {
+        '~': '/app'
+      }
+    }
   };
 });
